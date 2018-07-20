@@ -1,6 +1,6 @@
 import itertools
 
-from bitstring import ConstBitStream
+from bitstring import BitStream
 import numpy
 
 class Model:
@@ -8,8 +8,10 @@ class Model:
 
     https://icfpcontest2018.github.io/lgtn/task-description.html#model-files"""
     def __init__(self, stream):
-        self.size = stream.read(8).uint
+        self.size = stream.read("uint:8")
         self.data = numpy.zeros((self.size, self.size, self.size))
+        for i in range(8, 8 + self.size ** 3, 8):
+            stream.reverse(i, i + 8)
         for cell in itertools.product(range(self.size), repeat=3):
             self.data[cell] = stream.read("bool")
 
@@ -21,5 +23,5 @@ class Model:
         return "Model size {}\nData {}".format(self.size, self.data)
 
 if __name__ == "__main__":
-    DEFAULT_MODEL = Model(ConstBitStream(filename="problemsL/LA001_tgt.mdl"))
+    DEFAULT_MODEL = Model(BitStream(filename="problemsL/LA001_tgt.mdl"))
     print(DEFAULT_MODEL)
