@@ -6,7 +6,7 @@ import numpy
 class Model:
     """Model file
 
-    Full description: https://icfpcontest2018.github.io/lgtn/task-description.html#models"""
+    https://icfpcontest2018.github.io/lgtn/task-description.html#model-files"""
     def __init__(self, stream):
         self.size = stream.read(8).uint
         self.data = numpy.zeros((self.size, self.size, self.size))
@@ -18,7 +18,7 @@ class Model:
         return True # TODO implement
 
     def __str__(self):
-        return "Model size {}\n Data {}".format(self.size, self.data)
+        return "Model size {}\nData {}".format(self.size, self.data)
 
 if __name__ == "__main__":
     DEFAULT_MODEL = Model(ConstBitStream(filename="problemsL/LA001_tgt.mdl"))
