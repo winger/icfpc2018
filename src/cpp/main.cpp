@@ -1,16 +1,11 @@
-#include "matrix.h"
-#include "trace.h"
+#include "evaluation.h"
 
 void TestTraceDecodeEncode();
 
 int main()
 {
     cout << "Hello!" << endl;
-    TestTraceDecodeEncode();
-    Matrix m;
-    m.ReadFromFile("LA001_tgt");
-    m.Print();
-    Trace t;
-    t.ReadFromFile("dfltTracesL/LA001.nbt");
+    // TestTraceDecodeEncode();
+    Evaluation::TestAllDfltSolution();
     return 0;
 }

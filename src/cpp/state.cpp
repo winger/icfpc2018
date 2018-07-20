@@ -134,12 +134,18 @@ void State::Step()
         trace_pos = trace.size();
 }
 
+void State::Run()
+{
+    for (; trace_pos < trace.size(); )
+        Step();
+}
+
 bool State::MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference& cd)
 {
     assert(cd.IsLinearCoordinateDifferences());
     CoordinateDifference step { sign(cd.dx), sign(cd.dy), sign(cd.dz) };
     unsigned l = cd.ManhattanLength();
-    for (unsigned i = 1; i <= l; ++l)
+    for (unsigned i = 1; i <= l; ++i)
     {
         bs.c = bs.c + step;
         correct = correct && matrix.IsInside(bs.c) && !matrix.Get(bs.c);

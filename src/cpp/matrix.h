@@ -24,4 +24,6 @@ public:
     void Init(int r);
     void ReadFromFile(const string& filename);
     void Print() const;
+
+    bool operator==(const Matrix& m) const { return data == m.data; }
 };

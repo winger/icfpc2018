@@ -28,6 +28,7 @@ public:
     void Init(int r, const Trace& trace);
     bool IsCorrectFinal() const;
     void Step();
+    void Run();
 
 protected:
     bool MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference& cd);

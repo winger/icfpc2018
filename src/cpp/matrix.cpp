@@ -11,14 +11,14 @@ void Matrix::Init(int r)
 void Matrix::ReadFromFile(const string& filename)
 {
     string full_filename = "problemsL/" + filename + ".mdl";
-    cout << full_filename << endl;
+    // cout << full_filename << endl;
     ifstream file(full_filename, ios::binary);
     assert(file.is_open());
-    cout << "File is open.";
+    // cout << "File is open.";
     char c;
     file.read(&c, 1);
-    Init(c);
-    cout << " Size = " << size << endl;
+    Init(uint8_t(c));
+    // cout << " Size = " << size << endl;
     volume = size * size * size;
     unsigned volume8 = (volume + 7) / 8;
     vector<uint8_t> data_bool(volume8);
