@@ -107,3 +107,4 @@ venv.bak/
 
 # icfpc
 *.zip
+a.out
