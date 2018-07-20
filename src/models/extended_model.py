@@ -1,4 +1,4 @@
-from bitstring import ConstBitStream
+from bitstring import BitStream
 
 from model import Model
 
@@ -11,10 +11,9 @@ class ExtendedModel(Model):
         stream.bytealign()
         self.bots = []
         while stream.pos < stream.length:
-            print("{} of {}".format(stream.pos, stream.length))
             bot, x, y, z = stream.readlist("uint:8, uint:8, uint:8, uint:8")
             self.bots += (bot, x, y, z)
 
 if __name__ == "__main__":
-    DEFAULT_MODEL = ExtendedModel(ConstBitStream(filename="problemsL/LA001_tgt.mdl"))
+    DEFAULT_MODEL = ExtendedModel(BitStream(filename="problemsL/LA001_tgt.mdl"))
     print(DEFAULT_MODEL)
