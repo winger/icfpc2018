@@ -1,6 +1,24 @@
 #pragma once
 
+#include "hash.h"
+
 struct Coordinate
 {
     int x, y, z;
+
+    bool operator==(const Coordinate& c) const { return (x == c.x) && (y == c.y) && (z == c.z); }
 };
+
+namespace std {
+
+template<>
+struct hash<Coordinate>
+{
+	size_t operator()(const Coordinate& c) const
+	{
+        hash<int> h;
+		return hash_combine(hash_combine(h(c.x), h(c.y)), h(c.z));
+	}
+};
+
+} // std

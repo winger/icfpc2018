@@ -1,12 +1,12 @@
 #include "matrix.h"
 #include "trace.h"
 
-void TraceDecodeEncodeTest();
+void TestTraceDecodeEncode();
 
 int main()
 {
     cout << "Hello!" << endl;
-    TraceDecodeEncodeTest();
+    TestTraceDecodeEncode();
     Matrix m;
     m.ReadFromFile("LA001_tgt");
     m.Print();

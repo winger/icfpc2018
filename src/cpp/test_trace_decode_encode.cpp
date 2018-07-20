@@ -1,6 +1,6 @@
 #include "trace.h"
 
-void TraceDecodeEncodeTest()
+void TestTraceDecodeEncode()
 {
     Trace t;
     for (unsigned i = 1; i <= 186; ++i)
