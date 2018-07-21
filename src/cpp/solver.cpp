@@ -1,8 +1,14 @@
 #include "solver.h"
 
+#include <future>
+#include <thread>
+
 #include "solvers/layers_base.h"
 
 #include "evaluation.h"
+
+#include "command_line.h"
+#include "threadPool.h"
 
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
   string full_filename = "../../" + filename;
@@ -37,10 +43,23 @@ unsigned Solver::Solve(unsigned model_index)
     return score;
 }
 
+static constexpr size_t N_TESTS = 186;
+
 void Solver::SolveAll()
 {
+    tp::ThreadPoolOptions options;
+    options.setThreadCount(cmd.int_args["threads"]);
+    tp::ThreadPool pool(options);
+
     unsigned total_score = 0;
-    for (unsigned i = 1; i <= 186; ++i)
-        total_score += Solve(i);
+    std::vector<std::future<unsigned>> futures;
+    for (unsigned i = 1; i <= N_TESTS; ++i) {
+        std::packaged_task<unsigned()> t([i]() { return Solve(i); });
+        futures.emplace_back(t.get_future());
+        pool.blockingPost(t);
+    }
+    for (auto& f : futures) {
+        total_score += f.get();
+    }
     cout << "Final score: " << total_score << endl;
 }

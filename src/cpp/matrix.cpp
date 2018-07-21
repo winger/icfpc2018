@@ -43,3 +43,12 @@ void Matrix::Print() const
         cout << endl;
     }
 }
+
+std::vector<int> Matrix::Reindex(int index) const {
+  int z = index % size;
+  index /= size;
+  int y = index % size;
+  index /= size;
+  int x = index % size;
+  return std::vector<int>{x, y, z};
+}
