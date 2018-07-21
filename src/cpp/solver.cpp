@@ -14,6 +14,8 @@
 namespace {
 static constexpr size_t N_LIGHTNING_TESTS = 186;
 static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
+static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
+static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
     ofstream file(filename);
@@ -83,11 +85,24 @@ Problems Solver::ListProblems(const std::string& round) {
             result.emplace_back(std::move(p));
         }
     } else if (round == "full") {
+        Problem p0;
+        p0.round = "F";
         for (size_t i = 1; i <= N_FULL_ASSEMBLY_TESTS; ++i) {
-            Problem p;
+            Problem p = p0;
             p.index = i;
             p.assembly = true;
-            p.round = "F";
+            result.emplace_back(std::move(p));
+        }
+        for (size_t i = 1; i <= N_FULL_DISASSEMBLY_TESTS; ++i) {
+            Problem p = p0;
+            p.index = i;
+            p.disassembly = true;
+            result.emplace_back(std::move(p));
+        }
+        for (size_t i = 1; i <= N_FULL_REASSEMBLY_TESTS; ++i) {
+            Problem p = p0;
+            p.index = i;
+            p.reassembly = true;
             result.emplace_back(std::move(p));
         }
     } else {
@@ -138,12 +153,22 @@ unsigned Score(const Matrix& model, double performance) {
     return unsigned(1000.0 * performance * unsigned(log(model.GetR()) / log(2)));
 }
 
-unsigned Solver::Solve(const Problem& p)
-{
+unsigned Solver::Solve(const Problem& p) {
     Matrix model;
     model.ReadFromFile(p.GetTarget());
     Trace trace;
-    uint64_t energy = Solve(p, model, trace);
+
+    uint64_t energy;
+    if (p.assembly) {
+        energy = Solve(p, model, trace);
+    } else if (p.disassembly) {
+        trace.ReadFromFile(p.GetDefaultTrace());
+        energy = Evaluation::CheckSolution(model, trace);
+    } else if (p.reassembly) {
+        trace.ReadFromFile(p.GetDefaultTrace());
+        energy = Evaluation::CheckSolution(model, trace);
+    }
+
     uint64_t energy2 = Evaluation::CheckSolution(model, trace);
     assert((energy == 0) || (energy == energy2));
     WriteEnergyToFile(energy2, p.GetEnergyInfo());
