@@ -19,6 +19,9 @@ protected:
     void SolveZ1_GetRZ(int x, int y, int& z0, int& z1);
     void SolveZ1_Fill(State::BotState& bs, int x, int y, bool direction);
     void SolveZ1(int x, int y);
+    void SolveZ3_GetRZ(int x, int y, int& z0, int& z1);
+    void SolveZ3_Fill(State::BotState& bs, int x, int y, bool direction);
+    void SolveZ3(int x, int y);
     void SolveLayer(int y);
     void SolveFinalize();
     void Solve(Trace& output);

@@ -125,6 +125,58 @@ void SolverLayersBase::SolveZ1(int x, int y)
     SolveZ1_Fill(bs, x, y, zdirection);
 }
 
+void SolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
+{
+    int r = matrix.GetR();
+    z0 = r, z1 = -1;
+    for (int ix = max(x - 1, 0); ix <= min(x + 1, r - 1); ++ix)
+    {
+        for (int z = 0; z < r; ++z)
+        {
+            if (matrix.Get(ix, y, z) && !state.matrix.Get(ix, y, z))
+            {
+                z0 = min(z0, z);
+                z1 = max(z1, z);
+            }
+        }
+    }
+}
+
+void SolverLayersBase::SolveZ3_Fill(State::BotState& bs, int x, int y, bool direction)
+{
+    for (;;)
+    {
+        for (int dx = -1; dx <= 1; ++dx)
+        {
+            Coordinate c {x + dx, y, bs.c.z};
+            if (matrix.IsInside(c) && matrix.Get(c))
+            {
+                Command m(Command::Fill);
+                m.cd1 = { dx, -1, 0 };
+                AddCommand(m);
+            }
+        }
+        int z0, z1;
+        SolveZ3_GetRZ(x, y, z0, z1);
+        if (z1 < 0) return; // Nothing to do
+        int nextz = direction ? z0 : z1;
+        MoveToCoordinate(bs, x, y + 1, nextz);
+    }
+}
+
+void SolverLayersBase::SolveZ3(int x, int y)
+{
+    int z0, z1;
+    SolveZ3_GetRZ(x, y, z0, z1);
+    if (z1 < 0) return; // Nothing to do
+
+    State::BotState& bs = state.all_bots[0];
+    bool zdirection = (bs.c.z <= (z0 + z1) / 2);
+    int zstart = zdirection ? z0 : z1;
+    MoveToCoordinate(bs, x, y + 1, zstart);
+    SolveZ3_Fill(bs, x, y, zdirection);
+}
+
 void SolverLayersBase::SolveLayer(int y)
 {
     int r = matrix.GetR();
@@ -147,13 +199,35 @@ void SolverLayersBase::SolveLayer(int y)
     Coordinate c = state.all_bots[0].c;
     if (c.x <= (x0 + x1) / 2)
     {
-        for (int x = x0; x <= x1; ++x)
-            SolveZ1(x, y);
+        for (int x = x0; x <= x1;)
+        {
+            if (x < x1)
+            {
+                SolveZ3(x + 1, y);
+                x += 3;
+            }
+            else
+            {
+                SolveZ1(x, y);
+                x += 1;
+            }
+        }
     }
     else
     {
-        for (int x = x1; x >= x0; --x)
-            SolveZ1(x, y);
+        for (int x = x1; x >= x0;)
+        {
+            if (x > x0)
+            {
+                SolveZ3(x - 1, y);
+                x -= 3;
+            }
+            else
+            {
+                SolveZ1(x, y);
+                x -= 1;
+            }
+        }
     }
 }
 
