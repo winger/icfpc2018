@@ -10,7 +10,7 @@ class ExtendedModel(Model):
 
     https://icfpcontest2018.github.io/lgtn/task-description.html#extended-model-files"""
     def __init__(self, data):
-        super().__init__(data)
+        super(ExtendedModel, self).__init__(data)
         bots_data = bitarray(data[bits2bytes(self.size ** 3 + 8) * 8:], endian="big")
         bots = numpy.frombuffer(bots_data.tobytes(), dtype=numpy.int8)
         self.bots = bots.reshape((-1, 4))

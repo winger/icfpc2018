@@ -2,6 +2,7 @@ import itertools
 import sys
 
 from bitarray import bitarray
+from bithack import asint
 import numpy
 
 class Model:
@@ -9,8 +10,7 @@ class Model:
 
     https://icfpcontest2018.github.io/lgtn/task-description.html#model-files"""
     def __init__(self, data):
-        size = bitarray(data[:8], endian="big")
-        self.size = int(size.tobytes()[0])
+        self.size = asint(bitarray(data[:8], endian="big"))
         cell_count = self.size ** 3
         cells = numpy.frombuffer(data[8:8 + cell_count].unpack(), dtype=bool).astype(int)
         cells.resize(cell_count)
