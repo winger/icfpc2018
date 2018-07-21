@@ -9,7 +9,9 @@ decorator==4.3.0
 entrypoints==0.2.3
 html5lib==1.0.1
 idna==2.7
+ipydatawidgets==3.1.0
 ipykernel==4.8.2
+ipyscales==0.2.2
 ipython==6.4.0
 ipython-genutils==0.2.0
 ipyvolume==0.4.6
@@ -39,6 +41,7 @@ ptyprocess==0.6.0
 Pygments==2.2.0
 pyparsing==2.2.0
 python-dateutil==2.7.3
+pythreejs==1.1.0
 pytz==2018.5
 pyzmq==17.1.0
 requests==2.19.1
