@@ -2,7 +2,10 @@
 
 set -e
 
-SHA=`sha256sum submit.zip | awk '{print $1}'`
+URL=$1
+URL=${URL/drive.google.com\/open?id/drive.google.com\/uc?id}
+echo ${URL}
+SHA=`shasum -a 256 submit.zip | awk '{print $1}'`
 ID=`cat private.id`
 curl -L \
     --data-urlencode action=submit \
