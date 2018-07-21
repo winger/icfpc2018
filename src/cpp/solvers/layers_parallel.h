@@ -18,11 +18,12 @@ protected:
 
     Matrix matrix;
     
+    bool search_best_split;
     int split_axis; // 1 - x, 3 - z
     vector<int> split_coordinate;
     vector<BotTrace> bot_traces;
 
-    SolverLayersParallel(const Matrix& m);
+    SolverLayersParallel(const Matrix& m, bool search_best_split);
 
     void BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces);
     void MergeBot(unsigned index);
@@ -31,5 +32,5 @@ protected:
     void Solve(Trace& output);
 
 public:
-    static uint64_t Solve(const Matrix& m, Trace& output);
+    static uint64_t Solve(const Matrix& m, Trace& output, bool search_best_split = false);
 };

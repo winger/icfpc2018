@@ -42,5 +42,5 @@ protected:
 
 public:
     static uint64_t Solve(const Matrix& m, Trace& output);
-    static size_t SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
+    static uint64_t SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
 };

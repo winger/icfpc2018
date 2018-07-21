@@ -2,9 +2,10 @@
 
 #include "layers_base.h"
 
-SolverLayersParallel::SolverLayersParallel(const Matrix& m)
+SolverLayersParallel::SolverLayersParallel(const Matrix& m, bool _search_best_split)
 {
     matrix = m;
+    search_best_split = _search_best_split;
 }
 
 void SolverLayersParallel::BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces)
@@ -13,7 +14,6 @@ void SolverLayersParallel::BuildBot(size_t time, unsigned index, const vector<Tr
     bc.built_time = time;
     int current_pos = (index == 0) ? 0 : split_coordinate[index - 1] + 1;
     int target_pos = split_coordinate[index];
-    // cout << "BuildBot: " << index << "/" << main_traces.size() << " " << current_pos << " " << target_pos << " " << matrix.GetR() << endl;
     for (; current_pos != target_pos; )
     {
         int dp = max(-15, min(target_pos - current_pos, 15));
@@ -64,11 +64,163 @@ void SolverLayersParallel::MergeBot(unsigned index)
 
 void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
 {
-    split_axis = 1;
+    struct SplitInfo
+    {
+        bool valid = false;
+        size_t moves;
+        uint64_t energy;
+        vector<int> splits;
+    };
+
     int r = matrix.GetR();
-    split_coordinate.resize(0);
-    for (unsigned i = 0; i <= 20; ++i)
-        split_coordinate.push_back((i * r) / 20);        
+    if (!search_best_split)
+    {
+        split_axis = 1;
+        split_coordinate.resize(0);
+        for (unsigned i = 0; i <= 20; ++i)
+            split_coordinate.push_back((i * r) / 20);        
+        return;
+    }
+
+    Matrix mtemp; mtemp.Init(r);
+    bool best_split_valid = false;
+    size_t best_moves = 0, best_energy = 0;
+    
+    for (int axis = 1; axis <= 3; axis += 2)
+    {
+        // don't check all positions because too expensive
+        vector<bool> validk(r + 1, false);
+        validk[0] = true; validk[r] = true;
+        vector<size_t> volume(r, 0);
+        size_t total_volume = 0;
+        for (int x = 0; x < r; ++x)
+        {
+            for (int y = 0; y < r; ++y)
+            {
+                for (int z = 0; z < r; ++z)
+                {
+                    if (matrix.Get(x, y, z))
+                    {
+                        volume[(axis == 1) ? x : z] += 1;
+                        total_volume += 1;
+                    }
+                }
+            }
+        }
+        size_t current_volume = 0, delta_volume = max(size_t(1), total_volume / 20), next_volume = delta_volume;
+        int last_valid_k = 0;
+        bool enable_next_k = false;
+        for (int k = 0; k < r; ++k)
+        {
+            if (volume[k] == 0)
+                continue;                
+            if (enable_next_k || (50 * (k - last_valid_k) > r))
+            {
+                validk[k] = true;
+                last_valid_k = k;
+                enable_next_k = false;
+            }
+            current_volume += volume[k];
+            if (current_volume >= next_volume)
+            {
+                validk[k] = true;
+                last_valid_k = k;
+                enable_next_k = true;
+                for (; next_volume <= current_volume; ) next_volume += delta_volume;
+            }
+        }
+
+
+        Trace trace;
+        vector<vector<pair<size_t, uint64_t>>> vcost(r, vector<pair<uint64_t, size_t>>(r, {0, 0}));
+        for (int i = 0; i < r; ++i)
+        {
+            if (!validk[i]) continue;
+            for (int j = i; j < r; ++j)
+            {
+                if (!validk[j+1]) continue;
+                int x0 = (axis == 1) ? i : 0;
+                int x1 = (axis == 1) ? j + 1 : r;
+                int z0 = (axis == 3) ? i : 0;
+                int z1 = (axis == 3) ? j + 1 : r;
+                for (int x = x0; x < x1; ++x)
+                {
+                    for (int y = 0; y < r; ++y)
+                    {
+                        for (int z = z0; z < z1; ++z)
+                        {
+                            if (matrix.Get(x, y, z))
+                                mtemp.Fill(x, y, z);
+                        }
+                    }
+                }
+                uint64_t energy = SolverLayersBase::SolveHelper(mtemp, {(axis == 1) ? i : 0, 0, (axis == 3) ? i : 0}, trace);
+                size_t moves = trace.size();
+                energy -= 30 * matrix.GetVolume() * moves; // We will pay for moves later
+                energy -= 20 * moves; // We will pay for bot-moves later
+                vcost[i][j] = {moves, energy};
+                for (int x = x0; x < x1; ++x)
+                {
+                    for (int y = 0; y < r; ++y)
+                    {
+                        for (int z = z0; z < z1; ++z)
+                        {
+                            mtemp.Erase(x, y, z);
+                        }
+                    }
+                }
+            }
+        }
+
+        vector<vector<SplitInfo>> vdp(20, vector<SplitInfo>(r));
+        for (int k = 0; k < r; ++k)
+        {
+            if (vcost[0][k].first == 0) continue;
+            vdp[0][k].valid = true;
+            vdp[0][k].moves = vcost[0][k].first;
+            vdp[0][k].energy = vcost[0][k].second;
+            vdp[0][k].splits = {0, k + 1};
+        }
+        for (unsigned l = 1; l < 20; ++l)
+        {
+            for (int k = l; k < r; ++k)
+            {
+                if (!validk[k+1]) continue;
+                for (int m = l - 1; m < k; ++m)
+                {
+                    size_t new_moves = vcost[m + 1][k].first;
+                    if (new_moves == 0) continue;
+                    size_t extra_moves = 4 * l + 2 * (k / 15);
+                    size_t total_moves = max(vdp[l-1][m].moves, new_moves + extra_moves);
+                    size_t energy = vdp[l-1][m].energy + vcost[m + 1][k].second;
+                    if (!vdp[l][k].valid || (vdp[l][k].moves > total_moves) || ((vdp[l][k].moves == total_moves) && (vdp[l][k].energy > energy)))
+                    {
+                        vdp[l][k].valid = true;
+                        vdp[l][k].moves = total_moves;
+                        vdp[l][k].energy = energy;
+                        vdp[l][k].splits = vdp[l-1][m].splits;
+                        vdp[l][k].splits.push_back(k + 1);
+                    }
+                }
+            }
+        }
+        for (unsigned l = 0; l < 20; ++l)
+        {
+            if (!vdp[l][r - 1].valid)
+                continue;
+            size_t energy = vdp[l][r - 1].energy + 20 * l * vdp[l][r - 1].moves; // penaly for bots
+            if (!best_split_valid || (best_moves > vdp[l][r-1].moves) || ((best_moves == vdp[l][r-1].moves) && (best_energy > energy)))
+            {
+                best_split_valid = true;
+                best_moves = vdp[l][r-1].moves;
+                best_energy = energy;
+                split_axis = axis;
+                split_coordinate = vdp[l][r - 1].splits;
+            }
+        }
+    }
+    // cout << "Split: " << split_axis << " " << split_coordinate.size() << " " << best_moves << endl;
+    assert(best_split_valid);
 }
 
 void SolverLayersParallel::Solve(Trace& output)
@@ -81,8 +233,6 @@ void SolverLayersParallel::Solve(Trace& output)
     assert((split_axis == 1) || (split_axis == 3));
     assert((2 <= split_coordinate.size()) && (split_coordinate.size() <= 21));
     assert((split_coordinate[0] == 0) && (split_coordinate.back() == r));
-
-    assert(split_axis == 1); // We will support split_axis == 3 later.
 
     // Get bots traces
     vector<Trace> personal_traces(split_coordinate.size() - 1);
@@ -104,7 +254,7 @@ void SolverLayersParallel::Solve(Trace& output)
                 }
             }
         }
-        SolverLayersBase::SolveHelper(mtemp, {split_coordinate[i], 0, 0}, personal_traces[i]);
+        SolverLayersBase::SolveHelper(mtemp, {(split_axis == 1) ? split_coordinate[i] : 0, 0, (split_axis == 3) ? split_coordinate[i] : 0}, personal_traces[i]);
         for (int x = x0; x < x1; ++x)
         {
             for (int y = 0; y < r; ++y)
@@ -134,11 +284,12 @@ void SolverLayersParallel::Solve(Trace& output)
 
     output.commands.push_back(Command(Command::Flip));
     output.commands.push_back(Command(Command::Halt));
+    // cout << "Total moves: " << bot_traces[0].GetTime() << endl;
 }
 
-uint64_t SolverLayersParallel::Solve(const Matrix& m, Trace& output)
+uint64_t SolverLayersParallel::Solve(const Matrix& m, Trace& output, bool search_best_split)
 {
-    SolverLayersParallel solver(m);
+    SolverLayersParallel solver(m, search_best_split);
     solver.Solve(output);
     return 0;
 }

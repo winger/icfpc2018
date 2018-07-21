@@ -275,10 +275,10 @@ uint64_t SolverLayersBase::Solve(const Matrix& m, Trace& output)
     return solver.state.IsCorrectFinal() ? solver.state.energy : 0;
 }
 
-size_t SolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
+uint64_t SolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
 {
     SolverLayersBase solver(m);
     solver.SetTargetCoordinate(first_and_last);
     solver.Solve(output);
-    return solver.state.correct ? output.size() : size_t(-1);
+    return solver.state.correct ? solver.state.energy : 0;
 }
