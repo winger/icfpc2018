@@ -24,6 +24,7 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
     file << energy << endl;
     file.close();
 }
+}
 
 std::string Problem::GetType() const {
     assert(assembly + disassembly + reassembly == 1);
@@ -58,10 +59,10 @@ std::string Problem::GetEnergyInfo() const { return GetPrefix() + "tracesEnergy"
 std::string Problem::GetOutput() const { return GetPrefix() + "cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
 std::string Problem::GetSubmitEnergyInfo() const {
-    return "submitEnergy" + round + "/" + round + GetType() + GetSI() + ".txt";
+    return GetPrefix() + "submitEnergy" + round + "/" + round + GetType() + GetSI() + ".txt";
 }
 std::string Problem::GetSubmitOutput() const {
-    return "submitTraces" + round + "/" + round + GetType() + GetSI() + ".nbt";
+    return GetPrefix() + "submitTraces" + round + "/" + round + GetType() + GetSI() + ".nbt";
 }
 
 

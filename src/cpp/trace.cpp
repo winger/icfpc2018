@@ -10,8 +10,7 @@ bool exist(const std::string& name)
 }
 
 bool Trace::TryReadFromFile(const string& filename) {
-  string full_filename = "../../" + filename;
-  if (!exist(full_filename)) {
+  if (!exist(filename)) {
     return false;
   }
   ReadFromFile(filename);
