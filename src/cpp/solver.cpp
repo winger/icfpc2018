@@ -1,11 +1,21 @@
 #include "solver.h"
 
+#include <future>
+#include <thread>
+
 #include "solvers/layers_base.h"
 
 #include "evaluation.h"
 
 #include "command_line.h"
 #include "threadPool.h"
+
+void WriteEnergyToFile(uint64_t energy, const string& filename) {
+  string full_filename = "../../" + filename;
+  ofstream file(full_filename);
+  file << energy << endl;
+  file.close();
+}
 
 uint64_t Solver::Solve(const Matrix& m, Trace& output)
 {
@@ -21,6 +31,8 @@ unsigned Solver::Solve(unsigned model_index)
     uint64_t energy = Solve(model, trace);
     uint64_t energy2 = Evaluation::CheckSolution(model, trace);
     assert(energy == energy2);
+    WriteEnergyToFile(energy, "tracesEnergyL/LA" + si + ".txt");
+
     Trace trace_dflt;
     trace_dflt.ReadFromFile("dfltTracesL/LA" + si + ".nbt");
     uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
@@ -40,8 +52,14 @@ void Solver::SolveAll()
     tp::ThreadPool pool(options);
 
     unsigned total_score = 0;
+    std::vector<std::future<unsigned>> futures;
     for (unsigned i = 1; i <= N_TESTS; ++i) {
-        total_score += Solve(i);
+        std::packaged_task<unsigned()> t([i]() { return Solve(i); });
+        futures.emplace_back(t.get_future());
+        pool.blockingPost(t);
+    }
+    for (auto& f : futures) {
+        total_score += f.get();
     }
     cout << "Final score: " << total_score << endl;
 }

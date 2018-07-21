@@ -17,18 +17,24 @@ protected:
     Matrix matrix;
     State state;
 
+    bool helper_mode;
+    Coordinate target;
+
     SolverLayersBase(const Matrix& m);
 
+    void SetTargetCoordinate(const Coordinate& c);
+
     void AddCommand(const Command& c) { state.trace.commands.push_back(c); state.Step(); }
-    void MoveToCoordinate(State::BotState& bs, int x, int z);
-    void MoveToCoordinate(State::BotState& bs, int x, int y, int z);
+    Coordinate& GetBotPosition() { return state.all_bots[0].c; }
+    void MoveToCoordinate(int x, int z);
+    void MoveToCoordinate(int x, int y, int z, bool finalize = false);
 
     void SolveInit();
     void SolveZ1_GetRZ(int x, int y, int& z0, int& z1);
-    void SolveZ1_Fill(State::BotState& bs, int x, int y, bool direction);
+    void SolveZ1_Fill(int x, int y, bool direction);
     void SolveZ1(int x, int y);
     void SolveZ3_GetRZ(int x, int y, int& z0, int& z1);
-    void SolveZ3_Fill(State::BotState& bs, int x, int y, bool direction);
+    void SolveZ3_Fill(int x, int y, bool direction);
     void SolveZ3(int x, int y);
     void SolveLayer(int y);
     void SolveFinalize();
@@ -36,4 +42,5 @@ protected:
 
 public:
     static uint64_t Solve(const Matrix& m, Trace& output);
+    static size_t SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
 };

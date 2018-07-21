@@ -3,77 +3,89 @@
 SolverLayersBase::SolverLayersBase(const Matrix& m) : matrix(m)
 {
     state.Init(m.GetR(), Trace());
+    helper_mode = false;
+    target = {0, 0, 0};
 }
 
-void SolverLayersBase::MoveToCoordinate(State::BotState& bs, int x, int z)
+void SolverLayersBase::SetTargetCoordinate(const Coordinate& c)
 {
+    helper_mode = true;
+    target = c;
+    GetBotPosition() = target;
+}
+
+void SolverLayersBase::MoveToCoordinate(int x, int z)
+{
+    Coordinate& bc = GetBotPosition();
     Command c(Command::SMove);
-    for (; abs(x - bs.c.x) > 5; )
+    for (; abs(x - bc.x) > 5; )
     {
-        c.cd1 = {max(-15, min(x - bs.c.x, 15)), 0, 0};
+        c.cd1 = {max(-15, min(x - bc.x, 15)), 0, 0};
         AddCommand(c);
     }
-    for (; abs(z - bs.c.z) > 5; )
+    for (; abs(z - bc.z) > 5; )
     {
-        c.cd1 = {0, 0, max(-15, min(z - bs.c.z, 15))};
+        c.cd1 = {0, 0, max(-15, min(z - bc.z, 15))};
         AddCommand(c);
     }
-    if (bs.c.x == x)
+    if (bc.x == x)
     {
-        if (bs.c.z == z)
+        if (bc.z == z)
         {
             // Already here
         }
         else
         {
-            c.cd1 = {0, 0, z - bs.c.z};
+            c.cd1 = {0, 0, z - bc.z};
             AddCommand(c);
         }
     }
     else
     {
-        if (bs.c.z == z)
+        if (bc.z == z)
         {
-            c.cd1 = {x - bs.c.x, 0, 0};
+            c.cd1 = {x - bc.x, 0, 0};
             AddCommand(c);
         }
         else
         {
             c.type = Command::LMove;
-            c.cd1 = {x - bs.c.x, 0, 0};
-            c.cd2 = {0, 0, z - bs.c.z};
+            c.cd1 = {x - bc.x, 0, 0};
+            c.cd2 = {0, 0, z - bc.z};
             AddCommand(c);
         }
     }
 }
 
-void SolverLayersBase::MoveToCoordinate(State::BotState& bs, int x, int y, int z)
+void SolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finalize)
 {
+    Coordinate& bc = GetBotPosition();
     Command c(Command::SMove);
     c.cd1 = {0, 0, 0};
-    if ((x == 0) && (y == 0) && (z == 0))
+    if (finalize)
     {
-        MoveToCoordinate(bs, x, z);
-        for (; bs.c.y > 0; )
+        MoveToCoordinate(x, z);
+        for (; bc.y != y; )
         {
-            c.cd1.dy = max(-15, -bs.c.y);
+            c.cd1.dy = max(-15, min(y - bc.y, 15));
             AddCommand(c);
         }
     }
     else
     {
-        for (; bs.c.y != y; )
+        for (; bc.y != y; )
         {
-            c.cd1.dy = max(-15, min(y - bs.c.y, 15));
+            c.cd1.dy = max(-15, min(y - bc.y, 15));
             AddCommand(c);
         }
-        MoveToCoordinate(bs, x, z);
+        MoveToCoordinate(x, z);
     }
 }
 
 void SolverLayersBase::SolveInit()
 {
-    AddCommand(Command(Command::Flip));
+    if (!helper_mode)
+        AddCommand(Command(Command::Flip));
 }
 
 void SolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
@@ -90,13 +102,14 @@ void SolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
     }
 }
 
-void SolverLayersBase::SolveZ1_Fill(State::BotState& bs, int x, int y, bool direction)
+void SolverLayersBase::SolveZ1_Fill(int x, int y, bool direction)
 {
+    Coordinate& bc = GetBotPosition();
     for (;;)
     {
         for (int dz = -1; dz <= 1; ++dz)
         {
-            Coordinate c {x, y, bs.c.z + dz};
+            Coordinate c {x, y, bc.z + dz};
             if (matrix.IsInside(c) && matrix.Get(c))
             {
                 Command m(Command::Fill);
@@ -108,7 +121,7 @@ void SolverLayersBase::SolveZ1_Fill(State::BotState& bs, int x, int y, bool dire
         SolveZ1_GetRZ(x, y, z0, z1);
         if (z1 < 0) return; // Nothing to do
         int nextz = (z0 == z1) ? z0 : direction ? z0 + 1 : z1 - 1;
-        MoveToCoordinate(bs, x, y + 1, nextz);
+        MoveToCoordinate(x, y + 1, nextz);
     }    
 }
 
@@ -118,11 +131,11 @@ void SolverLayersBase::SolveZ1(int x, int y)
     SolveZ1_GetRZ(x, y, z0, z1);
     if (z1 < 0) return; // Nothing to do
 
-    State::BotState& bs = state.all_bots[0];
-    bool zdirection = (bs.c.z <= (z0 + z1) / 2);
+    Coordinate& bc = GetBotPosition();
+    bool zdirection = (bc.z <= (z0 + z1) / 2);
     int zstart = (z0 == z1) ? z0 : zdirection ? z0 + 1 : z1 - 1;
-    MoveToCoordinate(bs, x, y + 1, zstart);
-    SolveZ1_Fill(bs, x, y, zdirection);
+    MoveToCoordinate(x, y + 1, zstart);
+    SolveZ1_Fill(x, y, zdirection);
 }
 
 void SolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
@@ -142,13 +155,14 @@ void SolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
     }
 }
 
-void SolverLayersBase::SolveZ3_Fill(State::BotState& bs, int x, int y, bool direction)
+void SolverLayersBase::SolveZ3_Fill(int x, int y, bool direction)
 {
+    Coordinate& bc = GetBotPosition();
     for (;;)
     {
         for (int dx = -1; dx <= 1; ++dx)
         {
-            Coordinate c {x + dx, y, bs.c.z};
+            Coordinate c {x + dx, y, bc.z};
             if (matrix.IsInside(c) && matrix.Get(c))
             {
                 Command m(Command::Fill);
@@ -160,7 +174,7 @@ void SolverLayersBase::SolveZ3_Fill(State::BotState& bs, int x, int y, bool dire
         SolveZ3_GetRZ(x, y, z0, z1);
         if (z1 < 0) return; // Nothing to do
         int nextz = direction ? z0 : z1;
-        MoveToCoordinate(bs, x, y + 1, nextz);
+        MoveToCoordinate(x, y + 1, nextz);
     }
 }
 
@@ -170,11 +184,11 @@ void SolverLayersBase::SolveZ3(int x, int y)
     SolveZ3_GetRZ(x, y, z0, z1);
     if (z1 < 0) return; // Nothing to do
 
-    State::BotState& bs = state.all_bots[0];
-    bool zdirection = (bs.c.z <= (z0 + z1) / 2);
+    Coordinate& bc = GetBotPosition();
+    bool zdirection = (bc.z <= (z0 + z1) / 2);
     int zstart = zdirection ? z0 : z1;
-    MoveToCoordinate(bs, x, y + 1, zstart);
-    SolveZ3_Fill(bs, x, y, zdirection);
+    MoveToCoordinate(x, y + 1, zstart);
+    SolveZ3_Fill(x, y, zdirection);
 }
 
 void SolverLayersBase::SolveLayer(int y)
@@ -233,9 +247,14 @@ void SolverLayersBase::SolveLayer(int y)
 
 void SolverLayersBase::SolveFinalize()
 {
-   AddCommand(Command(Command::Flip));
-   MoveToCoordinate(state.all_bots[0], 0, 0, 0);
-   AddCommand(Command(Command::Halt));
+    if (helper_mode)
+        MoveToCoordinate(target.x, target.y, target.z, true);
+    else
+    {
+        AddCommand(Command(Command::Flip));
+        MoveToCoordinate(target.x, target.y, target.z, true);
+        AddCommand(Command(Command::Halt));
+    }
 }
 
 void SolverLayersBase::Solve(Trace& output)
@@ -254,4 +273,12 @@ uint64_t SolverLayersBase::Solve(const Matrix& m, Trace& output)
     SolverLayersBase solver(m);
     solver.Solve(output);
     return solver.state.IsCorrectFinal() ? solver.state.energy : 0;
+}
+
+size_t SolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
+{
+    SolverLayersBase solver(m);
+    solver.SetTargetCoordinate(first_and_last);
+    solver.Solve(output);
+    return solver.state.correct ? output.size() : size_t(-1);
 }
