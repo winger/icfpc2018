@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 mv submit.zip submit-`date +%s`.zip
-cd cppTracesL
+cd submitTracesF
 zip ../submit-`date +%s`.zip *.nbt

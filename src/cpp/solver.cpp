@@ -20,10 +20,9 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
     if (!file.is_open()) {
         cerr << filename << " not found." << endl;
     }
-    assert(file.is_open());
+    assert (file.is_open());
     file << energy << endl;
     file.close();
-}
 }
 
 std::string Problem::GetType() const {
@@ -54,9 +53,17 @@ std::string Problem::GetProxy() const { return GetPrefix() + "proxyTraces" + rou
 
 std::string Problem::GetDefaultTrace() const { return GetPrefix() + "dfltTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
-std::string Problem::GetTrace() const { return GetPrefix() + "tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
+std::string Problem::GetEnergyInfo() const { return GetPrefix() + "tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
 
 std::string Problem::GetOutput() const { return GetPrefix() + "cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+
+std::string Problem::GetSubmitEnergyInfo() const {
+    return "submitEnergy" + round + "/" + round + GetType() + GetSI() + ".txt";
+}
+std::string Problem::GetSubmitOutput() const {
+    return "submitTraces" + round + "/" + round + GetType() + GetSI() + ".nbt";
+}
+
 
 Problems Solver::ListProblems(const std::string& round) {
     Problems result;
@@ -132,7 +139,7 @@ unsigned Solver::Solve(const Problem& p)
     uint64_t energy = Solve(p, model, trace);
     uint64_t energy2 = Evaluation::CheckSolution(model, trace);
     assert((energy == 0) || (energy == energy2));
-    WriteEnergyToFile(energy2, p.GetTrace());
+    WriteEnergyToFile(energy2, p.GetEnergyInfo());
 
     Trace trace_dflt;
     trace_dflt.ReadFromFile(p.GetDefaultTrace());
@@ -226,3 +233,45 @@ void Solver::CheckAll(const std::string& round) {
     std::cout << total_ok << "/" << problems.size() << " Score: " << total_score << std::endl;
 }
 
+void MergeProblemWithSubmit(const Problem& p) {
+  Matrix model;
+  model.ReadFromFile(p.GetTarget());
+  Trace trace;
+  bool ok = trace.TryReadFromFile(p.GetOutput());
+  if (!ok) {
+    cout << p.index << ": NOTHING in src" << endl;
+    return;
+  }
+
+  auto energy = Evaluation::CheckSolution(model, trace);
+  bool result = energy > 0;
+
+  bool need_replace = false;
+  Trace traceBest;
+  bool ok2 = traceBest.TryReadFromFile(p.GetSubmitOutput());
+  uint64_t energy2 = 0;
+  if (ok2) {
+    energy2 = Evaluation::CheckSolution(model, traceBest);
+    bool result2 = energy2 > 0;
+    if (energy < energy2) {
+      need_replace = true;
+    }
+  } else {
+    need_replace = true;
+  }
+
+  if (need_replace) {
+    trace.WriteToFile(p.GetSubmitOutput());
+    WriteEnergyToFile(energy, p.GetSubmitEnergyInfo());
+    cout << p.index << ": BETTER " << energy << " < " << energy2 << endl;
+  } else {
+    cout << p.index << ": NOT BETTER" << endl;
+  }
+}
+
+void Solver::MergeWithSubmit(const std::string& round) {
+  auto problems = ListProblems(round);
+  for (const auto& p: problems) {
+    MergeProblemWithSubmit(p);
+  }
+}

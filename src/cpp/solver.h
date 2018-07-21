@@ -23,8 +23,11 @@ struct Problem {
     std::string GetTarget() const;
     std::string GetProxy() const;
     std::string GetDefaultTrace() const;
-    std::string GetTrace() const;
+    std::string GetEnergyInfo() const;
     std::string GetOutput() const;
+
+    std::string GetSubmitOutput() const;
+    std::string GetSubmitEnergyInfo() const;
 };
 using Problems = std::vector<Problem>;
 
@@ -39,4 +42,5 @@ public:
 
     static void SolveAll(const std::string& round);
     static void CheckAll(const std::string& round);
+    static void MergeWithSubmit(const std::string& round);
 };

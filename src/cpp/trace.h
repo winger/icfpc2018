@@ -10,5 +10,7 @@ public:
 
     size_t size() const { return commands.size(); }
     void ReadFromFile(const string& filename);
+    bool TryReadFromFile(const string& filename);
+
     void WriteToFile(const string& filename) const;
 };

@@ -1,5 +1,24 @@
 #include "trace.h"
 
+bool exist(const std::string& name)
+{
+    ifstream file(name);
+    if(!file)            // If the file was not found, then file is 0, i.e. !file=1 or true.
+        return false;    // The file was not found.
+    else                 // If the file was found, then file is non-0.
+        return true;     // The file was found.
+}
+
+bool Trace::TryReadFromFile(const string& filename) {
+  string full_filename = "../../" + filename;
+  if (!exist(full_filename)) {
+    return false;
+  }
+  ReadFromFile(filename);
+  return true;
+}
+
+
 void Trace::ReadFromFile(const string& filename)
 {
     ifstream file(filename, ios::binary);
