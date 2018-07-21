@@ -108,4 +108,5 @@ venv.bak/
 # icfpc
 *.zip
 a.out
+src/cpp/cpp_solver
 testTracesL/

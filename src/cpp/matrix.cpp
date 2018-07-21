@@ -10,7 +10,7 @@ void Matrix::Init(int r)
 
 void Matrix::ReadFromFile(const string& filename)
 {
-    string full_filename = "problemsL/" + filename + ".mdl";
+    string full_filename = "../../problemsL/" + filename + ".mdl";
     // cout << full_filename << endl;
     ifstream file(full_filename, ios::binary);
     assert(file.is_open());

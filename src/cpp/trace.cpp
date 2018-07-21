@@ -2,7 +2,7 @@
 
 void Trace::ReadFromFile(const string& filename)
 {
-    string full_filename = filename;
+    string full_filename = "../../" + filename;
     // cout << full_filename << endl;
     ifstream file(full_filename, ios::binary);
     assert(file.is_open());
