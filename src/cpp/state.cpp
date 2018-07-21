@@ -51,7 +51,7 @@ void State::Step()
             harmonics = !harmonics;
         }
         else if (c.type == Command::SMove)
-        {
+        {           
             correct = correct && c.cd1.IsLongLinearCoordinateDifferences() && MoveBot(bs, ic, c.cd1);
             assert(correct);
         }

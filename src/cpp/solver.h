@@ -6,5 +6,7 @@
 class Solver
 {
 public:
-    static uint64_t Solve(const Matrix& m, Trace& output) { return 0; }
+    static uint64_t Solve(const Matrix& m, Trace& output);
+    static void Solve(unsigned model_index);
+    static void SolveAll();
 };

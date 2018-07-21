@@ -56,7 +56,7 @@ void SolverLayersBase::MoveToCoordinate(State::BotState& bs, int x, int y, int z
         MoveToCoordinate(bs, x, z);
         for (; bs.c.y > 0; )
         {
-            c.cd1.dy = max(-15, bs.c.y);
+            c.cd1.dy = max(-15, -bs.c.y);
             AddCommand(c);
         }
     }
@@ -78,6 +78,7 @@ void SolverLayersBase::SolveInit()
 
 void SolverLayersBase::SolveZ1(int x, int y)
 {
+    // cout << "SolverLayersBase::SolveZ1(" << x << ",  " << y << ")" << endl;
     int r = matrix.GetR();
     int z0 = r, z1 = -1;
     for (int z = 0; z < r; ++z)
@@ -140,6 +141,7 @@ void SolverLayersBase::SolveZ1(int x, int y)
 
 void SolverLayersBase::SolveLayer(int y)
 {
+    // cout << "SolverLayersBase::SolveLayer(" << y << ")" << endl;
     int r = matrix.GetR();
     // Get box
     int x0 = r, x1 = -1, z0 = r, z1 = -1;
