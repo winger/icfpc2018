@@ -23,8 +23,17 @@ uint64_t Solver::Solve(unsigned model_index, const Matrix& m, Trace& output)
     Trace temp;
     vector<Trace> traces;
     SolverLayersBase::Solve(m, temp); traces.push_back(temp);
-    SolverLayersParallel::Solve(m, temp, false); traces.push_back(temp);
-    SolverLayersParallel::Solve(m, temp, true); traces.push_back(temp);
+    try {
+        SolverLayersParallel::Solve(m, temp, false);
+        traces.push_back(temp);
+    } catch (const StopException& e) {
+    }
+    try {
+        SolverLayersParallel::Solve(m, temp, true);
+        traces.push_back(temp);
+    } catch (const StopException& e) {
+    }
+    assert(!traces.empty());
     temp.ReadFromFile("proxyTracesL/LA" + to_string(1000 + model_index).substr(1) + ".nbt"); traces.push_back(temp);
     uint64_t best_energy = -uint64_t(1);
     for (const Trace& trace : traces)

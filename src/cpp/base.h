@@ -13,6 +13,7 @@
 #include <cstring>
 #include <ctime>
 #include <deque>
+#include <exception>
 #include <fstream>
 #include <functional>
 #include <iomanip>
@@ -26,14 +27,17 @@
 #include <set>
 #include <sstream>
 #include <stack>
-#include <cstdlib>
 #include <string>
 #include <tuple>
-#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 using namespace std;
 
 inline int sign(int x) { return (x < 0) ? -1 : (x > 0) ? 1 : 0; }
+
+class StopException : public std::exception {
+    using std::exception::exception;
+};

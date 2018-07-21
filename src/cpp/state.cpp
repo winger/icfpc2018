@@ -44,14 +44,14 @@ void State::Step()
             active_bots.clear();
         }
         else if (c.type == Command::Wait)
-        {            
+        {
         }
         else if (c.type == Command::Flip)
         {
             harmonics = !harmonics;
         }
         else if (c.type == Command::SMove)
-        {           
+        {
             correct = correct && c.cd1.IsLongLinearCoordinateDifferences() && MoveBot(bs, ic, c.cd1);
             assert(correct);
         }
@@ -131,7 +131,9 @@ void State::Step()
     correct = correct && ic.IsValid();
     if (!harmonics)
         correct = correct && matrix.IsGrounded();
-    assert(correct);
+    if (!correct) {
+        throw StopException();
+    }
     if (!correct)
         trace_pos = trace.size();
 }
