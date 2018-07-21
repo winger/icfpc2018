@@ -12,7 +12,7 @@ void State::Init(int r, const Trace& _trace)
     {
         all_bots[i].bid = i;
         if (i)
-            all_bots[i].seeds.push_back(i);
+            all_bots[0].seeds.push_back(i);
     }
     all_bots[0].c = {0, 0, 0};
     active_bots.push_back(0);
