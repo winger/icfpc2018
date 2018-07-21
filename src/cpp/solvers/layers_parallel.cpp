@@ -87,30 +87,31 @@ void SolverLayersParallel::Solve(Trace& output)
     // Get bots traces
     vector<Trace> personal_traces(split_coordinate.size() - 1);
     Matrix mtemp; mtemp.Init(r);
-    if (split_axis == 1)
+    for (unsigned i = 0; i < personal_traces.size(); ++i)
     {
-        for (unsigned i = 0; i < personal_traces.size(); ++i)
+        int x0 = (split_axis == 1) ? split_coordinate[i] : 0;
+        int x1 = (split_axis == 1) ? split_coordinate[i + 1] : r;
+        int z0 = (split_axis == 3) ? split_coordinate[i] : 0;
+        int z1 = (split_axis == 3) ? split_coordinate[i + 1] : r;
+        for (int x = x0; x < x1; ++x)
         {
-            for (int x = split_coordinate[i]; x < split_coordinate[i+1]; ++x)
+            for (int y = 0; y < r; ++y)
             {
-                for (int y = 0; y < r; ++y)
+                for (int z = z0; z < z1; ++z)
                 {
-                    for (int z = 0; z < r; ++z)
-                    {
-                        if (matrix.Get(x, y, z))
-                            mtemp.Fill(x, y, z);
-                    }
+                    if (matrix.Get(x, y, z))
+                        mtemp.Fill(x, y, z);
                 }
             }
-            SolverLayersBase::SolveHelper(mtemp, {split_coordinate[i], 0, 0}, personal_traces[i]);
-            for (int x = split_coordinate[i]; x < split_coordinate[i+1]; ++x)
+        }
+        SolverLayersBase::SolveHelper(mtemp, {split_coordinate[i], 0, 0}, personal_traces[i]);
+        for (int x = x0; x < x1; ++x)
+        {
+            for (int y = 0; y < r; ++y)
             {
-                for (int y = 0; y < r; ++y)
+                for (int z = z0; z < z1; ++z)
                 {
-                    for (int z = 0; z < r; ++z)
-                    {
-                        mtemp.Erase(x, y, z);
-                    }
+                    mtemp.Erase(x, y, z);
                 }
             }
         }
