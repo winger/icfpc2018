@@ -2,7 +2,6 @@
 
 #include "layers_base.h"
 
-
 #include "../timer.h"
 #include "../constants.h"
 

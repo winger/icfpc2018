@@ -18,6 +18,6 @@ constexpr int FILL_FEE = 6;
 constexpr int VOID_PRICE = -12;
 constexpr int VOID_FEE = 3;
 
-constexpr int N_BOTS = 20;
+extern int N_BOTS;
 
 }

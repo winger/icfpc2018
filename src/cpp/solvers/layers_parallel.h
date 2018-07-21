@@ -8,16 +8,20 @@ class SolverLayersParallel
 {
 protected:
     struct BotTrace
-    {    
+    {
         size_t built_time;
         Trace trace;
 
         size_t GetTime() const { return built_time + trace.size(); }
-        void SkipTime(size_t time) { for (unsigned i = 0; i < time; ++i) trace.commands.push_back(Command(Command::Wait)); }
+        void SkipTime(size_t time) {
+            for (unsigned i = 0; i < time; ++i) {
+                trace.commands.push_back(Command(Command::Wait));
+            }
+        }
     };
 
     Matrix matrix;
-    
+
     bool search_best_split;
     int split_axis; // 1 - x, 3 - z
     vector<int> split_coordinate;

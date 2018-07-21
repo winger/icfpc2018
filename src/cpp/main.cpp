@@ -1,3 +1,4 @@
+#include "constants.h"
 #include "command_line.h"
 #include "evaluation.h"
 #include "solver.h"
@@ -14,15 +15,21 @@ int main(int argc, char* argv[])
         mode = "solve";
     }
 
+    auto round = cmd.args["round"];
+
+    if (round == "lightning") {
+        TaskConsts::N_BOTS = 20;
+    }
+
     cout << "Mode: " << mode << endl;
     if (mode == "solve") {
         Solver::SolveAll(cmd.args["round"]);
     } else if (mode == "grounder") {
         Grounder::CheckAll();
     } else if (mode == "check") {
-        Solver::CheckAll(cmd.args["round"]);
+        Solver::CheckAll(round);
     } else if (mode == "merge") {
-        Solver::MergeWithSubmit(cmd.args["round"]);
+        Solver::MergeWithSubmit(round);
     } else {
         assert(false);
     }
