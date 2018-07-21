@@ -9,8 +9,8 @@ void State::Init(int r, const Trace& _trace)
     harmonics = 0;
     matrix.Init(r);
     all_bots.resize(0);
-    all_bots.resize(N_BOTS);
-    for (unsigned i = 0; i < N_BOTS; ++i)
+    all_bots.resize(TaskConsts::N_BOTS);
+    for (unsigned i = 0; i < TaskConsts::N_BOTS; ++i)
     {
         all_bots[i].bid = i;
         if (i)

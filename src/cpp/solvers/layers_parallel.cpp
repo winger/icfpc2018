@@ -81,8 +81,8 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
     int r = matrix.GetR();
     split_axis = 1;
     split_coordinate.resize(0);
-    for (unsigned i = 0; i <= N_BOTS; ++i)
-        split_coordinate.push_back((i * r) / N_BOTS);
+    for (unsigned i = 0; i <= TaskConsts::N_BOTS; ++i)
+        split_coordinate.push_back((i * r) / TaskConsts::N_BOTS);
     if (!search_best_split) return;
 
     Matrix mtemp; mtemp.Init(r);
@@ -178,7 +178,7 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
                 break;
         }
 
-        vector<vector<SplitInfo>> vdp(N_BOTS, vector<SplitInfo>(r+1));
+        vector<vector<SplitInfo>> vdp(TaskConsts::N_BOTS, vector<SplitInfo>(r+1));
         for (int k = 1; k <= r; ++k)
         {
             if (vcost[0][k].first == 0) continue;
@@ -187,7 +187,7 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
             vdp[0][k].energy = vcost[0][k].second;
             vdp[0][k].splits = {0, k};
         }
-        for (unsigned l = 1; l < N_BOTS; ++l)
+        for (unsigned l = 1; l < TaskConsts::N_BOTS; ++l)
         {
             for (int m = l; m < r; ++m)
             {
@@ -210,7 +210,7 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
                 }
             }
         }
-        for (unsigned l = 0; l < N_BOTS; ++l)
+        for (unsigned l = 0; l < TaskConsts::N_BOTS; ++l)
         {
             if (!vdp[l][r].valid)
                 continue;
