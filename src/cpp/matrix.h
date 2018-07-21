@@ -20,6 +20,7 @@ public:
     uint8_t Get(const Coordinate& c) const { return Get(c.x, c.y, c.z); }
     void Fill(int x, int y, int z) { data[z + size * (y + size * x)] = 1; }
     void Fill(const Coordinate& c) { Fill(c.x, c.y, c.z); }
+    void Erase(int x, int y, int z) { data[z + size * (y + size * x)] = 0; }
 
     void Init(int r);
     void ReadFromFile(const string& filename);
