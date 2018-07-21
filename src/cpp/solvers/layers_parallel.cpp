@@ -2,6 +2,10 @@
 
 #include "layers_base.h"
 
+#include "../timer.h"
+
+static const size_t max_time_for_search = 60000; // in ms
+
 SolverLayersParallel::SolverLayersParallel(const Matrix& m, bool _search_best_split)
 {
     matrix = m;
@@ -73,14 +77,11 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
     };
 
     int r = matrix.GetR();
-    if (!search_best_split)
-    {
-        split_axis = 1;
-        split_coordinate.resize(0);
-        for (unsigned i = 0; i <= 20; ++i)
-            split_coordinate.push_back((i * r) / 20);        
-        return;
-    }
+    split_axis = 1;
+    split_coordinate.resize(0);
+    for (unsigned i = 0; i <= 20; ++i)
+        split_coordinate.push_back((i * r) / 20);        
+    if (!search_best_split) return;
 
     Matrix mtemp; mtemp.Init(r);
     bool best_split_valid = false;
@@ -88,9 +89,8 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
     
     for (int axis = 1; axis <= 3; axis += 2)
     {
+        Timer t;
         // don't check all positions because too expensive
-        vector<bool> validk(r + 1, false);
-        validk[0] = true; validk[r] = true;
         vector<size_t> volume(r, 0);
         size_t total_volume = 0;
         for (int x = 0; x < r; ++x)
@@ -107,42 +107,41 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
                 }
             }
         }
-        size_t current_volume = 0, delta_volume = max(size_t(1), total_volume / 20), next_volume = delta_volume;
-        int last_valid_k = 0;
-        bool enable_next_k = false;
-        for (int k = 0; k < r; ++k)
+        vector<size_t> volume2(r + 1, 0);
+        volume2[0] = volume2[r] = total_volume;
+        size_t last_volume = volume[0];
+        for (int i = 1; i < r; ++i)
         {
-            if (volume[k] == 0)
-                continue;                
-            if (enable_next_k || (50 * (k - last_valid_k) > r))
+            if (volume[i] > 0)
             {
-                validk[k] = true;
-                last_valid_k = k;
-                enable_next_k = false;
-            }
-            current_volume += volume[k];
-            if (current_volume >= next_volume)
-            {
-                validk[k] = true;
-                last_valid_k = k;
-                enable_next_k = true;
-                for (; next_volume <= current_volume; ) next_volume += delta_volume;
+                volume2[i] = volume[i] + last_volume;
+                last_volume = volume[i];
             }
         }
 
+        vector<pair<size_t, int>> vp;
+        for (int i = 0; i <= r; ++i)
+        {
+            if (volume2[i] > 0)
+            {
+                vp.push_back({volume2[i], i});
+            }
+        }
+        sort(vp.begin(), vp.end());
+        reverse(vp.begin(), vp.end());
 
         Trace trace;
-        vector<vector<pair<size_t, uint64_t>>> vcost(r, vector<pair<uint64_t, size_t>>(r, {0, 0}));
-        for (int i = 0; i < r; ++i)
+        vector<vector<pair<size_t, uint64_t>>> vcost(r, vector<pair<uint64_t, size_t>>(r + 1, {0, 0}));
+        for (unsigned i0 = 1; i0 < vp.size(); ++i0)
         {
-            if (!validk[i]) continue;
-            for (int j = i; j < r; ++j)
+            for (unsigned j0 = 0; j0 < i0; ++j0)
             {
-                if (!validk[j+1]) continue;
+                int i = min(vp[i0].second, vp[j0].second);
+                int j = max(vp[i0].second, vp[j0].second);
                 int x0 = (axis == 1) ? i : 0;
-                int x1 = (axis == 1) ? j + 1 : r;
+                int x1 = (axis == 1) ? j : r;
                 int z0 = (axis == 3) ? i : 0;
-                int z1 = (axis == 3) ? j + 1 : r;
+                int z1 = (axis == 3) ? j : r;
                 for (int x = x0; x < x1; ++x)
                 {
                     for (int y = 0; y < r; ++y)
@@ -169,58 +168,63 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
                         }
                     }
                 }
+
+                if (t.GetMilliseconds() > max_time_for_search / 2)
+                    break;
             }
+            if (t.GetMilliseconds() > max_time_for_search / 2)
+                break;
         }
 
-        vector<vector<SplitInfo>> vdp(20, vector<SplitInfo>(r));
-        for (int k = 0; k < r; ++k)
+        vector<vector<SplitInfo>> vdp(20, vector<SplitInfo>(r+1));
+        for (int k = 1; k <= r; ++k)
         {
             if (vcost[0][k].first == 0) continue;
             vdp[0][k].valid = true;
             vdp[0][k].moves = vcost[0][k].first;
             vdp[0][k].energy = vcost[0][k].second;
-            vdp[0][k].splits = {0, k + 1};
+            vdp[0][k].splits = {0, k};
         }
         for (unsigned l = 1; l < 20; ++l)
         {
-            for (int k = l; k < r; ++k)
+            for (int m = l; m < r; ++m)
             {
-                if (!validk[k+1]) continue;
-                for (int m = l - 1; m < k; ++m)
+                if (!vdp[l-1][m].valid) continue;
+                for (int k = m + 1; k <= r; ++k)
                 {
-                    size_t new_moves = vcost[m + 1][k].first;
+                    size_t new_moves = vcost[m][k].first;
                     if (new_moves == 0) continue;
-                    size_t extra_moves = 4 * l + 2 * (k / 15);
+                    size_t extra_moves = 4 * l + 2 * (m / 15);
                     size_t total_moves = max(vdp[l-1][m].moves, new_moves + extra_moves);
-                    size_t energy = vdp[l-1][m].energy + vcost[m + 1][k].second;
+                    size_t energy = vdp[l-1][m].energy + vcost[m][k].second;
                     if (!vdp[l][k].valid || (vdp[l][k].moves > total_moves) || ((vdp[l][k].moves == total_moves) && (vdp[l][k].energy > energy)))
                     {
                         vdp[l][k].valid = true;
                         vdp[l][k].moves = total_moves;
                         vdp[l][k].energy = energy;
                         vdp[l][k].splits = vdp[l-1][m].splits;
-                        vdp[l][k].splits.push_back(k + 1);
+                        vdp[l][k].splits.push_back(k);
                     }
                 }
             }
         }
         for (unsigned l = 0; l < 20; ++l)
         {
-            if (!vdp[l][r - 1].valid)
+            if (!vdp[l][r].valid)
                 continue;
-            size_t energy = vdp[l][r - 1].energy + 20 * l * vdp[l][r - 1].moves; // penaly for bots
-            if (!best_split_valid || (best_moves > vdp[l][r-1].moves) || ((best_moves == vdp[l][r-1].moves) && (best_energy > energy)))
+            size_t energy = vdp[l][r].energy + 20 * l * vdp[l][r].moves; // penaly for bots
+            if (!best_split_valid || (best_moves > vdp[l][r].moves) || ((best_moves == vdp[l][r].moves) && (best_energy > energy)))
             {
                 best_split_valid = true;
-                best_moves = vdp[l][r-1].moves;
+                best_moves = vdp[l][r].moves;
                 best_energy = energy;
                 split_axis = axis;
-                split_coordinate = vdp[l][r - 1].splits;
+                split_coordinate = vdp[l][r].splits;
             }
         }
     }
     // cout << "Split: " << split_axis << " " << split_coordinate.size() << " " << best_moves << endl;
-    assert(best_split_valid);
+    // assert(best_split_valid);
 }
 
 void SolverLayersParallel::Solve(Trace& output)
@@ -277,7 +281,7 @@ void SolverLayersParallel::Solve(Trace& output)
         for (unsigned i = 0; i < bt.trace.size(); ++i)        
         {
             if (bt.trace.commands[i].type == Command::Fill)
-                last_fill = max(last_fill, bt.start_time + i);
+                last_fill = max(last_fill, bt.built_time + i + 1);
         }
     }
 
