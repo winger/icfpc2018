@@ -62,21 +62,27 @@ unsigned Solver::Solve(unsigned model_index)
 
 static constexpr size_t N_TESTS = 186;
 
-void Solver::SolveAll()
-{
-    tp::ThreadPoolOptions options;
-    options.setThreadCount(cmd.int_args["threads"]);
-    tp::ThreadPool pool(options);
-
+void Solver::SolveAll() {
     unsigned total_score = 0;
-    std::vector<std::future<unsigned>> futures;
-    for (unsigned i = 1; i <= N_TESTS; ++i) {
-        std::packaged_task<unsigned()> t([i]() { return Solve(i); });
-        futures.emplace_back(t.get_future());
-        pool.blockingPost(t);
-    }
-    for (auto& f : futures) {
-        total_score += f.get();
+    auto threads = cmd.int_args["threads"];
+    if (threads > 1) {
+        tp::ThreadPoolOptions options;
+        options.setThreadCount(threads);
+        tp::ThreadPool pool(options);
+
+        std::vector<std::future<unsigned>> futures;
+        for (unsigned i = 1; i <= N_TESTS; ++i) {
+            std::packaged_task<unsigned()> t([i]() { return Solve(i); });
+            futures.emplace_back(t.get_future());
+            pool.blockingPost(t);
+        }
+        for (auto& f : futures) {
+            total_score += f.get();
+        }
+    } else {
+        for (unsigned i = 1; i <= N_TESTS; ++i) {
+            total_score += Solve(i);
+        }
     }
     cout << "Final score: " << total_score << endl;
 }

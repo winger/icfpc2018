@@ -9,10 +9,20 @@ int main(int argc, char* argv[])
 {
     cmd.Parse(argc, argv);
 
-    cout << "Hello!" << endl;
+    auto mode = cmd.args["mode"];
+    if (mode.empty()) {
+        mode = "solve";
+    }
+
+    cout << "Mode: " << mode << endl;
+    if (mode == "solve") {
+        Solver::SolveAll();
+    } else if (mode == "grounder") {
+        Grounder::CheckAll();
+    } else {
+        assert(false);
+    }
     // TestTraceDecodeEncode();
     // Evaluation::TestAllDfltSolution();
-    // Grounder::CheckAll();
-    Solver::SolveAll();
     return 0;
 }
