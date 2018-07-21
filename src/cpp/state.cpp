@@ -87,6 +87,15 @@ void State::Step()
             matrix.Fill(fc);
             ic.AddCoordinate(fc);
         }
+        else if (c.type == Command::Void)
+        {
+            Coordinate fc = bs.c + c.cd1;
+            correct = correct && matrix.IsInside(fc);
+            assert(correct);
+            energy += matrix.Get(fc) ? -12 : 3;
+            matrix.Erase(fc);
+            ic.AddCoordinate(fc);
+        }
         else if (c.type == Command::FusionP)
         {
             Coordinate pc = bs.c + c.cd1;
@@ -129,6 +138,16 @@ void State::Step()
             assert(it != active_bots.end());
             active_bots.erase(it);
             energy -= 24;
+        }
+        else if (c.type == Command::GFill)
+        {
+            // TODO:
+            //   Support command
+        }
+        else if (c.type == Command::GVoid)
+        {
+            // TODO:
+            //   Support command
         }
     }
     bool icValid = ic.IsValid();
