@@ -21,6 +21,7 @@ public:
     void Fill(int x, int y, int z) { data[z + size * (y + size * x)] = 1; }
     void Fill(const Coordinate& c) { Fill(c.x, c.y, c.z); }
     void Erase(int x, int y, int z) { data[z + size * (y + size * x)] = 0; }
+    void Erase(const Coordinate& c) { Erase(c.x, c.y, c.z); }
     int Index(int x, int y, int z) const { return z + size * (y + size * x); }
     std::vector<int> Reindex(int index) const;
 

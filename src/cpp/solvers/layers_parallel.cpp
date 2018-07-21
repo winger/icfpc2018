@@ -2,7 +2,9 @@
 
 #include "layers_base.h"
 
+
 #include "../timer.h"
+#include "../constants.h"
 
 static const size_t max_time_for_search = 60000; // in ms
 
