@@ -1,9 +1,76 @@
 #include "grounder.h"
 
+namespace {
 int TESTS = 186;
+const std::vector< std::vector<int> > DIRS_2D {
+  {-1, 0, 0},
+  {1, 0, 0},
+  {0, 0, -1},
+  {0, 0, 1}
+};
+
+const std::vector< std::vector<int> > DIRS_3D {
+  {-1, 0, 0},
+  {1, 0, 0},
+  {0, -1, 0},
+  {0, 1, 0},
+  {0, 0, -1},
+  {0, 0, 1}
+};
+
+}
 
 
-bool Grounder::IsGrounded(Matrix const& model) {
+bool Grounder::IsDeltaGrounded(
+    Matrix const& model, std::vector<uint32_t> const& indicies) {
+  std::unordered_set<uint32_t> was;
+  std::unordered_set<uint32_t> delta;
+  std::vector<uint32_t> queue;
+  for (auto v: indicies) {
+    delta.insert(v);
+    auto coords = model.Reindex(v);
+    if (coords[1] == 0) {
+      was.insert(v);
+      queue.push_back(v);
+      continue;
+    }
+    for (auto const& dir: DIRS_3D) {
+      auto nc = coords;
+      for (int i = 0; i < dir.size(); ++i) {
+        nc[i] += dir[i];
+      }
+      if (model.IsInside(nc[0], nc[1], nc[2]) &&
+          model.Get(nc[0], nc[1], nc[2])) {
+        was.insert(v);
+        queue.push_back(v);
+        break;
+      }
+    }
+  }
+
+  if (queue.size() == delta.size()) {
+    return true;
+  }
+
+  for (int begin = 0; begin < queue.size(); ++begin) {
+    auto coords = model.Reindex(queue[begin]);
+    for (auto const& dir: DIRS_3D) {
+      auto nc = coords;
+      for (int i = 0; i < dir.size(); ++i) {
+        nc[i] += dir[i];
+      }
+      auto index = model.Index(nc[0], nc[1], nc[2]);
+      if (model.IsInside(nc[0], nc[1], nc[2]) &&
+          delta.find(index) != delta.end()) {
+        was.insert(index);
+        queue.push_back(index);
+      }
+    }
+  }
+  return queue.size() == delta.size();
+}
+
+bool Grounder::IsLayerGrounded(Matrix const& model) {
   auto numOfFull = model.FullNum();
   auto size = model.GetR();
   auto volume = model.GetVolume();
@@ -38,7 +105,7 @@ bool Grounder::IsGrounded(Matrix const& model) {
     }
     for (; begin < queue.size(); ++begin) {
       auto coords = model.Reindex(queue[begin]);
-      for (auto const& dir: dirs) {
+      for (auto const& dir: DIRS_2D) {
         auto nc = coords;
         for (int i = 0; i < dir.size(); ++i) {
           nc[i] += dir[i];
@@ -62,7 +129,7 @@ bool Grounder::Check(unsigned model_index)
     string name = "LA" + si + "_tgt";
     Matrix model;
     model.ReadFromFile(name);
-    bool result = IsGrounded(model);
+    bool result = IsLayerGrounded(model);
     cout << name << "," << result << endl;
     return result;
 }

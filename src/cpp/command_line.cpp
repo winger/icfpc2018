@@ -1,4 +1,5 @@
 #include "command_line.h"
+#include <cstdlib>
 
 void CommandLine::Parse(int argc, char* const argv[]) {
     int_args["threads"] = 32;
