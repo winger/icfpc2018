@@ -19,6 +19,8 @@ int main(int argc, char* argv[])
         Solver::SolveAll();
     } else if (mode == "grounder") {
         Grounder::CheckAll();
+    } else if (mode == "check") {
+        Solver::CheckAll();
     } else {
         assert(false);
     }
