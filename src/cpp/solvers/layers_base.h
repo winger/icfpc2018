@@ -9,7 +9,7 @@
 //   2. Use DP for finding optimal combination between Z1 and Z3 strips.
 //   3. Check is X-strips better than Z-strips for layer.
 //   4. Check covering by crosses.
-//   4.1. There is 10 different covering by crosses, it's possible to check all of them.
+//   4.1. There are 10 different covering by crosses, it's possible to check all of them.
 
 class SolverLayersBase
 {
@@ -17,18 +17,24 @@ protected:
     Matrix matrix;
     State state;
 
+    bool helper_mode;
+    Coordinate target;
+
     SolverLayersBase(const Matrix& m);
 
+    void SetTargetCoordinate(const Coordinate& c);
+
     void AddCommand(const Command& c) { state.trace.commands.push_back(c); state.Step(); }
-    void MoveToCoordinate(State::BotState& bs, int x, int z);
-    void MoveToCoordinate(State::BotState& bs, int x, int y, int z);
+    Coordinate& GetBotPosition() { return state.all_bots[0].c; }
+    void MoveToCoordinate(int x, int z);
+    void MoveToCoordinate(int x, int y, int z, bool finalize = false);
 
     void SolveInit();
     void SolveZ1_GetRZ(int x, int y, int& z0, int& z1);
-    void SolveZ1_Fill(State::BotState& bs, int x, int y, bool direction);
+    void SolveZ1_Fill(int x, int y, bool direction);
     void SolveZ1(int x, int y);
     void SolveZ3_GetRZ(int x, int y, int& z0, int& z1);
-    void SolveZ3_Fill(State::BotState& bs, int x, int y, bool direction);
+    void SolveZ3_Fill(int x, int y, bool direction);
     void SolveZ3(int x, int y);
     void SolveLayer(int y);
     void SolveFinalize();
@@ -36,4 +42,5 @@ protected:
 
 public:
     static uint64_t Solve(const Matrix& m, Trace& output);
+    static size_t SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
 };
