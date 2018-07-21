@@ -7,7 +7,7 @@
 #include "solvers/layers_parallel.h"
 
 #include "evaluation.h"
-
+#include "grounder.h"
 #include "command_line.h"
 #include "threadPool.h"
 

@@ -18,6 +18,7 @@ protected:
     State state;
 
     bool helper_mode;
+    bool projectionGrounded{false};
     Coordinate target;
 
     SolverLayersBase(const Matrix& m);

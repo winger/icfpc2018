@@ -1,9 +1,11 @@
 #include "layers_base.h"
+#include "grounder.h"
 
 SolverLayersBase::SolverLayersBase(const Matrix& m) : matrix(m)
 {
     state.Init(m.GetR(), Trace());
     helper_mode = false;
+    projectionGrounded = Grounder::IsProjectionGrounded(m);
     target = {0, 0, 0};
 }
 
@@ -84,8 +86,11 @@ void SolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finalize)
 
 void SolverLayersBase::SolveInit()
 {
-    if (!helper_mode)
-        AddCommand(Command(Command::Flip));
+    if (!helper_mode) {
+        if (not projectionGrounded) {
+          AddCommand(Command(Command::Flip));
+        }
+    }
 }
 
 void SolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
@@ -122,7 +127,7 @@ void SolverLayersBase::SolveZ1_Fill(int x, int y, bool direction)
         if (z1 < 0) return; // Nothing to do
         int nextz = (z0 == z1) ? z0 : direction ? z0 + 1 : z1 - 1;
         MoveToCoordinate(x, y + 1, nextz);
-    }    
+    }
 }
 
 void SolverLayersBase::SolveZ1(int x, int y)
@@ -251,7 +256,7 @@ void SolverLayersBase::SolveFinalize()
         MoveToCoordinate(target.x, target.y, target.z, true);
     else
     {
-        AddCommand(Command(Command::Flip));
+        if (not projectionGrounded) {AddCommand(Command(Command::Flip));}
         MoveToCoordinate(target.x, target.y, target.z, true);
         AddCommand(Command(Command::Halt));
     }

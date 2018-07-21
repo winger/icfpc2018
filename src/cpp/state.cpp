@@ -1,4 +1,5 @@
 #include "state.h"
+#include "grounder.h"
 
 void State::Init(int r, const Trace& _trace)
 {
@@ -30,6 +31,7 @@ void State::Step()
     vector<unsigned> bots = active_bots;
     assert(trace_pos + bots.size() <= trace.size());
     energy += (harmonics ? 30 : 3) * matrix.GetVolume();
+    int hc = 0;
     energy += 20 * bots.size();
     InterfereCheck ic;
     for (unsigned bid : bots)
@@ -49,6 +51,7 @@ void State::Step()
         else if (c.type == Command::Flip)
         {
             harmonics = !harmonics;
+            hc++;
         }
         else if (c.type == Command::SMove)
         {
@@ -128,14 +131,19 @@ void State::Step()
             energy -= 24;
         }
     }
-    correct = correct && ic.IsValid();
-    if (!harmonics)
-        correct = correct && matrix.IsGrounded();
+    bool icValid = ic.IsValid();
+    correct = correct && icValid;
+    correct = correct && hc <= 1;
+    bool grounded = harmonics || matrix.IsGrounded();
+    correct = correct && grounded;
     if (!correct) {
+        trace_pos = trace.size();
+        cerr << "[WARN] State is incorrect. Grounded = " << grounded
+             << ", Trace_Pos = " << trace_pos << ", HC = " << hc
+             << ", icValid = " << icValid << endl;
         throw StopException();
     }
-    if (!correct)
-        trace_pos = trace.size();
+    assert(correct);
 }
 
 void State::Run()
