@@ -42,7 +42,13 @@ std::string Problem::GetType() const {
 
 std::string Problem::GetSI() const { return to_string(1000 + index).substr(1); }
 
-std::string Problem::GetPrefix() const { return "../../"; }
+std::string Problem::GetPrefix() const {
+    if (round == "L") {
+        return "../../lightning/"
+    } else {
+        return "../../";
+    }
+}
 
 std::string Problem::GetTarget() const {
     auto filename = round + GetType() + GetSI() + "_tgt";
