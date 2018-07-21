@@ -2,9 +2,10 @@
 
 void Trace::ReadFromFile(const string& filename)
 {
-    string full_filename = "../../" + filename;
-    // cout << full_filename << endl;
-    ifstream file(full_filename, ios::binary);
+    ifstream file(filename, ios::binary);
+    if (!file.is_open()) {
+        cerr << "Trace " << filename << " not found" << endl;
+    }
     assert(file.is_open());
     // cout << "File is open.";
     file.seekg(0, ios::end);
@@ -31,8 +32,7 @@ void Trace::WriteToFile(const string& filename) const
     vector<uint8_t> data;
     for (const Command& c : commands)
         c.Encode(data);
-    string full_filename = "../../" + filename;
-    ofstream file(full_filename, ios::binary);
-    file.write(reinterpret_cast<char*>(&(data[0])), data.size());
+    ofstream file(filename, ios::binary);
+    file.write(reinterpret_cast<char*>(data.data()), data.size());
     file.close();
 }

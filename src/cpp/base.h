@@ -34,6 +34,9 @@
 #include <utility>
 #include <vector>
 
+#include <sys/stat.h>
+#include "unistd.h"
+
 using namespace std;
 
 inline int sign(int x) { return (x < 0) ? -1 : (x > 0) ? 1 : 0; }
@@ -41,3 +44,8 @@ inline int sign(int x) { return (x < 0) ? -1 : (x > 0) ? 1 : 0; }
 class StopException : public std::exception {
     using std::exception::exception;
 };
+
+inline bool FileExists(const std::string& filename) {
+    struct stat buffer;
+    return stat(filename.c_str(), &buffer) == 0;
+}

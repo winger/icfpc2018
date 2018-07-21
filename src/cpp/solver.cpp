@@ -16,9 +16,11 @@ static constexpr size_t N_LIGHTNING_TESTS = 186;
 static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
 
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
-    string full_filename = "../../" + filename;
-    ofstream file(full_filename);
-    assert(!!file);
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cerr << filename << " not found." << endl;
+    }
+    assert(file.is_open());
     file << energy << endl;
     file.close();
 }
@@ -46,13 +48,13 @@ std::string Problem::GetTarget() const {
     return "../../problems" + round + "/" + filename + ".mdl";
 }
 
-std::string Problem::GetProxy() const { return "proxyTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+std::string Problem::GetProxy() const { return "../../proxyTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
-std::string Problem::GetDefaultTrace() const { return "dfltTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+std::string Problem::GetDefaultTrace() const { return "../../dfltTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
-std::string Problem::GetTrace() const { return "tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
+std::string Problem::GetTrace() const { return "../../tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
 
-std::string Problem::GetOutput() const { return "cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+std::string Problem::GetOutput() const { return "../../cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
 Problems Solver::ListProblems(const std::string& round) {
     Problems result;
@@ -94,7 +96,11 @@ uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
     } catch (const StopException& e) {
     }
     assert(!traces.empty());
-    temp.ReadFromFile(p.GetProxy()); traces.push_back(temp);
+    if (FileExists(p.GetProxy())) {
+        temp.ReadFromFile(p.GetProxy()); traces.push_back(temp);
+    } else {
+        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exists." << endl;
+    }
     uint64_t best_energy = -uint64_t(1);
     for (const Trace& trace : traces)
     {
