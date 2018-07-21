@@ -3,6 +3,14 @@
 #include "../solver.h"
 #include "../state.h"
 
+// TODO:
+//   In SolveLayer current code use Z3 lines if possible. We can checks several solution and choose best one.
+//   1. Check using SolveZ3 vs using SolveZ1.
+//   2. Use DP for finding optimal combination between Z1 and Z3 strips.
+//   3. Check is X-strips better than Z-strips for layer.
+//   4. Check covering by crosses.
+//   4.1. There is 10 different covering by crosses, it's possible to check all of them.
+
 class SolverLayersBase
 {
 protected:
