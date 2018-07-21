@@ -76,72 +76,57 @@ void SolverLayersBase::SolveInit()
     AddCommand(Command(Command::Flip));
 }
 
-void SolverLayersBase::SolveZ1(int x, int y)
+void SolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
 {
-    // cout << "SolverLayersBase::SolveZ1(" << x << ",  " << y << ")" << endl;
     int r = matrix.GetR();
-    int z0 = r, z1 = -1;
+    z0 = r, z1 = -1;
     for (int z = 0; z < r; ++z)
     {
-        if (matrix.Get(x, y, z))
+        if (matrix.Get(x, y, z) && !state.matrix.Get(x, y, z))
         {
             z0 = min(z0, z);
             z1 = max(z1, z);
         }
     }
+}
+
+void SolverLayersBase::SolveZ1_Fill(State::BotState& bs, int x, int y, bool direction)
+{
+    for (;;)
+    {
+        for (int dz = -1; dz <= 1; ++dz)
+        {
+            Coordinate c {x, y, bs.c.z + dz};
+            if (matrix.IsInside(c) && matrix.Get(c))
+            {
+                Command m(Command::Fill);
+                m.cd1 = { 0, -1, dz};
+                AddCommand(m);
+            }
+        }
+        int z0, z1;
+        SolveZ1_GetRZ(x, y, z0, z1);
+        if (z1 < 0) return; // Nothing to do
+        int nextz = (z0 == z1) ? z0 : direction ? z0 + 1 : z1 - 1;
+        MoveToCoordinate(bs, x, y + 1, nextz);
+    }    
+}
+
+void SolverLayersBase::SolveZ1(int x, int y)
+{
+    int z0, z1;
+    SolveZ1_GetRZ(x, y, z0, z1);
     if (z1 < 0) return; // Nothing to do
 
     State::BotState& bs = state.all_bots[0];
     bool zdirection = (bs.c.z <= (z0 + z1) / 2);
     int zstart = (z0 == z1) ? z0 : zdirection ? z0 + 1 : z1 - 1;
     MoveToCoordinate(bs, x, y + 1, zstart);
-    if (zdirection)
-    {
-        for (; ;)
-        {
-            for (int dz = -1; dz <= 1; ++dz)
-            {
-                Coordinate c {x, y, bs.c.z + dz};
-                if (matrix.IsInside(c) && matrix.Get(c))
-                {
-                    Command m(Command::Fill);
-                    m.cd1 = { 0, -1, dz};
-                    AddCommand(m);
-                }
-            }
-            if (z1 <= bs.c.z + 1)
-                break;
-            Command m(Command::SMove);
-            m.cd1 = {0, 0, 3};
-            AddCommand(m);
-        }
-    }
-    else
-    {
-        for (; ;)
-        {
-            for (int dz = -1; dz <= 1; ++dz)
-            {
-                Coordinate c {x, y, bs.c.z + dz};
-                if (matrix.IsInside(c) && matrix.Get(c))
-                {
-                    Command m(Command::Fill);
-                    m.cd1 = { 0, -1, dz};
-                    AddCommand(m);
-                }
-            }
-            if (z0 >= bs.c.z - 1)
-                break;
-            Command m(Command::SMove);
-            m.cd1 = {0, 0, -3};
-            AddCommand(m);
-        }
-    }
+    SolveZ1_Fill(bs, x, y, zdirection);
 }
 
 void SolverLayersBase::SolveLayer(int y)
 {
-    // cout << "SolverLayersBase::SolveLayer(" << y << ")" << endl;
     int r = matrix.GetR();
     // Get box
     int x0 = r, x1 = -1, z0 = r, z1 = -1;

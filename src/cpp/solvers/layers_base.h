@@ -16,6 +16,8 @@ protected:
     void MoveToCoordinate(State::BotState& bs, int x, int y, int z);
 
     void SolveInit();
+    void SolveZ1_GetRZ(int x, int y, int& z0, int& z1);
+    void SolveZ1_Fill(State::BotState& bs, int x, int y, bool direction);
     void SolveZ1(int x, int y);
     void SolveLayer(int y);
     void SolveFinalize();
