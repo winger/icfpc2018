@@ -2,6 +2,9 @@
 
 set -e
 
+URL=$1
+URL=${URL/drive.google.com\/open?id/drive.google.com\/uc?id}
+echo ${URL}
 SHA=`shasum -a 256 submit.zip | awk '{print $1}'`
 ID=`cat private.id`
 curl -L \
