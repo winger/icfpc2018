@@ -20,8 +20,22 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
 
 uint64_t Solver::Solve(const Matrix& m, Trace& output)
 {
-    // return SolverLayersBase::Solve(m, output);
-    return SolverLayersParallel::Solve(m, output);
+    Trace temp;
+    vector<Trace> traces;
+    SolverLayersBase::Solve(m, temp); traces.push_back(temp);
+    SolverLayersParallel::Solve(m, temp, false); traces.push_back(temp);
+    SolverLayersParallel::Solve(m, temp, true); traces.push_back(temp);
+    uint64_t best_energy = -uint64_t(1);
+    for (const Trace& trace : traces)
+    {
+        uint64_t energy = Evaluation::CheckSolution(m, trace);
+        if (energy && (best_energy > energy))
+        {
+            best_energy = energy;
+            output = trace;
+        }
+    }
+    return best_energy;
 }
 
 unsigned Solver::Solve(unsigned model_index)
@@ -41,7 +55,8 @@ unsigned Solver::Solve(unsigned model_index)
     double performance = ((energy2 >= energy3) || (energy2 == 0)) ? 0 : (1.0 - double(energy2) / double(energy3));
     unsigned score = unsigned(1000.0 * performance * unsigned(log(model.GetR()) / log(2)));
     cout << "Test " << si << ": " << performance << endl;
-    trace.WriteToFile("cppTracesL/LA" + si + ".nbt");
+    // trace.WriteToFile("cppTracesL/LA" + si + ".nbt");
+    trace.WriteToFile("finalTracesL/LA" + si + ".nbt");
     return score;
 }
 
