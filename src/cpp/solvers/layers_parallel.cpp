@@ -80,13 +80,13 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
     split_axis = 1;
     split_coordinate.resize(0);
     for (unsigned i = 0; i <= 20; ++i)
-        split_coordinate.push_back((i * r) / 20);        
+        split_coordinate.push_back((i * r) / 20);
     if (!search_best_split) return;
 
     Matrix mtemp; mtemp.Init(r);
     bool best_split_valid = false;
     size_t best_moves = 0, best_energy = 0;
-    
+
     for (int axis = 1; axis <= 3; axis += 2)
     {
         Timer t;
@@ -131,7 +131,7 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
         reverse(vp.begin(), vp.end());
 
         Trace trace;
-        vector<vector<pair<size_t, uint64_t>>> vcost(r, vector<pair<uint64_t, size_t>>(r + 1, {0, 0}));
+        vector<vector<pair<size_t, uint64_t>>> vcost(r, vector<pair<size_t, uint64_t>>(r + 1, {0, 0}));
         for (unsigned i0 = 1; i0 < vp.size(); ++i0)
         {
             for (unsigned j0 = 0; j0 < i0; ++j0)
@@ -278,7 +278,7 @@ void SolverLayersParallel::Solve(Trace& output)
     size_t last_fill = 0;
     for (const BotTrace& bt : bot_traces)
     {
-        for (unsigned i = 0; i < bt.trace.size(); ++i)        
+        for (unsigned i = 0; i < bt.trace.size(); ++i)
         {
             if (bt.trace.commands[i].type == Command::Fill)
                 last_fill = max(last_fill, bt.built_time + i + 1);
