@@ -44,7 +44,7 @@ std::string Problem::GetSI() const { return to_string(1000 + index).substr(1); }
 
 std::string Problem::GetPrefix() const {
     if (round == "L") {
-        return "../../lightning/"
+        return "../../lightning/";
     } else {
         return "../../";
     }
