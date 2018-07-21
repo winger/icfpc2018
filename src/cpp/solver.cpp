@@ -33,7 +33,7 @@ unsigned Solver::Solve(unsigned model_index)
     uint64_t energy = Solve(model, trace);
     uint64_t energy2 = Evaluation::CheckSolution(model, trace);
     assert((energy == 0) || (energy == energy2));
-    WriteEnergyToFile(energy, "tracesEnergyL/LA" + si + ".txt");
+    WriteEnergyToFile(energy2, "tracesEnergyL/LA" + si + ".txt");
 
     Trace trace_dflt;
     trace_dflt.ReadFromFile("dfltTracesL/LA" + si + ".nbt");
