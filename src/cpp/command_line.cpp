@@ -1,8 +1,11 @@
 #include "command_line.h"
+
 #include <cstdlib>
 
+#include <thread>
+
 void CommandLine::Parse(int argc, char* const argv[]) {
-    int_args["threads"] = 32;
+    int_args["threads"] = std::thread::hardware_concurrency();
 
     int index = 1;
     while (index + 1 < argc) {
