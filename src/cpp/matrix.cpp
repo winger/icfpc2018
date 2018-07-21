@@ -13,7 +13,7 @@ bool Matrix::IsGrounded() const
             for (int z = 0; z < size; ++z)
             {
                 size_t index = size_t(Index(x, y, z));
-                if (Get(x, y, z)) 
+                if (Get(x, y, z))
                 {
                     if (y == 0)
                         ds.Union(ground, index);
@@ -36,7 +36,7 @@ bool Matrix::IsGrounded() const
             for (int z = 0; z < size; ++z)
             {
                 size_t index = size_t(Index(x, y, z));
-                if (Get(x, y, z)) 
+                if (Get(x, y, z))
                 {
                     if (ds.Find(index) != ground)
                         return false;
@@ -58,9 +58,8 @@ void Matrix::Init(int r)
 
 void Matrix::ReadFromFile(const string& filename)
 {
-    string full_filename = "../../problemsL/" + filename + ".mdl";
     // cout << full_filename << endl;
-    ifstream file(full_filename, ios::binary);
+    ifstream file(filename, ios::binary);
     assert(file.is_open());
     // cout << "File is open.";
     char c;

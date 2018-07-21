@@ -16,11 +16,11 @@ int main(int argc, char* argv[])
 
     cout << "Mode: " << mode << endl;
     if (mode == "solve") {
-        Solver::SolveAll();
+        Solver::SolveAll(cmd.args["round"]);
     } else if (mode == "grounder") {
         Grounder::CheckAll();
     } else if (mode == "check") {
-        Solver::CheckAll();
+        Solver::CheckAll(cmd.args["round"]);
     } else {
         assert(false);
     }

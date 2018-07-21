@@ -12,19 +12,8 @@
 #include "threadPool.h"
 
 namespace {
-static constexpr size_t N_TESTS = 186;
-
-std::string GetTarget(size_t test) {
-    string si = to_string(1000 + test).substr(1);
-    return "LA" + si + "_tgt";
-}
-
-std::string GetProxy(size_t test) { return "proxyTracesL/LA" + to_string(1000 + test).substr(1) + ".nbt"; }
-
-std::string GetDefault(size_t test) {
-    string si = to_string(1000 + test).substr(1);
-    return "dfltTracesL/LA" + si + ".nbt";
-}
+static constexpr size_t N_LIGHTNING_TESTS = 186;
+static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
 
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
     string full_filename = "../../" + filename;
@@ -35,7 +24,61 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
 }
 }
 
-uint64_t Solver::Solve(unsigned model_index, const Matrix& m, Trace& output)
+std::string Problem::GetType() const {
+    assert(assembly + disassembly + reassembly == 1);
+    if (assembly) {
+        return "A";
+    }
+    if (reassembly) {
+        return "D";
+    }
+    if (reassembly) {
+        return "R";
+    }
+    assert(false);
+}
+
+std::string Problem::GetSI() const { return to_string(1000 + index).substr(1); }
+
+std::string Problem::GetTarget() const {
+    auto filename = round + GetType() + GetSI() + "_tgt";
+
+    return "../../problems" + round + "/" + filename + ".mdl";
+}
+
+std::string Problem::GetProxy() const { return "proxyTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+
+std::string Problem::GetDefaultTrace() const { return "dfltTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+
+std::string Problem::GetTrace() const { return "tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
+
+std::string Problem::GetOutput() const { return "cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+
+Problems Solver::ListProblems(const std::string& round) {
+    Problems result;
+    if (round == "lightning") {
+        for (size_t i = 1; i <= N_LIGHTNING_TESTS; ++i) {
+            Problem p;
+            p.index = i;
+            p.assembly = true;
+            p.round = "L";
+            result.emplace_back(std::move(p));
+        }
+    } else if (round == "full") {
+        for (size_t i = 1; i <= N_FULL_ASSEMBLY_TESTS; ++i) {
+            Problem p;
+            p.index = i;
+            p.assembly = true;
+            p.round = "F";
+            result.emplace_back(std::move(p));
+        }
+    } else {
+        assert(false);
+    }
+    return result;
+}
+
+uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
 {
     Trace temp;
     vector<Trace> traces;
@@ -51,7 +94,7 @@ uint64_t Solver::Solve(unsigned model_index, const Matrix& m, Trace& output)
     } catch (const StopException& e) {
     }
     assert(!traces.empty());
-    temp.ReadFromFile(GetProxy(model_index)); traces.push_back(temp);
+    temp.ReadFromFile(p.GetProxy()); traces.push_back(temp);
     uint64_t best_energy = -uint64_t(1);
     for (const Trace& trace : traces)
     {
@@ -73,38 +116,37 @@ unsigned Score(const Matrix& model, double performance) {
     return unsigned(1000.0 * performance * unsigned(log(model.GetR()) / log(2)));
 }
 
-unsigned Solver::Solve(unsigned model_index)
+unsigned Solver::Solve(const Problem& p)
 {
-    string si = to_string(1000 + model_index).substr(1);
     Matrix model;
-    model.ReadFromFile(GetTarget(model_index));
+    model.ReadFromFile(p.GetTarget());
     Trace trace;
-    uint64_t energy = Solve(model_index, model, trace);
+    uint64_t energy = Solve(p, model, trace);
     uint64_t energy2 = Evaluation::CheckSolution(model, trace);
     assert((energy == 0) || (energy == energy2));
-    WriteEnergyToFile(energy2, "tracesEnergyL/LA" + si + ".txt");
+    WriteEnergyToFile(energy2, p.GetTrace());
 
     Trace trace_dflt;
-    trace_dflt.ReadFromFile(GetDefault(model_index));
+    trace_dflt.ReadFromFile(p.GetDefaultTrace());
     uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
     auto performance = Performance(energy2, energy3);
-    cout << "Test " << si << ": " << performance << endl;
-    trace.WriteToFile("cppTracesL/LA" + si + ".nbt");
+    cout << "Test " << p.index << ": " << performance << endl;
+    trace.WriteToFile(p.GetOutput());
     auto score = Score(model, performance);
     return score;
 }
 
-CheckResult Solver::Check(unsigned model_index) {
+CheckResult Solver::Check(const Problem& p) {
     Matrix model;
-    model.ReadFromFile(GetTarget(model_index));
+    model.ReadFromFile(p.GetTarget());
     Trace trace;
-    trace.ReadFromFile(GetProxy(model_index));
+    trace.ReadFromFile(p.GetProxy());
     auto energy2 = Evaluation::CheckSolution(model, trace);
     bool result = energy2 > 0;
-    cout << model_index << " " << ((result) ? "OK" : "Failed") << endl;
+    cout << p.index << " " << ((result) ? "OK" : "Failed") << endl;
 
     Trace trace_dflt;
-    trace_dflt.ReadFromFile(GetDefault(model_index));
+    trace_dflt.ReadFromFile(p.GetDefaultTrace());
     uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
 
     CheckResult check_result;
@@ -114,7 +156,9 @@ CheckResult Solver::Check(unsigned model_index) {
     return check_result;
 }
 
-void Solver::SolveAll() {
+void Solver::SolveAll(const std::string& round) {
+    auto problems = ListProblems(round);
+
     unsigned total_score = 0;
     auto threads = cmd.int_args["threads"];
     if (threads > 1) {
@@ -123,8 +167,8 @@ void Solver::SolveAll() {
         tp::ThreadPool pool(options);
 
         std::vector<std::future<unsigned>> futures;
-        for (unsigned i = 1; i <= N_TESTS; ++i) {
-            std::packaged_task<unsigned()> t([i]() { return Solve(i); });
+        for (const auto& p: problems) {
+            std::packaged_task<unsigned()> t([p]() { return Solve(p); });
             futures.emplace_back(t.get_future());
             pool.blockingPost(t);
         }
@@ -132,14 +176,16 @@ void Solver::SolveAll() {
             total_score += f.get();
         }
     } else {
-        for (unsigned i = 1; i <= N_TESTS; ++i) {
-            total_score += Solve(i);
+        for (const auto& p: problems) {
+            total_score += Solve(p);
         }
     }
     cout << "Final score: " << total_score << endl;
 }
 
-void Solver::CheckAll() {
+void Solver::CheckAll(const std::string& round) {
+    auto problems = ListProblems(round);
+
     auto threads = cmd.int_args["threads"];
     std::vector<CheckResult> total;
     if (threads > 1) {
@@ -148,8 +194,8 @@ void Solver::CheckAll() {
         tp::ThreadPool pool(options);
 
         std::vector<std::future<CheckResult>> futures;
-        for (unsigned i = 1; i <= N_TESTS; ++i) {
-            std::packaged_task<CheckResult()> t([i]() { return Check(i); });
+        for (const auto& p: problems) {
+            std::packaged_task<CheckResult()> t([p]() { return Check(p); });
             futures.emplace_back(t.get_future());
             pool.blockingPost(t);
         }
@@ -157,8 +203,8 @@ void Solver::CheckAll() {
             total.emplace_back(f.get());
         }
     } else {
-        for (unsigned i = 1; i <= N_TESTS; ++i) {
-            total.emplace_back(Check(i));
+        for (const auto& p: problems) {
+            total.emplace_back(Check(p));
         }
     }
 
@@ -169,6 +215,6 @@ void Solver::CheckAll() {
         total_score += cr.score;
     }
 
-    std::cout << total_ok << "/" << N_TESTS << " Score: " << total_score << std::endl;
+    std::cout << total_ok << "/" << problems.size() << " Score: " << total_score << std::endl;
 }
 
