@@ -2,7 +2,7 @@
 
 set -e
 
-SHA=`sha256sum submit.zip | awk '{print $1}'`
+SHA=`shasum -a 256 submit.zip | awk '{print $1}'`
 ID=`cat private.id`
 curl -L \
     --data-urlencode action=submit \
