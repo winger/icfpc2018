@@ -11,7 +11,9 @@ class Model:
     def __init__(self, data):
         size = bitarray(data[:8], endian="big")
         self.size = int(size.tobytes()[0])
-        cells = numpy.frombuffer(data[8:8 + self.size ** 3].unpack(), dtype=bool).astype(int)
+        cell_count = self.size ** 3
+        cells = numpy.frombuffer(data[8:8 + cell_count].unpack(), dtype=bool).astype(int)
+        cells.resize(cell_count)
         self.data = cells.reshape((self.size, self.size, self.size))
 
     def is_well_formed(self):
