@@ -4,8 +4,15 @@
 
 #include "evaluation.h"
 
+void WriteEnergyToFile(uint64_t energy, const string& filename) {
+  string full_filename = "../../" + filename;
+  ofstream file(full_filename);
+  file << energy << endl;
+  file.close();
+}
+
 uint64_t Solver::Solve(const Matrix& m, Trace& output)
-{ 
+{
     return SolverLayersBase::Solve(m, output);
 }
 
@@ -18,6 +25,8 @@ unsigned Solver::Solve(unsigned model_index)
     uint64_t energy = Solve(model, trace);
     uint64_t energy2 = Evaluation::CheckSolution(model, trace);
     assert(energy == energy2);
+    WriteEnergyToFile(energy, "tracesEnergyL/LA" + si + ".txt");
+
     Trace trace_dflt;
     trace_dflt.ReadFromFile("dfltTracesL/LA" + si + ".nbt");
     uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
