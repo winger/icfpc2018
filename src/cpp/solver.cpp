@@ -4,8 +4,11 @@
 
 #include "evaluation.h"
 
+#include "command_line.h"
+#include "threadPool.h"
+
 uint64_t Solver::Solve(const Matrix& m, Trace& output)
-{ 
+{
     return SolverLayersBase::Solve(m, output);
 }
 
@@ -28,10 +31,17 @@ unsigned Solver::Solve(unsigned model_index)
     return score;
 }
 
+static constexpr size_t N_TESTS = 186;
+
 void Solver::SolveAll()
 {
+    tp::ThreadPoolOptions options;
+    options.setThreadCount(cmd.int_args["threads"]);
+    tp::ThreadPool pool(options);
+
     unsigned total_score = 0;
-    for (unsigned i = 1; i <= 186; ++i)
+    for (unsigned i = 1; i <= N_TESTS; ++i) {
         total_score += Solve(i);
+    }
     cout << "Final score: " << total_score << endl;
 }

@@ -9,7 +9,7 @@
 //   2. Use DP for finding optimal combination between Z1 and Z3 strips.
 //   3. Check is X-strips better than Z-strips for layer.
 //   4. Check covering by crosses.
-//   4.1. There is 10 different covering by crosses, it's possible to check all of them.
+//   4.1. There are 10 different covering by crosses, it's possible to check all of them.
 
 class SolverLayersBase
 {
