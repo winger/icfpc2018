@@ -26,6 +26,8 @@ public:
 
     uint32_t FullNum() const { return std::count(data.begin(), data.end(), 1); }
 
+    bool IsGrounded() const;
+
     void Init(int r);
     void ReadFromFile(const string& filename);
     void Print() const;

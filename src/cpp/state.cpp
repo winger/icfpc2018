@@ -129,6 +129,8 @@ void State::Step()
         }
     }
     correct = correct && ic.IsValid();
+    if (!harmonics)
+        correct = correct && matrix.IsGrounded();
     assert(correct);
     if (!correct)
         trace_pos = trace.size();
