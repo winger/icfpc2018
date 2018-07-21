@@ -42,6 +42,29 @@ void Command::Encode(vector<uint8_t>& v) const
         uint8_t t = EncodeNCD(cd1);
         v.push_back((t << 3) | 0b00000011);
     }
+    else if (type == Void)
+    {
+        uint8_t t = EncodeNCD(cd1);
+        v.push_back((t << 3) | 0b00000010);
+    }
+    else if (type == GFill)
+    {
+        uint8_t t1 = EncodeNCD(cd1);
+        uint32_t t2 = EncodeFCD(cd2);
+        v.push_back((t1 << 3) | 0b00000001);
+        v.push_back(t2 >> 16);
+        v.push_back(t2 >> 8);
+        v.push_back(t2);
+    }
+    else if (type == GVoid)
+    {
+        uint8_t t1 = EncodeNCD(cd1);
+        uint32_t t2 = EncodeFCD(cd2);
+        v.push_back((t1 << 3) | 0b00000000);
+        v.push_back(t2 >> 16);
+        v.push_back(t2 >> 8);
+        v.push_back(t2);
+    }
     else
         assert(false);
 }
@@ -91,6 +114,29 @@ void Command::Decode(const vector<uint8_t>& v, size_t& pos)
     {
         type = Fill;
         cd1 = DecodeNCD(u1 >> 3);
+    }
+    else if ((u1 & 0b00000111) == 0b00000010)
+    {
+        type = Void;
+        cd1 = DecodeNCD(u1 >> 3);
+    }
+    else if ((u1 & 0b00000111) == 0b00000001)
+    {
+        type = GFill;
+        uint32_t u2 = v[pos++];
+        uint32_t u3 = v[pos++];
+        uint32_t u4 = v[pos++];
+        cd1 = DecodeNCD(u1 >> 3);
+        cd2 = DecodeFCD((u2 << 16) | (u3 << 8) | u4);
+    }
+    else if ((u1 & 0b00000111) == 0b00000000)
+    {
+        type = GVoid;
+        uint32_t u2 = v[pos++];
+        uint32_t u3 = v[pos++];
+        uint32_t u4 = v[pos++];
+        cd1 = DecodeNCD(u1 >> 3);
+        cd2 = DecodeFCD((u2 << 16) | (u3 << 8) | u4);
     }
     else
         assert(false);

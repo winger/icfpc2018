@@ -7,7 +7,7 @@ struct Command
 {
     enum Type
     {
-        Halt, Wait, Flip, SMove, LMove, FusionP, FusionS, Fission, Fill
+        Halt, Wait, Flip, SMove, LMove, FusionP, FusionS, Fission, Fill, Void, GFill, GVoid
     };
 
     Type type;
@@ -48,6 +48,12 @@ protected:
         return 9 * (cd.dx + 1) + 3 * (cd.dy + 1) + (cd.dz + 1);
     }
 
+    static uint32_t EncodeFCD(const CoordinateDifference& cd)
+    {
+        assert(cd.IsFarCoordinateDifferences());
+        return (((cd.dx + 30) << 16) | ((cd.dy + 30) << 8) | (cd.dz + 30));
+    }
+
     static CoordinateDifference DecodeSCD(uint16_t t)
     {
         uint16_t a = (t >> 8);
@@ -82,6 +88,14 @@ protected:
         int dz = (d % 3) - 1; d /= 3;
         int dy = (d % 3) - 1; d /= 3;
         int dx = (d % 3) - 1;
+        return CoordinateDifference{dx, dy, dz};
+    }
+
+    static CoordinateDifference DecodeFCD(uint32_t t)
+    {
+        int dz = (t & 255) - 30; t >>= 8;
+        int dy = (t & 255) - 30; t >>= 8;
+        int dx = (t & 255) - 30;
         return CoordinateDifference{dx, dy, dz};
     }
 };
