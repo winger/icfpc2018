@@ -1,5 +1,6 @@
 #include "state.h"
 #include "grounder.h"
+#include "constants.h"
 
 void State::Init(int r, const Trace& _trace)
 {
@@ -8,8 +9,8 @@ void State::Init(int r, const Trace& _trace)
     harmonics = 0;
     matrix.Init(r);
     all_bots.resize(0);
-    all_bots.resize(20);
-    for (unsigned i = 0; i < 20; ++i)
+    all_bots.resize(N_BOTS);
+    for (unsigned i = 0; i < N_BOTS; ++i)
     {
         all_bots[i].bid = i;
         if (i)
