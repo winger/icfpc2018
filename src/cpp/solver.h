@@ -17,6 +17,7 @@ struct Problem {
     bool assembly{};
     bool disassembly{};
     bool reassembly{};
+    std::string GetPrefix() const;
     std::string GetType() const;
     std::string GetSI() const;
     std::string GetTarget() const;

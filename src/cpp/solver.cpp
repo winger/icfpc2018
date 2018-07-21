@@ -42,19 +42,21 @@ std::string Problem::GetType() const {
 
 std::string Problem::GetSI() const { return to_string(1000 + index).substr(1); }
 
+std::string Problem::GetPrefix() const { return "../../"; }
+
 std::string Problem::GetTarget() const {
     auto filename = round + GetType() + GetSI() + "_tgt";
 
-    return "../../problems" + round + "/" + filename + ".mdl";
+    return GetPrefix() + "problems" + round + "/" + filename + ".mdl";
 }
 
-std::string Problem::GetProxy() const { return "../../proxyTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+std::string Problem::GetProxy() const { return GetPrefix() + "proxyTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
-std::string Problem::GetDefaultTrace() const { return "../../dfltTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+std::string Problem::GetDefaultTrace() const { return GetPrefix() + "dfltTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
-std::string Problem::GetTrace() const { return "../../tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
+std::string Problem::GetTrace() const { return GetPrefix() + "tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
 
-std::string Problem::GetOutput() const { return "../../cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
+std::string Problem::GetOutput() const { return GetPrefix() + "cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
 
 Problems Solver::ListProblems(const std::string& round) {
     Problems result;
