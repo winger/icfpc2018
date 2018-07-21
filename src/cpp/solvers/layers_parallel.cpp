@@ -271,18 +271,37 @@ void SolverLayersParallel::Solve(Trace& output)
     BuildBot(0, 0, personal_traces);
     MergeBot(personal_traces.size() - 1);
 
+    size_t last_fill = 0;
+    for (const BotTrace& bt : bot_traces)
+    {
+        for (unsigned i = 0; i < bt.trace.size(); ++i)        
+        {
+            if (bt.trace.commands[i].type == Command::Fill)
+                last_fill = max(last_fill, bt.start_time + i);
+        }
+    }
+
+    bool flip_required = true;
     for(size_t time = 0; time < bot_traces[0].GetTime(); ++time)
     {
         for (const BotTrace& bt : bot_traces)
         {
             if ((time >= bt.built_time) && (time < bt.GetTime()))
             {
-                output.commands.push_back(bt.trace.commands[time - bt.built_time]);
+                const Command& m = bt.trace.commands[time - bt.built_time];
+                if (flip_required && (time > last_fill) && (m.type == Command::Wait))
+                {
+                    output.commands.push_back(Command(Command::Flip));
+                    flip_required = false;
+                }
+                else
+                    output.commands.push_back(m);
             }
         }
     }
 
-    output.commands.push_back(Command(Command::Flip));
+    if (flip_required)
+        output.commands.push_back(Command(Command::Flip));
     output.commands.push_back(Command(Command::Halt));
     // cout << "Total moves: " << bot_traces[0].GetTime() << endl;
 }
