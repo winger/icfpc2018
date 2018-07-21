@@ -23,6 +23,7 @@ void Solver::Solve(unsigned model_index)
     uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
     double performance = ((energy2 >= energy3) || (energy2 == 0)) ? 0 : (1.0 - double(energy2) / double(energy3));
     cout << "Test " << si << ": " << performance << endl;
+    trace.WriteToFile("cppTracesL/LA" + si + ".nbt");
 }
 
 void Solver::SolveAll()
