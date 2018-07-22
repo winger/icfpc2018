@@ -25,7 +25,7 @@ public:
     Trace trace;
     size_t trace_pos;
 
-    void Init(int r, const Trace& trace);
+    void Init(const Matrix& source, const Trace& trace);
     bool IsCorrectFinal() const;
     void Step();
     void Run();

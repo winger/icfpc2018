@@ -2,10 +2,19 @@
 
 #include "state.h"
 
+Evaluation::Result Evaluation::Evaluate(const Matrix& source, const Matrix& target, const Trace& t)
+{
+    State s;
+    s.Init(source, t);
+    s.Run();
+    bool correct = (s.IsCorrectFinal() && (s.matrix == target));
+    return Result{correct, s.energy};
+}
+
 uint64_t Evaluation::CheckSolution(const Matrix& model, const Trace& t)
 {
     State s;
-    s.Init(model.GetR(), t);
+    s.Init(Matrix(model.GetR()), t);
     s.Run();
     return (s.IsCorrectFinal() && (s.matrix == model)) ? s.energy : 0;
 }

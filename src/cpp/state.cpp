@@ -2,12 +2,12 @@
 #include "grounder.h"
 #include "constants.h"
 
-void State::Init(int r, const Trace& _trace)
+void State::Init(const Matrix& source, const Trace& _trace)
 {
     correct = true;
     energy = 0;
     harmonics = 0;
-    matrix.Init(r);
+    matrix = source;
     all_bots.resize(0);
     all_bots.resize(TaskConsts::N_BOTS);
     for (unsigned i = 0; i < TaskConsts::N_BOTS; ++i)

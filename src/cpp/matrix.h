@@ -29,6 +29,7 @@ public:
 
     bool IsGrounded() const;
 
+    Matrix(int r = 0) { Init(r); }
     void Init(int r);
     void ReadFromFile(const string& filename);
     void Print() const;
