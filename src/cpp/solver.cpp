@@ -139,14 +139,6 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
     FindBestTrace(p, source, target, traces, output);
 }
 
-double Performance(uint64_t energy2, uint64_t energy3) {
-    return ((energy2 >= energy3) || (energy2 == 0)) ? 0 : (1.0 - double(energy2) / double(energy3));
-}
-
-unsigned Score(const Matrix& model, double performance) {
-    return unsigned(1000.0 * performance * unsigned(log(model.GetR()) / log(2)));
-}
-
 Solution Solver::Solve(const Problem& p) {
     Solution s;
     Matrix source, target;
