@@ -125,10 +125,16 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
     traces.push_back(temp);
     if (!cmd.int_args["levitation"]) {
-        AssemblySolverLayersBase::Solve(target, temp, false, false);
-        traces.push_back(temp);
-        AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
-        traces.push_back(temp);
+        try {
+            AssemblySolverLayersBase::Solve(target, temp, false, false);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
+        try {
+            AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
     }
 
     assert(!traces.empty());
@@ -155,11 +161,14 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
     }
 
     if (!cmd.int_args["levitation"]) {
-        Trace trace;
-        AssemblySolverLayersBase::Solve(source, trace, true, false);
-        traces.push_back(trace);
-        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        assert(result.correct);
+        try {
+            Trace trace;
+            AssemblySolverLayersBase::Solve(source, trace, true, false);
+            traces.push_back(trace);
+            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+            assert(result.correct);
+        } catch (const StopException& e) {
+        }
     }
 
     if (p.disassembly) {
