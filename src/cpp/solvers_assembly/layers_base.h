@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../evaluation.h"
 #include "../state.h"
 
 // TODO:
@@ -41,6 +42,6 @@ protected:
     void Solve(Trace& output);
 
 public:
-    static uint64_t Solve(const Matrix& m, Trace& output);
-    static uint64_t SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
+    static Evaluation::Result Solve(const Matrix& m, Trace& output);
+    static Evaluation::Result SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
 };

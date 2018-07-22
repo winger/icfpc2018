@@ -8,9 +8,11 @@ class Evaluation
 public:
     struct Result
     {
-        bool correct = false;
+        bool correct;
         uint64_t energy;
         int r;
+
+        Result(bool _correct = false, uint64_t _energy = 0, int _r = 0) : correct(_correct), energy(_energy), r(_r) {}
 
         bool operator<(const Result& r) const { return correct && (!r.correct || (energy < r.energy)); }
     };
