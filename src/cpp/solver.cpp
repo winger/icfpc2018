@@ -4,6 +4,8 @@
 
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
+#include "solvers_disassembly/2d_demolition.h"
+
 
 #include "base.h"
 #include "command_line.h"
@@ -159,6 +161,13 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
+    // {
+    //     Trace temp;
+    //     vector<Trace> traces;
+    //     AssemblySolverLayersBase::Solve(source, temp, true);
+    //     traces.push_back(temp);
+    // }
+
     {
         Trace trace;
         AssemblySolverLayersBase::Solve(source, trace, true, true);
@@ -177,8 +186,13 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         } catch (const StopException& e) {
         }
     }
-
-    if (p.disassembly) {
+    // {
+    //     Trace temp;
+    //     vector<Trace> traces;
+    //     Solver2D_Demolition::Solve(source, temp);
+    //     traces.push_back(temp);
+    // }
+    {
         Trace temp;
         temp.ReadFromFile(p.GetDefaultTrace());
         traces.emplace_back(std::move(temp));

@@ -82,6 +82,7 @@ void Matrix::ReadFromFile(const string& filename)
 
 std::ostream& operator<<(std::ostream& s, const Matrix& m) {
     for (int y = m.GetR() - 1; y >= 0; --y) {
+        cout << "y = " << y << endl;
         for (int z = m.GetR() - 1; z >= 0; --z) {
             for (int x = 0; x < m.GetR(); ++x) {
                 s << (m.Get(x, y, z) ? "#" : ".");

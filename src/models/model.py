@@ -2,7 +2,7 @@ import itertools
 import sys
 
 from bitarray import bitarray
-from bithack import asint
+from .bithack import asint
 import numpy
 
 class Model:

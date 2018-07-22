@@ -2,6 +2,7 @@
 #include "command_line.h"
 #include "solver.h"
 #include "grounder.h"
+#include "solvers_disassembly/2d_demolition.h"
 
 int main(int argc, char* argv[])
 {
@@ -27,6 +28,8 @@ int main(int argc, char* argv[])
         Solver::CheckAll(round);
     } else if (mode == "merge") {
         Solver::MergeWithSubmit(round);
+    } else if (mode == "2d_test") {
+        Solver2D_Demolition::TestSomething();
     } else {
         assert(false);
     }
