@@ -7,9 +7,10 @@ Region::Region(const Coordinate& c1, const Coordinate& c2)
     volume = (abs(b.x - a.x) + 1) * (abs(b.y - a.y) + 1) * (abs(b.z - a.z) + 1);
 }
 
-std::vector<Coordinate> Region::Corners() const
+std::set<Coordinate> Region::Corners() const
 {
-    return std::vector<Coordinate>{
+    std::set<Coordinate> st;
+    return std::set<Coordinate>{
         Coordinate{a.x, a.y, a.z},
         Coordinate{a.x, a.y, b.z},
         Coordinate{a.x, b.y, a.z},
