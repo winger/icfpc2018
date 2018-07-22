@@ -61,7 +61,6 @@ void State::Step()
     std::vector<int> toBeAdded{};
     std::vector<int> toBeDeleted{};
 
-
     vector<unsigned> bots = active_bots;
     assert(trace_pos + bots.size() <= trace.size());
     energy += (harmonics ? 30 : 3) * matrix.GetVolume();

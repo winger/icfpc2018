@@ -138,6 +138,51 @@ void Command::Decode(const vector<uint8_t>& v, size_t& pos)
         cd1 = DecodeNCD(u1 >> 3);
         cd2 = DecodeFCD((u2 << 16) | (u3 << 8) | u4);
     }
-    else
+    else {
         assert(false);
+    }
+}
+
+ostream& operator<<(ostream& s, const Command& c) {
+    s << "{";
+    switch (c.type) {
+        case Command::Halt:
+            s << "Halt";
+            break;
+        case Command::Wait:
+            s << "Wait";
+            break;
+        case Command::Flip:
+            s << "Flip";
+            break;
+        case Command::SMove:
+            s << "SMove, cd1=" << c.cd1;
+            break;
+        case Command::LMove:
+            s << "LMove, cd1=" << c.cd1 << ", cd2=" << c.cd2;
+            break;
+        case Command::FusionP:
+            s << "FusionP";
+            break;
+        case Command::FusionS:
+            s << "FusionS";
+            break;
+        case Command::Fission:
+            s << "Fission";
+            break;
+        case Command::Fill:
+            s << "Fill, cd1=" << c.cd1;
+            break;
+        case Command::Void:
+            s << "Void, cd1=" << c.cd1;
+            break;
+        case Command::GFill:
+            s << "GFill";
+            break;
+        case Command::GVoid:
+            s << "GVoid";
+            break;
+    }
+    s << "}";
+    return s;
 }

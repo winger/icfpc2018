@@ -15,7 +15,7 @@ struct Command
     unsigned m;
 
     Command(Type _type = Halt) : type(_type) {}
-    
+
     void Encode(vector<uint8_t>& v) const;
     void Decode(const vector<uint8_t>& v, size_t& pos);
 
@@ -99,3 +99,5 @@ protected:
         return CoordinateDifference{dx, dy, dz};
     }
 };
+
+ostream& operator<<(ostream& s, const Command& c);

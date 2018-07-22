@@ -27,7 +27,7 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
     file.close();
 }
 
-template<typename T>
+template <typename T>
 std::vector<T> runForEachProblem(const std::string& round, std::function<T(const Problem&)> f) {
     auto problems = Solver::ListProblems(round);
 
@@ -37,21 +37,21 @@ std::vector<T> runForEachProblem(const std::string& round, std::function<T(const
         ThreadPool pool(threads);
 
         std::vector<std::future<T>> futures;
-        for (const auto& p: problems) {
+        for (const auto& p : problems) {
             futures.emplace_back(pool.enqueue(f, p));
         }
         for (auto& f : futures) {
             result.emplace_back(f.get());
         }
     } else {
-        for (const auto& p: problems) {
+        for (const auto& p : problems) {
             result.emplace_back(f(p));
         }
     }
 
     return result;
 }
-}
+}  // namespace
 
 Problems Solver::ListProblems(const std::string& round) {
     Problems result;
@@ -99,8 +99,7 @@ Problems Solver::ListProblems(const std::string& round) {
     return result;
 }
 
-void Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target, const vector<Trace>& traces_to_check, Trace& output)
-{
+bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target, const vector<Trace>& traces_to_check, Trace& output, bool write) {
     Evaluation::Result best_result;
     for (const Trace& trace : traces_to_check)
     {
@@ -111,9 +110,10 @@ void Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix&
             output = trace;
         }
     }
-    if (best_result.correct) {
+    if (best_result.correct && write) {
         output.WriteToFile(p.GetProxy());
     }
+    return best_result.correct;
 }
 
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
@@ -124,39 +124,47 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base); traces.push_back(temp);
 
     assert(!traces.empty());
-    if (FileExists(p.GetProxy())) {
-        temp.ReadFromFile(p.GetProxy()); traces.push_back(temp);
-    } else {
-        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+    if (p.assembly) {
+        if (FileExists(p.GetProxy())) {
+            temp.ReadFromFile(p.GetProxy());
+            traces.push_back(temp);
+        } else {
+            cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+        }
     }
-    FindBestTrace(p, source, target, traces, output);
+    assert(FindBestTrace(p, source, target, traces, output, p.assembly));
 }
 
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
     {
-        Trace temp;
+        Trace trace;
         vector<Trace> traces;
-        AssemblySolverLayersBase::Solve(source, temp, true);
-        traces.push_back(temp);
+        AssemblySolverLayersBase::Solve(source, trace, true);
+        // cout << temp << endl;
+        traces.push_back(trace);
+        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+        assert(result.correct);
     }
 
-    {
+    if (p.disassembly) {
         Trace temp;
         temp.ReadFromFile(p.GetDefaultTrace());
         traces.emplace_back(std::move(temp));
     }
 
-    if (FileExists(p.GetProxy())) {
-        Trace temp;
-        temp.ReadFromFile(p.GetProxy());
-        traces.emplace_back(std::move(temp));
-    } else {
-        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+    if (p.disassembly) {
+        if (FileExists(p.GetProxy())) {
+            Trace temp;
+            temp.ReadFromFile(p.GetProxy());
+            traces.emplace_back(std::move(temp));
+        } else {
+            cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+        }
     }
 
-    FindBestTrace(p, source, target, traces, output);
+    assert(FindBestTrace(p, source, target, traces, output, p.disassembly));
 }
 
 void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
@@ -169,8 +177,10 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
     {
         Trace tmp1;
         SolveDisassemble(p, source, voidM, tmp1);
+        // cout << tmp1 << endl;
         Trace tmp2;
         SolveAssemble(p, voidM, target, tmp2);
+        // cout << tmp2 << endl;
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
     }
 
@@ -188,7 +198,7 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
     }
 
-    FindBestTrace(p, source, target, traces, output);
+    assert(FindBestTrace(p, source, target, traces, output, true));
 }
 
 Solution Solver::Solve(const Problem& p) {

@@ -8,7 +8,7 @@
 class Solver
 {
 public:
-    static void FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target, const vector<Trace>& traces_to_check, Trace& output);
+    static bool FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target, const vector<Trace>& traces_to_check, Trace& output, bool write);
     static void SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output);
     static void SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output);
     static void SolveReassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output);

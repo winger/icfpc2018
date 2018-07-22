@@ -51,3 +51,12 @@ Trace Trace::Cat(const Trace& a, const Trace& b) {
     result.commands.insert(a.commands.end(), b.commands.begin(), b.commands.end());
     return result;
 }
+
+ostream& operator<<(ostream& s, const Trace& t) {
+    s << "[" << endl;
+    for (const auto& c : t.commands) {
+        s << "\t" << c << endl;
+    }
+    s << "]" << endl;
+    return s;
+}

@@ -16,3 +16,5 @@ public:
 
     static Trace Cat(const Trace& a, const Trace& b);
 };
+
+ostream& operator<<(ostream& s, const Trace& t);

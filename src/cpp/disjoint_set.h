@@ -2,6 +2,8 @@
 
 #include "base.h"
 
+#include <stack>
+
 class DisjointSet
 {
 protected:

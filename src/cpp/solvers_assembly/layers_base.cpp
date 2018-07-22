@@ -251,13 +251,13 @@ void AssemblySolverLayersBase::SolveLayer(int y)
     }
 }
 
-void AssemblySolverLayersBase::SolveFinalize()
-{
-    if (helper_mode)
+void AssemblySolverLayersBase::SolveFinalize() {
+    if (helper_mode) {
         MoveToCoordinate(target.x, target.y, target.z, true);
-    else
-    {
-        if (not projectionGrounded) {AddCommand(Command(Command::Flip));}
+    } else {
+        if (!projectionGrounded) {
+            AddCommand(Command(Command::Flip));
+        }
         MoveToCoordinate(target.x, target.y, target.z, true);
         AddCommand(Command(Command::Halt));
     }
@@ -279,17 +279,54 @@ Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& outpu
     AssemblySolverLayersBase solver(m);
     solver.Solve(output);
     if (erase) {
-        assert(!output.commands.empty());
-        assert(output.commands.back().type == Command::Halt);
-        std::reverse(output.commands.begin(), output.commands.end() - 1);
-        for (auto& c : output.commands) {
-            if (c.type == Command::Fill) {
-                c.type = Command::Void;
-            } else if (c.type == Command::SMove || c.type == Command::LMove) {
-                c.cd1 = -c.cd1;
-                c.cd2 = -c.cd2;
+        Trace eraseOutput;
+        auto& cmds = eraseOutput.commands;
+        /*
+        Command c1;
+        c1.type = Command::Flip;
+        cmds.emplace_back(c1);
+        */
+        for (auto it = output.commands.rbegin(); it != output.commands.rend(); ++it) {
+            switch (it->type) {
+                case Command::Fill: {
+                    Command c;
+                    c.type = Command::Void;
+                    c.cd1 = it->cd1;
+                    cmds.emplace_back(c);
+                    break;
+                }
+                case Command::SMove: {
+                    Command c;
+                    c.type = Command::SMove;
+                    c.cd1 = -it->cd1;
+                    c.cd2 = -it->cd2;
+                    cmds.emplace_back(c);
+                    break;
+                }
+                case Command::LMove: {
+                    Command c;
+                    c.type = Command::LMove;
+                    c.cd1 = -it->cd1;
+                    cmds.emplace_back(c);
+                    break;
+                }
+                case Command::Halt:
+                case Command::Flip:
+                    break;
+                default:
+                    assert(false);
             }
         }
+        /*
+        Command c2;
+        c2.type = Command::Flip;
+        cmds.emplace_back(c2);
+        */
+        Command c3;
+        c3.type = Command::Halt;
+        cmds.emplace_back(c3);
+
+        output = std::move(eraseOutput);
     }
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
