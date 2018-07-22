@@ -7,7 +7,9 @@
 class Solver
 {
 public:
-    static uint64_t Solve(const Problem& p, const Matrix& m, Trace& output);
+    static uint64_t SolveAssemble(const Problem& p, const Matrix& m, Trace& output);
+    static uint64_t SolveDisassemble(const Problem& p, const Matrix& m, Trace& output);
+    static uint64_t SolveReassemble(const Problem& p, const Matrix& src, const Matrix& trg, Trace& output);
     static unsigned Solve(const Problem& p);
     static CheckResult Check(const Problem& p);
 

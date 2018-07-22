@@ -66,7 +66,7 @@ Problems Solver::ListProblems(const std::string& round) {
     return result;
 }
 
-uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
+uint64_t Solver::SolveAssemble(const Problem& p, const Matrix& m, Trace& output)
 {
     Trace temp;
     vector<Trace> traces;
@@ -97,6 +97,59 @@ uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
             output = trace;
         }
     }
+    output.WriteToFile(p.GetProxy());
+    return best_energy;
+}
+
+uint64_t Solver::SolveDisassemble(const Problem& p, const Matrix& m, Trace& output) {
+    Trace temp;
+    vector<Trace> traces;
+
+    temp.ReadFromFile(p.GetDefaultTrace());
+    traces.push_back(temp);
+
+    if (FileExists(p.GetProxy())) {
+        temp.ReadFromFile(p.GetProxy());
+        traces.push_back(temp);
+    } else {
+        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+    }
+
+    uint64_t best_energy = -uint64_t(1);
+    for (const Trace& trace : traces) {
+        uint64_t energy = 2000000000000ULL;
+        if (energy && (best_energy > energy)) {
+            best_energy = energy;
+            output = trace;
+        }
+    }
+    output.WriteToFile(p.GetProxy());
+    return best_energy;
+}
+
+uint64_t Solver::SolveReassemble(const Problem& p, const Matrix& src, const Matrix& trg, Trace& output) {
+    Trace temp;
+    vector<Trace> traces;
+
+    temp.ReadFromFile(p.GetDefaultTrace());
+    traces.push_back(temp);
+
+    if (FileExists(p.GetProxy())) {
+        temp.ReadFromFile(p.GetProxy());
+        traces.push_back(temp);
+    } else {
+        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+    }
+
+    uint64_t best_energy = -uint64_t(1);
+    for (const Trace& trace : traces) {
+        uint64_t energy = 2000000000000ULL;
+        if (energy && (best_energy > energy)) {
+            best_energy = energy;
+            output = trace;
+        }
+    }
+    output.WriteToFile(p.GetProxy());
     return best_energy;
 }
 
@@ -109,13 +162,12 @@ unsigned Score(const Matrix& model, double performance) {
 }
 
 unsigned Solver::Solve(const Problem& p) {
-    uint64_t energy;
     Trace trace;
     unsigned score = 0;
     if (p.assembly) {
         Matrix model;
         model.ReadFromFile(p.GetTarget());
-        uint64_t energy = Solve(p, model, trace);
+        uint64_t energy = SolveAssemble(p, model, trace);
         uint64_t energy2 = Evaluation::CheckSolution(model, trace);
         assert((energy == 0) || (energy == energy2));
         WriteEnergyToFile(energy2, p.GetEnergyInfo());
@@ -129,15 +181,15 @@ unsigned Solver::Solve(const Problem& p) {
     } else if (p.disassembly) {
         Matrix model;
         model.ReadFromFile(p.GetSource());
-        trace.ReadFromFile(p.GetDefaultTrace());
+        uint64_t energy = SolveDisassemble(p, model, trace);
         cout << "Test " << p.index << " " << p.GetType() << ": " << "TBD" << endl;
     } else if (p.reassembly) {
         Matrix model_src;
         model_src.ReadFromFile(p.GetTarget());
         Matrix model_trg;
         model_trg.ReadFromFile(p.GetTarget());
+        uint64_t energy = SolveReassemble(p, model_src, model_trg, trace);
         cout << "Test " << p.index << " " << p.GetType() << ": " << "TBD" << endl;
-        trace.ReadFromFile(p.GetDefaultTrace());
     }
     trace.WriteToFile(p.GetOutput());
     return score;
