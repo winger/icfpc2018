@@ -38,12 +38,13 @@ CommandGroup Inverser::InverseGroup(const CommandGroup& command_group) {
   } else if (command.type == Command::SMove) {
     InverseDirection(command.cd1);
   } else if (command.type == Command::Fission) {
-    Command fusionS(Command::FusionS);
-    InverseDirection(command.cd1);
-    fusionS.cd1 = command.cd1;
-
+    auto cd = command.cd1;
     command = Command(Command::FusionP);
-    InverseDirection(command.cd1);
+    command.cd1 = cd;
+
+    Command fusionS(Command::FusionS);
+    fusionS.cd1 = cd;
+    InverseDirection(fusionS.cd1);
     // now the reference to command became invalid
     new_group.push_back(fusionS);
     --last_bot_id;
