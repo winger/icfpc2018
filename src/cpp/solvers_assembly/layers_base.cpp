@@ -88,11 +88,10 @@ void AssemblySolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finali
     }
 }
 
-void AssemblySolverLayersBase::SolveInit()
-{
+void AssemblySolverLayersBase::SolveInit() {
     if (!helper_mode) {
         if (!projectionGrounded) {
-          AddCommand(Command(Command::Flip));
+            AddCommand(Command(Command::Flip));
         }
     }
 }

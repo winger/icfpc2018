@@ -7,7 +7,7 @@
 void CommandLine::Parse(int argc, char* const argv[]) {
     int_args["threads"] = std::thread::hardware_concurrency();
     args["round"] = "full";
-    int_args["ndebug"] = 0;
+    int_args["levitation"] = 1;
 
     int index = 1;
     while (index + 1 < argc) {
