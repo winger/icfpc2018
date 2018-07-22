@@ -125,7 +125,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     Trace temp;
     vector<Trace> traces;
     AssemblySolverLayersBase::Solve(target, temp); traces.push_back(temp);
-    // AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base); traces.push_back(temp);
+    AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base); traces.push_back(temp);
 
     assert(!traces.empty());
     if (FileExists(p.GetProxy())) {

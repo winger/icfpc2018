@@ -32,7 +32,7 @@ void AssemblySolverLayersParallel::BuildBot(size_t time, unsigned index, const v
     {
         Command m(Command::Fission);
         m.cd1 = {(split_axis == 1) ? 1 : 0, 0, (split_axis == 3) ? 1 : 0};
-        m.m = 18 - index;
+        m.m = TaskConsts::N_BOTS - 2 - index;
         bc.trace.commands.push_back(m);
         BuildBot(time + bc.trace.size(), index + 1, main_traces);
     }
