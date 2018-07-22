@@ -50,3 +50,7 @@ std::string Problem::GetSubmitEnergyInfo() const {
 std::string Problem::GetSubmitOutput() const {
     return GetPrefix() + "submitTraces" + round + "/" + round + GetType() + GetSI() + ".nbt";
 }
+
+std::string Problem::Name() const {
+    return GetType() + GetSI();
+}

@@ -14,5 +14,7 @@ struct Solution
     unsigned score;
     unsigned max_score;
 
+    bool operator<(const Solution& s) const;
+
     void Set(const Evaluation::Result& solution, const Evaluation::Result& dflt);
 };

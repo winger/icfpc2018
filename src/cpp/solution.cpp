@@ -10,3 +10,9 @@ void Solution::Set(const Evaluation::Result& solution, const Evaluation::Result&
     score = unsigned(1000.0 * performance * unsigned(log(dflt.r) / log(2)));
     max_score = unsigned(1000.0 * unsigned(log(dflt.r) / log(2)));
 }
+
+bool Solution::operator<(const Solution& s) const {
+    assert(correct);
+    assert(s.correct);
+    return energy < s.energy;
+}

@@ -26,6 +26,8 @@ struct Problem {
 
     std::string GetSubmitOutput() const;
     std::string GetSubmitEnergyInfo() const;
+
+    std::string Name() const;
 };
 
 using Problems = std::vector<Problem>;
