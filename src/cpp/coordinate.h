@@ -4,7 +4,7 @@
 
 struct Coordinate
 {
-    int x, y, z;
+    int16_t x, y, z;
 
     bool operator==(const Coordinate& c) const { return (x == c.x) && (y == c.y) && (z == c.z); }
     bool operator!=(const Coordinate& c) const { return (x != c.x) || (y != c.y) || (z != c.z); }

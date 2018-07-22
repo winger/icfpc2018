@@ -5,7 +5,7 @@
 
 struct CoordinateDifference
 {
-    int dx, dy, dz;
+    int16_t dx, dy, dz;
 
     unsigned ManhattanLength() const { return abs(dx) + abs(dy) + abs(dz); }
     unsigned ChessboardLength() const { return max(max(abs(dx), abs(dy)), abs(dz)); }
