@@ -91,6 +91,15 @@ Problems Solver::ListProblems(const std::string& round) {
     } else {
         assert(false);
     }
+
+    if (cmd.args.count("test")) {
+        for (const auto& p : result) {
+            if (p.Name() == cmd.args["test"]) {
+                return {p};
+            }
+        }
+    }
+
     return result;
 }
 
@@ -168,29 +177,34 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
 }
 
 Solution Solver::Solve(const Problem& p) {
-    Solution s;
-    Matrix source, target;
-    if (p.assembly) {
-        target.ReadFromFile(p.GetTarget());
-        source.Init(target.GetR());
-        SolveAssemble(p, source, target, s.trace);
-    } else if (p.disassembly) {
-        source.ReadFromFile(p.GetSource());
-        target.Init(source.GetR());
-        SolveDisassemble(p, source, target, s.trace);
-    } else if (p.reassembly) {
-        source.ReadFromFile(p.GetSource());
-        target.ReadFromFile(p.GetTarget());
-        SolveReassemble(p, source, target, s.trace);
+    try {
+        Solution s;
+        Matrix source, target;
+        if (p.assembly) {
+            target.ReadFromFile(p.GetTarget());
+            source.Init(target.GetR());
+            SolveAssemble(p, source, target, s.trace);
+        } else if (p.disassembly) {
+            source.ReadFromFile(p.GetSource());
+            target.Init(source.GetR());
+            SolveDisassemble(p, source, target, s.trace);
+        } else if (p.reassembly) {
+            source.ReadFromFile(p.GetSource());
+            target.ReadFromFile(p.GetTarget());
+            SolveReassemble(p, source, target, s.trace);
+        }
+        s.trace.WriteToFile(p.GetOutput());
+        Evaluation::Result solution_result = Evaluation::Evaluate(source, target, s.trace);
+        Trace trace_dflt;
+        trace_dflt.ReadFromFile(p.GetDefaultTrace());
+        Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
+        s.Set(solution_result, default_result);
+        cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << endl;
+        return s;
+    } catch (...) {
+        cerr << "Exception in handling '" << p.Name() << "'" << endl;
+        throw;
     }
-    s.trace.WriteToFile(p.GetOutput());
-    Evaluation::Result solution_result = Evaluation::Evaluate(source, target, s.trace);
-    Trace trace_dflt;
-    trace_dflt.ReadFromFile(p.GetDefaultTrace());
-    Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
-    s.Set(solution_result, default_result);
-    cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << endl;
-    return s;
 }
 
 Solution Solver::Check(const Problem& p, const std::string& filename) {
