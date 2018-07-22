@@ -1,6 +1,7 @@
 #include "state.h"
 #include "grounder.h"
 #include "constants.h"
+#include "region.h"
 
 void State::Init(const Matrix& source, const Trace& _trace)
 {
@@ -35,6 +36,8 @@ void State::Step()
     int hc = 0;
     energy += 20 * bots.size();
     InterfereCheck ic;
+    map<Region, vector<Coordinate>> fills;
+    map<Region, vector<Coordinate>> erases;
     for (unsigned bid : bots)
     {
         BotState& bs = all_bots[bid];
@@ -142,15 +145,63 @@ void State::Step()
         }
         else if (c.type == Command::GFill)
         {
-            // TODO:
-            //   Support command
+            correct = correct && c.cd1.IsNearCoordinateDifferences() && c.cd2.IsFarCoordinateDifferences();
+            Coordinate a = bs.c + c.cd1;
+            Coordinate b = a + c.cd2;
+            correct = correct && matrix.IsInside(a) && matrix.IsInside(b);
+            fills[Region(a, b)].push_back(a);
         }
         else if (c.type == Command::GVoid)
         {
-            // TODO:
-            //   Support command
+            correct = correct && c.cd1.IsNearCoordinateDifferences() && c.cd2.IsFarCoordinateDifferences();
+            Coordinate a = bs.c + c.cd1;
+            Coordinate b = a + c.cd2;
+            correct = correct && matrix.IsInside(a) && matrix.IsInside(b);
+            erases[Region(a, b)].push_back(a);
         }
     }
+    for (auto const& fill : fills)
+    {
+        set<Coordinate> corners = fill.first.Corners();
+        set<Coordinate> botCorners(fill.second.begin(), fill.second.end());
+        correct = correct && (corners.size() == fill.second.size());
+        correct = correct && (corners == botCorners);
+        for (int x = fill.first.a.x; x <= fill.first.b.x; ++x) 
+        {
+            for (int y = fill.first.a.y; y <= fill.first.b.y; ++y) 
+            {
+                for (int z = fill.first.a.z; z <= fill.first.b.z; ++z) 
+                {
+                    Coordinate fc{x, y, z};
+                    energy += matrix.Get(fc) ? 6 : 12;
+                    matrix.Fill(fc);
+                    ic.AddCoordinate(fc);
+                }
+            }
+        }
+    }
+
+    for (auto const& erase : erases)
+    {
+        set<Coordinate> corners = erase.first.Corners();
+        set<Coordinate> botCorners(erase.second.begin(), erase.second.end());
+        correct = correct && (corners.size() == erase.second.size());
+        correct = correct && (corners == botCorners);
+        for (int x = erase.first.a.x; x <= erase.first.b.x; ++x) 
+        {
+            for (int y = erase.first.a.y; y <= erase.first.b.y; ++y) 
+            {
+                for (int z = erase.first.a.z; z <= erase.first.b.z; ++z) 
+                {
+                    Coordinate fc{x, y, z};
+                    energy += matrix.Get(fc) ? -12 : 3;
+                    matrix.Erase(fc);
+                    ic.AddCoordinate(fc);
+                }
+            }
+        }
+    }
+
     bool icValid = ic.IsValid();
     correct = correct && icValid;
     correct = correct && hc <= 1;
