@@ -162,13 +162,6 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    // {
-    //     Trace temp;
-    //     vector<Trace> traces;
-    //     AssemblySolverLayersBase::Solve(source, temp, true);
-    //     traces.push_back(temp);
-    // }
-    //
     {
         Trace trace;
         AssemblySolverLayersBase::Solve(source, trace, true, true);
@@ -187,6 +180,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         } catch (const StopException& e) {
         }
     }
+<<<<<<< HEAD
     // {
     //     try {
     //       Trace trace;
@@ -199,6 +193,20 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
     //       // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
     //     }
     // }
+=======
+    {
+        try {
+          Trace trace;
+          Solver2D_Demolition::Solve(source, trace);
+          trace.tag = "Solver2D_Demolition";
+          traces.push_back(trace);
+          Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+          assert(result.correct);
+        } catch (const StopException& e) {
+          cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
+        }
+    }
+>>>>>>> c01f200c9dd23f7fec5c9f9e31ae2acdbec9df30
 
     if (p.disassembly) {
         if (FileExists(p.GetProxy())) {
