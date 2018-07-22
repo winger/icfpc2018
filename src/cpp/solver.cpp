@@ -52,6 +52,12 @@ std::string Problem::GetPrefix() const {
     }
 }
 
+std::string Problem::GetSource() const {
+    auto filename = round + GetType() + GetSI() + "_src";
+
+    return GetPrefix() + "problems" + round + "/" + filename + ".mdl";
+}
+
 std::string Problem::GetTarget() const {
     auto filename = round + GetType() + GetSI() + "_tgt";
 
@@ -130,7 +136,7 @@ uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
     if (FileExists(p.GetProxy())) {
         temp.ReadFromFile(p.GetProxy()); traces.push_back(temp);
     } else {
-        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exists." << endl;
+        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
     }
     uint64_t best_energy = -uint64_t(1);
     for (const Trace& trace : traces)
@@ -154,33 +160,39 @@ unsigned Score(const Matrix& model, double performance) {
 }
 
 unsigned Solver::Solve(const Problem& p) {
-    Matrix model;
-    model.ReadFromFile(p.GetTarget());
-    Trace trace;
-
     uint64_t energy;
     if (p.assembly) {
-        energy = Solve(p, model, trace);
+        Matrix model;
+        Trace trace;
+        model.ReadFromFile(p.GetTarget());
+        uint64_t energy = Solve(p, model, trace);
+        uint64_t energy2 = Evaluation::CheckSolution(model, trace);
+        assert((energy == 0) || (energy == energy2));
+        WriteEnergyToFile(energy2, p.GetEnergyInfo());
+
+        Trace trace_dflt;
+        trace_dflt.ReadFromFile(p.GetDefaultTrace());
+        uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
+        auto performance = Performance(energy2, energy3);
+        cout << "Test " << p.index << " " << p.GetType() << ": " << performance << endl;
+        trace.WriteToFile(p.GetOutput());
+        return Score(model, performance);
     } else if (p.disassembly) {
+        Matrix model;
+        Trace trace;
+        model.ReadFromFile(p.GetSource());
         trace.ReadFromFile(p.GetDefaultTrace());
         energy = Evaluation::CheckSolution(model, trace);
+        return 0;
     } else if (p.reassembly) {
+        Matrix model_src;
+        model_src.ReadFromFile(p.GetTarget());
+        Matrix model_trg;
+        model_trg.ReadFromFile(p.GetTarget());
+        Trace trace;
         trace.ReadFromFile(p.GetDefaultTrace());
-        energy = Evaluation::CheckSolution(model, trace);
+        return 0;
     }
-
-    uint64_t energy2 = Evaluation::CheckSolution(model, trace);
-    assert((energy == 0) || (energy == energy2));
-    WriteEnergyToFile(energy2, p.GetEnergyInfo());
-
-    Trace trace_dflt;
-    trace_dflt.ReadFromFile(p.GetDefaultTrace());
-    uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
-    auto performance = Performance(energy2, energy3);
-    cout << "Test " << p.index << ": " << performance << endl;
-    trace.WriteToFile(p.GetOutput());
-    auto score = Score(model, performance);
-    return score;
 }
 
 CheckResult Solver::Check(const Problem& p) {
