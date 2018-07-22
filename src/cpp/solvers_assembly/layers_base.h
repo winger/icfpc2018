@@ -38,7 +38,10 @@ protected:
 
     void SetTargetCoordinate(const Coordinate& c);
 
-    void AddCommand(const Command& c) { state.trace.commands.push_back(c); state.Step(); }
+    void AddCommand(const Command& c) {
+        state.trace.commands.emplace_back(c);
+        state.Step();
+    }
     Coordinate& GetBotPosition() { return state.all_bots[0].c; }
     void MoveToCoordinate(int x, int z);
     void MoveToCoordinate(int x, int y, int z, bool finalize = false);
