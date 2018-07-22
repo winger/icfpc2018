@@ -1,3 +1,4 @@
+#include "command_line.h"
 #include "state.h"
 #include "grounder.h"
 #include "constants.h"
@@ -154,14 +155,15 @@ void State::Step()
     bool icValid = ic.IsValid();
     correct = correct && icValid;
     correct = correct && hc <= 1;
-    bool grounded = harmonics || matrix.IsGrounded();
-    correct = correct && grounded;
-    if (!correct) {
-        trace_pos = trace.size();
-        cerr << "[WARN] State is incorrect. Grounded = " << grounded
-             << ", Trace_Pos = " << trace_pos << ", HC = " << hc
-             << ", icValid = " << icValid << endl;
-        throw StopException();
+    if (!cmd.int_args["ndebug"]) {
+        bool grounded = harmonics || matrix.IsGrounded();
+        correct = correct && grounded;
+        if (!correct) {
+            trace_pos = trace.size();
+            cerr << "[WARN] State is incorrect. Grounded = " << grounded << ", Trace_Pos = " << trace_pos
+                 << ", HC = " << hc << ", icValid = " << icValid << endl;
+            throw StopException();
+        }
     }
     assert(correct);
 }
