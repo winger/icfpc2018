@@ -11,9 +11,20 @@
 //   4. Check covering by crosses.
 //   4.1. There are 10 different covering by crosses, it's possible to check all of them.
 
+struct StateSnapshot {
+    Matrix matrix;
+    State state;
+};
+
 class AssemblySolverLayersBase
 {
 protected:
+    using StateSnapshots = std::vector<StateSnapshot>;
+
+    StateSnapshot GetSnapshot();
+    void ApplySnapshot(const StateSnapshot& s);
+    void SelectBestSnapshot(const StateSnapshots& s);
+
     Matrix matrix;
     bool erase;
     bool levitation;

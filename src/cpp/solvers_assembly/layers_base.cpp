@@ -211,6 +211,28 @@ void AssemblySolverLayersBase::SolveZ3(int x, int y)
     SolveZ3_Fill(x, y, zdirection);
 }
 
+StateSnapshot AssemblySolverLayersBase::GetSnapshot() {
+    return {matrix, state};
+}
+
+void AssemblySolverLayersBase::ApplySnapshot(const StateSnapshot& s) {
+    matrix = s.matrix;
+    state = s.state;
+}
+
+void AssemblySolverLayersBase::SelectBestSnapshot(const StateSnapshots& s) {
+    size_t best_energy = s[0].state.energy;
+    size_t best_index = 0;
+    for (size_t i = 1; i < s.size(); ++i) {
+        assert(s[i].matrix == s[0].matrix);
+        if (s[i].state.energy < best_energy) {
+            best_energy = s[i].state.energy;
+            best_index = i;
+        }
+    }
+    ApplySnapshot(s[best_index]);
+}
+
 void AssemblySolverLayersBase::SolveLayer(int y)
 {
     int r = matrix.GetR();
@@ -230,39 +252,39 @@ void AssemblySolverLayersBase::SolveLayer(int y)
         }
     }
     if (x1 < 0) return; // Nothing to do
+
     Coordinate c = state.all_bots[0].c;
-    if (c.x <= (x0 + x1) / 2)
-    {
-        for (int x = x0; x <= x1;)
-        {
-            if (x < x1)
-            {
-                SolveZ3(x + 1, y);
-                x += 3;
-            }
-            else
-            {
-                SolveZ1(x, y);
-                x += 1;
-            }
+
+    StateSnapshots snapshots;
+
+    auto snapshot = GetSnapshot();
+
+    for (int x = x0; x <= x1;) {
+        if (x < x1) {
+            SolveZ3(x + 1, y);
+            x += 3;
+        } else {
+            SolveZ1(x, y);
+            x += 1;
         }
     }
-    else
-    {
-        for (int x = x1; x >= x0;)
-        {
-            if (x > x0)
-            {
-                SolveZ3(x - 1, y);
-                x -= 3;
-            }
-            else
-            {
-                SolveZ1(x, y);
-                x -= 1;
-            }
+
+    snapshots.emplace_back(GetSnapshot());
+
+    ApplySnapshot(snapshot);
+
+    for (int x = x1; x >= x0;) {
+        if (x > x0) {
+            SolveZ3(x - 1, y);
+            x -= 3;
+        } else {
+            SolveZ1(x, y);
+            x -= 1;
         }
     }
+
+    snapshots.emplace_back(GetSnapshot());
+    SelectBestSnapshot(snapshots);
 }
 
 void AssemblySolverLayersBase::SolveFinalize() {
