@@ -116,16 +116,8 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     Trace temp;
     vector<Trace> traces;
     AssemblySolverLayersBase::Solve(target, temp); traces.push_back(temp);
-    // try {
-    //     SolverLayersParallel::Solve(target, temp, false);
-    //     traces.push_back(temp);
-    // } catch (const StopException& e) {
-    // }
-    // try {
-    //     SolverLayersParallel::Solve(target, temp, true);
-    //     traces.push_back(temp);
-    // } catch (const StopException& e) {
-    // }
+    // AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base); traces.push_back(temp);
+
     assert(!traces.empty());
     if (FileExists(p.GetProxy())) {
         temp.ReadFromFile(p.GetProxy()); traces.push_back(temp);
