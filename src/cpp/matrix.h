@@ -18,9 +18,11 @@ public:
     bool IsInside(const Coordinate& c) const { return IsInside(c.x, c.y, c.z); }
     uint8_t Get(int x, int y, int z) const { return data[Index(x, y, z)]; }
     uint8_t Get(const Coordinate& c) const { return Get(c.x, c.y, c.z); }
-    void Fill(int x, int y, int z) { data[z + size * (y + size * x)] = 1; }
+    void Fill(int index) { data[index] = 1; }
+    void Fill(int x, int y, int z) { data[Index(x, y, z)] = 1; }
     void Fill(const Coordinate& c) { Fill(c.x, c.y, c.z); }
-    void Erase(int x, int y, int z) { data[z + size * (y + size * x)] = 0; }
+    void Erase(int index) { data[index] = 0; }
+    void Erase(int x, int y, int z) { data[Index(x, y, z)] = 0; }
     void Erase(const Coordinate& c) { Erase(c.x, c.y, c.z); }
     int Index(int x, int y, int z) const { return z + size * (y + size * x); }
     std::vector<int> Reindex(int index) const;

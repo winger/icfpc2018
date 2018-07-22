@@ -10,6 +10,7 @@ void State::Init(const Matrix& source, const Trace& _trace)
     energy = 0;
     harmonics = 0;
     matrix = source;
+    backMatrix = source;
     all_bots.resize(0);
     all_bots.resize(TaskConsts::N_BOTS);
     for (unsigned i = 0; i < TaskConsts::N_BOTS; ++i)
@@ -29,8 +30,38 @@ bool State::IsCorrectFinal() const
     return correct && (harmonics == 0) && (active_bots.size() == 0) && (trace_pos == trace.size());
 }
 
+
+void State::Fulfill(
+    std::vector<int> const& toAdd,
+    std::vector<int> const& toDelete) {
+  for (auto v: toAdd) {
+    backMatrix.Fill(v);
+  }
+  for (auto v: toDelete) {
+    backMatrix.Erase(v);
+  }
+}
+
+bool State::IsGrounded(
+    std::vector<int> const& toAdd,
+    std::vector<int> const& toDelete) {
+
+  if (toDelete.empty()) {
+    bool result = Grounder::IsDeltaGrounded(backMatrix, toAdd);
+    Fulfill(toAdd, toDelete);
+    return result;
+  } else {
+    Fulfill(toAdd, toDelete);
+    return matrix.IsGrounded();
+  }
+}
+
 void State::Step()
 {
+    std::vector<int> toBeAdded{};
+    std::vector<int> toBeDeleted{};
+
+
     vector<unsigned> bots = active_bots;
     assert(trace_pos + bots.size() <= trace.size());
     energy += (harmonics ? 30 : 3) * matrix.GetVolume();
@@ -91,6 +122,7 @@ void State::Step()
             assert(correct);
             energy += matrix.Get(fc) ? 6 : 12;
             matrix.Fill(fc);
+            toBeAdded.push_back(matrix.Index(fc.x, fc.y, fc.z));
             ic.AddCoordinate(fc);
         }
         else if (c.type == Command::Void)
@@ -100,6 +132,7 @@ void State::Step()
             assert(correct);
             energy += matrix.Get(fc) ? -12 : 3;
             matrix.Erase(fc);
+            toBeDeleted.push_back(matrix.Index(fc.x, fc.y, fc.z));
             ic.AddCoordinate(fc);
         }
         else if (c.type == Command::FusionP)
@@ -177,6 +210,7 @@ void State::Step()
                     Coordinate fc{x, y, z};
                     energy += matrix.Get(fc) ? 6 : 12;
                     matrix.Fill(fc);
+                    toBeAdded.push_back(matrix.Index(x, y, z));
                     ic.AddCoordinate(fc);
                 }
             }
@@ -198,6 +232,7 @@ void State::Step()
                     Coordinate fc{x, y, z};
                     energy += matrix.Get(fc) ? -12 : 3;
                     matrix.Erase(fc);
+                    toBeDeleted.push_back(matrix.Index(x, y, z));
                     ic.AddCoordinate(fc);
                 }
             }
@@ -211,7 +246,9 @@ void State::Step()
     bool icValid = ic.IsValid();
     correct = correct && icValid;
     if (!cmd.int_args["ndebug"]) {
-        bool grounded = harmonics || matrix.IsGrounded();
+        bool grounded = harmonics || IsGrounded(toBeAdded, toBeDeleted);
+
+        matrix.IsGrounded();
         correct = correct && grounded;
         if (!correct) {
             trace_pos = trace.size();

@@ -7,7 +7,7 @@ class Grounder
 public:
     static bool IsDeltaGrounded(
       Matrix const& model,
-      std::vector<uint32_t> const& indicies);
+      std::vector<int32_t> const& indicies);
     static bool IsByLayerGrounded(Matrix const& model);
     static bool IsProjectionGrounded(Matrix const& model);
     static bool IsGrounded(Matrix const& model);
