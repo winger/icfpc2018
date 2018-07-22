@@ -1,10 +1,7 @@
 #include "constants.h"
 #include "command_line.h"
-#include "evaluation.h"
 #include "solver.h"
 #include "grounder.h"
-
-void TestTraceDecodeEncode();
 
 int main(int argc, char* argv[])
 {
@@ -33,7 +30,5 @@ int main(int argc, char* argv[])
     } else {
         assert(false);
     }
-    // TestTraceDecodeEncode();
-    // Evaluation::TestAllDfltSolution();
     return 0;
 }

@@ -1,15 +1,14 @@
 #include "solver.h"
 
-#include <future>
-#include <thread>
-
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 
+#include "base.h"
 #include "command_line.h"
 #include "evaluation.h"
 #include "grounder.h"
 #include "problem.h"
+#include "solution.h"
 #include "threadPool.h"
 
 namespace {
@@ -108,43 +107,30 @@ unsigned Score(const Matrix& model, double performance) {
     return unsigned(1000.0 * performance * unsigned(log(model.GetR()) / log(2)));
 }
 
-unsigned Solver::Solve(const Problem& p) {
-    uint64_t energy;
+Solution Solver::Solve(const Problem& p) {
+    Solution s;
+    Matrix source, target;
     if (p.assembly) {
-        Matrix model;
-        Trace trace;
-        model.ReadFromFile(p.GetTarget());
-        uint64_t energy = Solve(p, model, trace);
-        uint64_t energy2 = Evaluation::CheckSolution(model, trace);
-        assert((energy == 0) || (energy == energy2));
-        WriteEnergyToFile(energy2, p.GetEnergyInfo());
-
-        Trace trace_dflt;
-        trace_dflt.ReadFromFile(p.GetDefaultTrace());
-        uint64_t energy3 = Evaluation::CheckSolution(model, trace_dflt);
-        auto performance = Performance(energy2, energy3);
-        cout << "Test " << p.index << " " << p.GetType() << ": " << performance << endl;
-        trace.WriteToFile(p.GetOutput());
-        return Score(model, performance);
+        target.ReadFromFile(p.GetTarget());
+        source.Init(tager.GetR());
+        SolveAssembly(p, source, target, s.trace);
     } else if (p.disassembly) {
-        Matrix model;
-        Trace trace;
-        model.ReadFromFile(p.GetSource());
-        trace.ReadFromFile(p.GetDefaultTrace());
-        energy = Evaluation::CheckSolution(model, trace);
-        cout << "Test " << p.index << " " << p.GetType() << ": " << "TBD" << endl;
-        return 0;
+        source.ReadFromFile(p.GetSource());
+        target.Init(source.GetR());
+        SolveDisassembly(p, source, target, s.trace);
     } else if (p.reassembly) {
-        Matrix model_src;
-        model_src.ReadFromFile(p.GetTarget());
-        Matrix model_trg;
-        model_trg.ReadFromFile(p.GetTarget());
-        cout << "Test " << p.index << " " << p.GetType() << ": " << "TBD" << endl;
-        Trace trace;
-        trace.ReadFromFile(p.GetDefaultTrace());
-        return 0;
+        source.ReadFromFile(p.GetSource());
+        target.ReadFromFile(p.GetTarget());
+        SolveReassembly(p, source, target, s.trace);
     }
-    return 0;
+    s.trace.WriteToFile(p.GetOutput());
+    Evaluation::Result solution_result = Evaluation::CheckSolution(source, target, s.trace);
+    Trace trace_dflt;
+    trace_dflt.ReadFromFile(p.GetDefaultTrace());
+    Evaluation::Result default_result = Evaluation::CheckSolution(source, target, trace_dflt);
+    s.Set(solution_result, default_result);
+    cout << "Test " << p.index << " " << p.GetType() << ": " << s.score << " " s.max_score << endl;
+    return s;
 }
 
 CheckResult Solver::Check(const Problem& p) {
