@@ -22,12 +22,15 @@ const std::vector< std::vector<int> > DIRS_3D {
 
 
 bool Grounder::IsDeltaGrounded(
-    Matrix const& model, std::vector<int32_t> const& indicies) {
+    Matrix const& model,
+    std::vector<int32_t> const& indicies) {
   std::unordered_set<int32_t> was;
   std::unordered_set<int32_t> delta;
   std::vector<int32_t> queue;
   for (auto v: indicies) {
     delta.insert(v);
+  }
+  for (auto v: delta) {
     auto coords = model.Reindex(v);
     if (coords[1] == 0) {
       was.insert(v);
@@ -61,7 +64,8 @@ bool Grounder::IsDeltaGrounded(
       }
       auto index = model.Index(nc[0], nc[1], nc[2]);
       if (model.IsInside(nc[0], nc[1], nc[2]) &&
-          delta.find(index) != delta.end()) {
+          delta.find(index) != delta.end() &&
+          was.find(index) == was.end()) {
         was.insert(index);
         queue.push_back(index);
       }

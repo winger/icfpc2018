@@ -20,7 +20,10 @@ public:
     uint64_t energy;
     bool harmonics; // Low = 0, High = 1
     Matrix matrix;
+
     Matrix backMatrix;
+    std::vector<int> toAdd;
+    std::vector<int> toDelete;
 
     vector<BotState> all_bots;
     vector<unsigned> active_bots;
@@ -35,11 +38,7 @@ public:
 protected:
     bool MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference& cd);
 
-    void Fulfill(
-        std::vector<int> const& toAdd,
-        std::vector<int> const& toDelete);
+    void Fulfill();
 
-    bool IsGrounded(
-        std::vector<int> const& toAdd,
-        std::vector<int> const& toDelete);
+    bool IsGrounded();
 };
