@@ -3,12 +3,13 @@
 #include <future>
 #include <thread>
 
-#include "solvers/layers_base.h"
-#include "solvers/layers_parallel.h"
+#include "solvers_assembly/layers_base.h"
+#include "solvers_assembly/layers_parallel.h"
 
+#include "command_line.h"
 #include "evaluation.h"
 #include "grounder.h"
-#include "command_line.h"
+#include "problem.h"
 #include "threadPool.h"
 
 namespace {
@@ -27,58 +28,6 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
     file.close();
 }
 }
-
-std::string Problem::GetType() const {
-    assert(assembly + disassembly + reassembly == 1);
-    if (assembly) {
-        return "A";
-    }
-    if (disassembly) {
-        return "D";
-    }
-    if (reassembly) {
-        return "R";
-    }
-    assert(false);
-}
-
-std::string Problem::GetSI() const { return to_string(1000 + index).substr(1); }
-
-std::string Problem::GetPrefix() const {
-    if (round == "L") {
-        return "../../lightning/";
-    } else {
-        return "../../";
-    }
-}
-
-std::string Problem::GetSource() const {
-    auto filename = round + GetType() + GetSI() + "_src";
-
-    return GetPrefix() + "problems" + round + "/" + filename + ".mdl";
-}
-
-std::string Problem::GetTarget() const {
-    auto filename = round + GetType() + GetSI() + "_tgt";
-
-    return GetPrefix() + "problems" + round + "/" + filename + ".mdl";
-}
-
-std::string Problem::GetProxy() const { return GetPrefix() + "proxyTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
-
-std::string Problem::GetDefaultTrace() const { return GetPrefix() + "dfltTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
-
-std::string Problem::GetEnergyInfo() const { return GetPrefix() + "tracesEnergy" + round + "/" + round + GetType() + GetSI() + ".txt"; }
-
-std::string Problem::GetOutput() const { return GetPrefix() + "cppTraces" + round + "/" + round + GetType() + GetSI() + ".nbt"; }
-
-std::string Problem::GetSubmitEnergyInfo() const {
-    return GetPrefix() + "submitEnergy" + round + "/" + round + GetType() + GetSI() + ".txt";
-}
-std::string Problem::GetSubmitOutput() const {
-    return GetPrefix() + "submitTraces" + round + "/" + round + GetType() + GetSI() + ".nbt";
-}
-
 
 Problems Solver::ListProblems(const std::string& round) {
     Problems result;
@@ -121,7 +70,7 @@ uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
 {
     Trace temp;
     vector<Trace> traces;
-    SolverLayersBase::Solve(m, temp); traces.push_back(temp);
+    AssemblySolverLayersBase::Solve(m, temp); traces.push_back(temp);
     // try {
     //     SolverLayersParallel::Solve(m, temp, false);
     //     traces.push_back(temp);
