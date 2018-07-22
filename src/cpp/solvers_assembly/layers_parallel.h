@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../evaluation.h"
 #include "../solver.h"
 #include "../state.h"
 
@@ -22,19 +23,29 @@ protected:
 
     Matrix matrix;
 
-    bool search_best_split;
     int split_axis; // 1 - x, 3 - z
     vector<int> split_coordinate;
     vector<BotTrace> bot_traces;
 
-    AssemblySolverLayersParallel(const Matrix& m, bool search_best_split);
+    AssemblySolverLayersParallel(const Matrix& target, int _split_axis, const vector<int>& _split_coordinate);
 
     void BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces);
     void MergeBot(unsigned index);
 
-    void FindBestSplit();
+    // TODO:
+    //   Duplicate old function somethere. It useful for small tests.
+    // void FindBestSplit();
     void Solve(Trace& output);
 
 public:
-    static uint64_t Solve(const Matrix& m, Trace& output, bool search_best_split = false);
+    static void Solve(const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output);
+
+
+    enum SplitSearchMode
+    {
+        base,
+        base_and_bots
+    };
+
+    static Evaluation::Result Solve(const Matrix& target, Trace& output, SplitSearchMode mode = base);
 };
