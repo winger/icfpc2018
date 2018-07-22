@@ -197,7 +197,7 @@ Solution Solver::Solve(const Problem& p) {
     trace_dflt.ReadFromFile(p.GetDefaultTrace());
     Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
     s.Set(solution_result, default_result);
-    cout << "Test " << p.index << " " << p.GetType() << ": " << s.score << " " << s.max_score << endl;
+    cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << endl;
     return s;
 }
 
@@ -216,7 +216,7 @@ Solution Solver::Check(const Problem& p, const std::string& filename) {
     Trace trace;
     trace.ReadFromFile(filename);
     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-    cout << p.index << " " << ((result.correct) ? "OK" : "Failed") << endl;
+    cout << p.Name() << " " << ((result.correct) ? "OK" : "Failed") << endl;
 
     Trace trace_dflt;
     trace_dflt.ReadFromFile(p.GetDefaultTrace());
@@ -270,9 +270,9 @@ bool MergeProblemWithSubmit(const Problem& p) {
         t.ReadFromFile(p.GetProxy());
         t.WriteToFile(p.GetSubmitOutput());
         WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
-        cout << p.index << ": BETTER " << checkProxy.energy << " < " << checkSubmit.energy << endl;
+        cout << p.Name() << ": BETTER " << checkProxy.energy << " < " << checkSubmit.energy << endl;
     } else {
-        cout << p.index << ": NOT BETTER" << endl;
+        cout << p.Name() << ": NOT BETTER" << endl;
     }
     return need_replace;
 }
