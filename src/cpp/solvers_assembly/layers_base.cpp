@@ -1,5 +1,6 @@
 #include "layers_base.h"
 #include "grounder.h"
+#include "distance_calculator.h"
 
 AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e, bool l) : matrix(m), erase(e), levitation(l) {
     state.Init(m.GetR(), Trace());
@@ -211,7 +212,63 @@ void AssemblySolverLayersBase::SolveZ3(int x, int y)
     SolveZ3_Fill(x, y, zdirection);
 }
 
+int AssemblySolverLayersBase::GetGreedyEstimation(int x, int y, int z) {
+    size_t dummy = 0;
+    return 3 * GreedyFill({x, y, z}, true, dummy) -
+           MoveEnergy(GetBotPosition().x - x, GetBotPosition().z - z);
+}
+
+size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size_t& count) {
+    size_t result = 0;
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dz = -1; dz <= 1; ++dz) {
+            Coordinate c = {c0.x + dx, c0.y - 1, c0.z + dz};
+            CoordinateDifference cd = c0 - c;
+            if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && matrix.Get(c)) {
+                ++result;
+                if (!dry) {
+                    if (!erase) {
+                        Command m(Command::Fill);
+                        m.cd1 = cd;
+                        AddCommand(m);
+                    } else {
+                        Command m(Command::Void);
+                        m.cd1 = cd;
+                        AddCommand(m);
+                    }
+                    --count;
+                }
+            }
+        }
+    }
+    return result;
+}
+
 void AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
+    int bestX = -1;
+    int bestZ = -1;
+    static constexpr int INF_ESTIMATION = -1000000;
+    int bestEstimation = INF_ESTIMATION;
+
+    for (int x = 0; x < matrix.GetR(); ++x)
+    {
+        for (int z = 0; z < matrix.GetR(); ++z)
+        {
+            if (matrix.Get(x, y, z)) {
+                int estimation = GetGreedyEstimation(x, y, z);
+                if (estimation > bestEstimation) {
+                    bestX = x;
+                    bestZ = z;
+                    bestEstimation = estimation;
+                }
+            }
+        }
+    }
+
+    assert(bestEstimation != INF_ESTIMATION);
+
+    MoveToCoordinate(bestX, y + 1, bestZ);
+    GreedyFill(GetBotPosition(), false, count);
 }
 
 StateSnapshot AssemblySolverLayersBase::GetSnapshot() {
@@ -292,13 +349,11 @@ void AssemblySolverLayersBase::SolveLayer(int y)
 
     snapshots.emplace_back(GetSnapshot());
 
-    /*
     ApplySnapshot(snapshot);
     while (count) {
         SolveGreedy(y, count);
     }
     snapshots.emplace_back(GetSnapshot());
-    */
 
     SelectBestSnapshot(snapshots);
 }

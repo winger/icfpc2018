@@ -2,4 +2,4 @@
 
 #include "coordinate_difference.h"
 
-int MoveEnergy(const CoordinateDifference& cd);
+int MoveEnergy(int x, int z);

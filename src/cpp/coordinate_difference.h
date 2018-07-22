@@ -19,6 +19,9 @@ struct CoordinateDifference
 };
 
 inline Coordinate operator+(const Coordinate& c, const CoordinateDifference& cd) { return Coordinate{c.x + cd.dx, c.y + cd.dy, c.z + cd.dz}; }
+inline CoordinateDifference operator-(const Coordinate& a, const Coordinate& b) {
+    return {a.x - b.x, a.y - b.y, a.z - b.z};
+};
 
 inline Coordinate& operator+=(Coordinate& c, const CoordinateDifference& cd) {
     c.x += cd.dx;
