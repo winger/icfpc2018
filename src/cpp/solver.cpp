@@ -1,5 +1,7 @@
 #include "solver.h"
 
+#include <regex>
+
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 
@@ -89,10 +91,15 @@ Problems Solver::ListProblems(const std::string& round) {
     }
 
     if (cmd.args.count("test")) {
+        const std::regex r(cmd.args["test"]);
+        Problems filtered;
         for (const auto& p : result) {
-            if (p.Name() == cmd.args["test"]) {
-                return {p};
+            if (std::regex_match(p.Name(), r)) {
+                filtered.emplace_back(p);
             }
+        }
+        if (!filtered.empty()) {
+            return filtered;
         }
     }
 
