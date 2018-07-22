@@ -199,11 +199,6 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
     //       // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
     //     }
     // }
-    {
-        Trace temp;
-        temp.ReadFromFile(p.GetDefaultTrace());
-        traces.emplace_back(std::move(temp));
-    }
 
     if (p.disassembly) {
         if (FileExists(p.GetProxy())) {
@@ -231,12 +226,6 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         Trace tmp2;
         SolveAssemble(p, voidM, target, tmp2);
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
-    }
-
-    {
-        Trace temp;
-        temp.ReadFromFile(p.GetDefaultTrace());
-        traces.emplace_back(std::move(temp));
     }
 
     if (FileExists(p.GetProxy())) {
