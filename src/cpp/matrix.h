@@ -38,3 +38,5 @@ public:
 
     bool operator==(const Matrix& m) const { return data == m.data; }
 };
+
+std::ostream& operator<<(std::ostream& s, const Matrix& m);

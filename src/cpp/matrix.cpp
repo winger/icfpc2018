@@ -80,18 +80,17 @@ void Matrix::ReadFromFile(const string& filename)
     }
 }
 
-void Matrix::Print() const
-{
-    for (int y = size-1; y >= 0; --y)
-    {
-        for (int z = size-1; z >= 0; --z)
-        {
-            for (int x = 0; x < size; ++x)
-                cout << (Get(x, y, z) ? "#" : ".");
-            cout << endl;
+std::ostream& operator<<(std::ostream& s, const Matrix& m) {
+    for (int y = m.GetR() - 1; y >= 0; --y) {
+        for (int z = m.GetR() - 1; z >= 0; --z) {
+            for (int x = 0; x < m.GetR(); ++x) {
+                s << (m.Get(x, y, z) ? "#" : ".");
+            }
+            s << endl;
         }
-        cout << endl;
+        s << endl;
     }
+    return s;
 }
 
 std::vector<int> Matrix::Reindex(int index) const {

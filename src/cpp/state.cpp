@@ -16,8 +16,9 @@ void State::Init(const Matrix& source, const Trace& _trace)
     for (unsigned i = 0; i < TaskConsts::N_BOTS; ++i)
     {
         all_bots[i].bid = i;
-        if (i)
+        if (i) {
             all_bots[0].seeds.push_back(i);
+        }
     }
     all_bots[0].c = {0, 0, 0};
     active_bots.push_back(0);

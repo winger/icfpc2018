@@ -1,9 +1,12 @@
 #include "layers_base.h"
 #include "grounder.h"
 
-AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m) : matrix(m)
-{
+AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e) : matrix(m), erase(e) {
     state.Init(m.GetR(), Trace());
+    if (erase) {
+        state.matrix = m;
+        state.backMatrix = m;
+    }
     helper_mode = false;
     projectionGrounded = Grounder::IsProjectionGrounded(m);
     target = {0, 0, 0};
@@ -100,8 +103,7 @@ void AssemblySolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
     z0 = r, z1 = -1;
     for (int z = 0; z < r; ++z)
     {
-        if (matrix.Get(x, y, z) && !state.matrix.Get(x, y, z))
-        {
+        if ((!erase && matrix.Get(x, y, z) && !state.matrix.Get(x, y, z)) || (erase && matrix.Get(x, y, z) && state.matrix.Get(x, y, z))) {
             z0 = min(z0, z);
             z1 = max(z1, z);
         }
@@ -118,9 +120,15 @@ void AssemblySolverLayersBase::SolveZ1_Fill(int x, int y, bool direction)
             Coordinate c {x, y, bc.z + dz};
             if (matrix.IsInside(c) && matrix.Get(c))
             {
-                Command m(Command::Fill);
-                m.cd1 = { 0, -1, dz};
-                AddCommand(m);
+                if (!erase) {
+                    Command m(Command::Fill);
+                    m.cd1 = {0, -1, dz};
+                    AddCommand(m);
+                } else {
+                    Command m(Command::Void);
+                    m.cd1 = {0, -1, dz};
+                    AddCommand(m);
+                }
             }
         }
         int z0, z1;
@@ -152,8 +160,7 @@ void AssemblySolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
     {
         for (int z = 0; z < r; ++z)
         {
-            if (matrix.Get(ix, y, z) && !state.matrix.Get(ix, y, z))
-            {
+            if ((!erase && matrix.Get(ix, y, z) && !state.matrix.Get(ix, y, z)) || (erase && matrix.Get(ix, y, z) && state.matrix.Get(ix, y, z))) {
                 z0 = min(z0, z);
                 z1 = max(z1, z);
             }
@@ -171,9 +178,15 @@ void AssemblySolverLayersBase::SolveZ3_Fill(int x, int y, bool direction)
             Coordinate c {x + dx, y, bc.z};
             if (matrix.IsInside(c) && matrix.Get(c))
             {
-                Command m(Command::Fill);
-                m.cd1 = { dx, -1, 0 };
-                AddCommand(m);
+                if (!erase) {
+                    Command m(Command::Fill);
+                    m.cd1 = {dx, -1, 0};
+                    AddCommand(m);
+                } else {
+                    Command m(Command::Void);
+                    m.cd1 = {dx, -1, 0};
+                    AddCommand(m);
+                }
             }
         }
         int z0, z1;
@@ -263,12 +276,16 @@ void AssemblySolverLayersBase::SolveFinalize() {
     }
 }
 
-void AssemblySolverLayersBase::Solve(Trace& output)
-{
+void AssemblySolverLayersBase::Solve(Trace& output) {
     SolveInit();
-    for (int i = 0; i < matrix.GetR() - 1; ++i)
-    {
-        SolveLayer(i);
+    if (!erase) {
+        for (int i = 0; i < matrix.GetR() - 1; ++i) {
+            SolveLayer(i);
+        }
+    } else {
+        for (int i = matrix.GetR() - 1; i >= 0; --i) {
+            SolveLayer(i);
+        }
     }
     SolveFinalize();
     output = state.trace;
@@ -276,64 +293,14 @@ void AssemblySolverLayersBase::Solve(Trace& output)
 
 Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output, bool erase)
 {
-    AssemblySolverLayersBase solver(m);
+    AssemblySolverLayersBase solver(m, erase);
     solver.Solve(output);
-    if (erase) {
-        Trace eraseOutput;
-        auto& cmds = eraseOutput.commands;
-        /*
-        Command c1;
-        c1.type = Command::Flip;
-        cmds.emplace_back(c1);
-        */
-        for (auto it = output.commands.rbegin(); it != output.commands.rend(); ++it) {
-            switch (it->type) {
-                case Command::Fill: {
-                    Command c;
-                    c.type = Command::Void;
-                    c.cd1 = it->cd1;
-                    cmds.emplace_back(c);
-                    break;
-                }
-                case Command::SMove: {
-                    Command c;
-                    c.type = Command::SMove;
-                    c.cd1 = -it->cd1;
-                    c.cd2 = -it->cd2;
-                    cmds.emplace_back(c);
-                    break;
-                }
-                case Command::LMove: {
-                    Command c;
-                    c.type = Command::LMove;
-                    c.cd1 = -it->cd1;
-                    cmds.emplace_back(c);
-                    break;
-                }
-                case Command::Halt:
-                case Command::Flip:
-                    break;
-                default:
-                    assert(false);
-            }
-        }
-        /*
-        Command c2;
-        c2.type = Command::Flip;
-        cmds.emplace_back(c2);
-        */
-        Command c3;
-        c3.type = Command::Halt;
-        cmds.emplace_back(c3);
-
-        output = std::move(eraseOutput);
-    }
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
 
 Evaluation::Result AssemblySolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
 {
-    AssemblySolverLayersBase solver(m);
+    AssemblySolverLayersBase solver(m, false);
     solver.SetTargetCoordinate(first_and_last);
     solver.Solve(output);
     return Evaluation::Result(solver.state.correct, solver.state.energy);

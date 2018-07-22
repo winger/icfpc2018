@@ -15,13 +15,14 @@ class AssemblySolverLayersBase
 {
 protected:
     Matrix matrix;
+    bool erase;
     State state;
 
     bool helper_mode;
     bool projectionGrounded{false};
     Coordinate target;
 
-    AssemblySolverLayersBase(const Matrix& m);
+    AssemblySolverLayersBase(const Matrix& m, bool e);
 
     void SetTargetCoordinate(const Coordinate& c);
 

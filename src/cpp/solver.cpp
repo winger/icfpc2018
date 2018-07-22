@@ -140,9 +140,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
 
     {
         Trace trace;
-        vector<Trace> traces;
         AssemblySolverLayersBase::Solve(source, trace, true);
-        // cout << temp << endl;
         traces.push_back(trace);
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
         assert(result.correct);

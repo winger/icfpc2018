@@ -48,7 +48,7 @@ Trace Trace::Cat(const Trace& a, const Trace& b) {
         assert(result.commands.back().type == Command::Halt);
         result.commands.pop_back();
     }
-    result.commands.insert(a.commands.end(), b.commands.begin(), b.commands.end());
+    result.commands.insert(result.commands.end(), b.commands.begin(), b.commands.end());
     return result;
 }
 
