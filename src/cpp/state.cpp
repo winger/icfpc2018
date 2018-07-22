@@ -46,7 +46,7 @@ void State::Step()
         Command c = trace.commands[trace_pos++];
         if (c.type == Command::Halt)
         {
-            correct = correct && (bs.c.x == 0) && (bs.c.y == 0) && (bs.c.z == 0) && (bots.size() == 1) && (harmonics == false) && (trace_pos == trace.size());
+            correct = correct && (bs.c.x == 0) && (bs.c.y == 0) && (bs.c.z == 0) && (bots.size() == 1) && (!harmonics) && (trace_pos == trace.size());
             assert(correct);
             active_bots.clear();
         }
@@ -60,7 +60,9 @@ void State::Step()
         }
         else if (c.type == Command::SMove)
         {
-            correct = correct && c.cd1.IsLongLinearCoordinateDifferences() && MoveBot(bs, ic, c.cd1);
+            correct = correct && c.cd1.IsLongLinearCoordinateDifferences();
+            assert(correct);
+            correct = correct && MoveBot(bs, ic, c.cd1);
             assert(correct);
         }
         else if (c.type == Command::LMove)
@@ -167,11 +169,11 @@ void State::Step()
         set<Coordinate> botCorners(fill.second.begin(), fill.second.end());
         correct = correct && (corners.size() == fill.second.size());
         correct = correct && (corners == botCorners);
-        for (int x = fill.first.a.x; x <= fill.first.b.x; ++x) 
+        for (int x = fill.first.a.x; x <= fill.first.b.x; ++x)
         {
-            for (int y = fill.first.a.y; y <= fill.first.b.y; ++y) 
+            for (int y = fill.first.a.y; y <= fill.first.b.y; ++y)
             {
-                for (int z = fill.first.a.z; z <= fill.first.b.z; ++z) 
+                for (int z = fill.first.a.z; z <= fill.first.b.z; ++z)
                 {
                     Coordinate fc{x, y, z};
                     energy += matrix.Get(fc) ? 6 : 12;
@@ -188,11 +190,11 @@ void State::Step()
         set<Coordinate> botCorners(erase.second.begin(), erase.second.end());
         correct = correct && (corners.size() == erase.second.size());
         correct = correct && (corners == botCorners);
-        for (int x = erase.first.a.x; x <= erase.first.b.x; ++x) 
+        for (int x = erase.first.a.x; x <= erase.first.b.x; ++x)
         {
-            for (int y = erase.first.a.y; y <= erase.first.b.y; ++y) 
+            for (int y = erase.first.a.y; y <= erase.first.b.y; ++y)
             {
-                for (int z = erase.first.a.z; z <= erase.first.b.z; ++z) 
+                for (int z = erase.first.a.z; z <= erase.first.b.z; ++z)
                 {
                     Coordinate fc{x, y, z};
                     energy += matrix.Get(fc) ? -12 : 3;

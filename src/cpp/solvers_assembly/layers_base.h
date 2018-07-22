@@ -42,6 +42,6 @@ protected:
     void Solve(Trace& output);
 
 public:
-    static Evaluation::Result Solve(const Matrix& m, Trace& output);
+    static Evaluation::Result Solve(const Matrix& m, Trace& output, bool erase);
     static Evaluation::Result SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
 };

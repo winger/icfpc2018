@@ -13,4 +13,6 @@ public:
     bool TryReadFromFile(const string& filename);
 
     void WriteToFile(const string& filename) const;
+
+    static Trace Cat(const Trace& a, const Trace& b);
 };

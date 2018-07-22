@@ -87,7 +87,7 @@ void AssemblySolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finali
 void AssemblySolverLayersBase::SolveInit()
 {
     if (!helper_mode) {
-        if (not projectionGrounded) {
+        if (!projectionGrounded) {
           AddCommand(Command(Command::Flip));
         }
     }
@@ -273,10 +273,23 @@ void AssemblySolverLayersBase::Solve(Trace& output)
     output = state.trace;
 }
 
-Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output)
+Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output, bool erase)
 {
     AssemblySolverLayersBase solver(m);
     solver.Solve(output);
+    if (erase) {
+        assert(!output.commands.empty());
+        assert(output.commands.back().type == Command::Halt);
+        std::reverse(output.commands.begin(), output.commands.end() - 1);
+        for (auto& c : output.commands) {
+            if (c.type == Command::Fill) {
+                c.type = Command::Void;
+            } else if (c.type == Command::SMove || c.type == Command::LMove) {
+                c.cd1 = -c.cd1;
+                c.cd2 = -c.cd2;
+            }
+        }
+    }
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
 

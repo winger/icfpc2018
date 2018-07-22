@@ -124,7 +124,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 {
     Trace temp;
     vector<Trace> traces;
-    AssemblySolverLayersBase::Solve(target, temp); traces.push_back(temp);
+    AssemblySolverLayersBase::Solve(target, temp, false); traces.push_back(temp);
     // try {
     //     SolverLayersParallel::Solve(target, temp, false);
     //     traces.push_back(temp);
@@ -149,6 +149,13 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
 
     {
         Trace temp;
+        vector<Trace> traces;
+        AssemblySolverLayersBase::Solve(source, temp, true);
+        traces.push_back(temp);
+    }
+
+    {
+        Trace temp;
         temp.ReadFromFile(p.GetDefaultTrace());
         traces.emplace_back(std::move(temp));
     }
@@ -166,6 +173,18 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
 
 void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
+
+    assert(source.GetR() == target.GetR());
+
+    Matrix voidM(source.GetR());
+
+    {
+        Trace tmp1;
+        SolveDisassemble(p, source, voidM, tmp1);
+        Trace tmp2;
+        SolveAssemble(p, voidM, target, tmp2);
+        traces.emplace_back(Trace::Cat(tmp1, tmp2));
+    }
 
     {
         Trace temp;

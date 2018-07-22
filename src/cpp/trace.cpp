@@ -41,3 +41,13 @@ void Trace::WriteToFile(const string& filename) const {
     file.write(reinterpret_cast<char*>(data.data()), data.size());
     file.close();
 }
+
+Trace Trace::Cat(const Trace& a, const Trace& b) {
+    Trace result = a;
+    if (!result.commands.empty()) {
+        assert(result.commands.back().type == Command::Halt);
+        result.commands.pop_back();
+    }
+    result.commands.insert(a.commands.end(), b.commands.begin(), b.commands.end());
+    return result;
+}
