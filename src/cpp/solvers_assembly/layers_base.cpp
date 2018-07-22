@@ -273,17 +273,17 @@ void AssemblySolverLayersBase::Solve(Trace& output)
     output = state.trace;
 }
 
-uint64_t AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output)
+Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output)
 {
     AssemblySolverLayersBase solver(m);
     solver.Solve(output);
-    return solver.state.IsCorrectFinal() ? solver.state.energy : 0;
+    return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
 
-uint64_t AssemblySolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
+Evaluation::Result AssemblySolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
 {
     AssemblySolverLayersBase solver(m);
     solver.SetTargetCoordinate(first_and_last);
     solver.Solve(output);
-    return solver.state.correct ? solver.state.energy : 0;
+    return Evaluation::Result(solver.state.correct, solver.state.energy);
 }

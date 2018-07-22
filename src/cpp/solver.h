@@ -1,7 +1,6 @@
 #pragma once
 
 #include "matrix.h"
-#include "evaluation.h"
 #include "problem.h"
 #include "solution.h"
 #include "trace.h"

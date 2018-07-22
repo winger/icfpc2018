@@ -154,7 +154,7 @@ void AssemblySolverLayersParallel::FindBestSplit()
                         }
                     }
                 }
-                uint64_t energy = AssemblySolverLayersBase::SolveHelper(mtemp, {(axis == 1) ? i : 0, 0, (axis == 3) ? i : 0}, trace);
+                uint64_t energy = AssemblySolverLayersBase::SolveHelper(mtemp, {(axis == 1) ? i : 0, 0, (axis == 3) ? i : 0}, trace).energy;
                 size_t moves = trace.size();
                 energy -= 30 * matrix.GetVolume() * moves; // We will pay for moves later
                 energy -= 20 * moves; // We will pay for bot-moves later
