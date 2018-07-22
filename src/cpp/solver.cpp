@@ -221,12 +221,6 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
     }
 
-    {
-        Trace temp;
-        temp.ReadFromFile(p.GetDefaultTrace());
-        traces.emplace_back(std::move(temp));
-    }
-
     if (FileExists(p.GetProxy())) {
         Trace temp;
         temp.ReadFromFile(p.GetProxy());
