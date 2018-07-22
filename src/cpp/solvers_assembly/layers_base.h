@@ -50,6 +50,7 @@ protected:
     void SolveZ3_GetRZ(int x, int y, int& z0, int& z1);
     void SolveZ3_Fill(int x, int y, bool direction);
     void SolveZ3(int x, int y);
+    void SolveGreedy(int y, size_t& count);
     void SolveLayer(int y);
     void SolveFinalize();
     void Solve(Trace& output);

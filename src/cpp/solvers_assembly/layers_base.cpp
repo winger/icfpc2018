@@ -211,6 +211,9 @@ void AssemblySolverLayersBase::SolveZ3(int x, int y)
     SolveZ3_Fill(x, y, zdirection);
 }
 
+void AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
+}
+
 StateSnapshot AssemblySolverLayersBase::GetSnapshot() {
     return {matrix, state};
 }
@@ -238,6 +241,7 @@ void AssemblySolverLayersBase::SolveLayer(int y)
     int r = matrix.GetR();
     // Get box
     int x0 = r, x1 = -1, z0 = r, z1 = -1;
+    size_t count = 0;
     for (int x = 0; x < r; ++x)
     {
         for (int z = 0; z < r; ++z)
@@ -248,10 +252,13 @@ void AssemblySolverLayersBase::SolveLayer(int y)
                 x1 = max(x1, x);
                 z0 = min(z0, z);
                 z1 = max(z1, z);
+                ++count;
             }
         }
     }
-    if (x1 < 0) return; // Nothing to do
+    if (x1 < 0) {
+        return; // Nothing to do
+    }
 
     Coordinate c = state.all_bots[0].c;
 
@@ -284,6 +291,15 @@ void AssemblySolverLayersBase::SolveLayer(int y)
     }
 
     snapshots.emplace_back(GetSnapshot());
+
+    /*
+    ApplySnapshot(snapshot);
+    while (count) {
+        SolveGreedy(y, count);
+    }
+    snapshots.emplace_back(GetSnapshot());
+    */
+
     SelectBestSnapshot(snapshots);
 }
 
