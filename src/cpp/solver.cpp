@@ -187,18 +187,18 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         } catch (const StopException& e) {
         }
     }
-    {
-        try {
-          Trace trace;
-          Solver2D_Demolition::Solve(source, trace);
-          trace.tag = "Solver2D_Demolition";
-          traces.push_back(trace);
-          Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-          assert(result.correct);
-        } catch (const StopException& e) {
-          // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
-        }
-    }
+    // {
+    //     try {
+    //       Trace trace;
+    //       Solver2D_Demolition::Solve(source, trace);
+    //       trace.tag = "Solver2D_Demolition";
+    //       traces.push_back(trace);
+    //       Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //       assert(result.correct);
+    //     } catch (const StopException& e) {
+    //       // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
+    //     }
+    // }
     {
         Trace temp;
         temp.ReadFromFile(p.GetDefaultTrace());
