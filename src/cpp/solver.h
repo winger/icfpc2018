@@ -1,21 +1,24 @@
 #pragma once
 
 #include "matrix.h"
+#include "evaluation.h"
 #include "problem.h"
+#include "solution.h"
 #include "trace.h"
 
 class Solver
 {
 public:
-    static uint64_t SolveAssemble(const Problem& p, const Matrix& m, Trace& output);
-    static uint64_t SolveDisassemble(const Problem& p, const Matrix& m, Trace& output);
-    static uint64_t SolveReassemble(const Problem& p, const Matrix& src, const Matrix& trg, Trace& output);
-    static unsigned Solve(const Problem& p);
-    static CheckResult Check(const Problem& p);
+    static void FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target, const vector<Trace>& traces_to_check, Trace& output);
+    static void SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output);
+    static void SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output);
+    static void SolveReassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output);
+    static Solution Solve(const Problem& p);
+    static Solution Check(const Problem& p);
 
     static Problems ListProblems(const std::string& round);
 
     static void SolveAll(const std::string& round);
     static void CheckAll(const std::string& round);
-    static void MergeWithSubmit(const std::string& round);
+    // static void MergeWithSubmit(const std::string& round);
 };

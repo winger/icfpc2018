@@ -25,8 +25,8 @@ int main(int argc, char* argv[])
         Grounder::CheckAll();
     } else if (mode == "check") {
         Solver::CheckAll(round);
-    } else if (mode == "merge") {
-        Solver::MergeWithSubmit(round);
+    // } else if (mode == "merge") {
+    //     Solver::MergeWithSubmit(round);
     } else {
         assert(false);
     }
