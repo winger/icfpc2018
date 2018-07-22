@@ -20,6 +20,7 @@ struct Problem {
     std::string GetPrefix() const;
     std::string GetType() const;
     std::string GetSI() const;
+    std::string GetSource() const;
     std::string GetTarget() const;
     std::string GetProxy() const;
     std::string GetDefaultTrace() const;
