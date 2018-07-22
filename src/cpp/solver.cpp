@@ -9,7 +9,7 @@
 #include "grounder.h"
 #include "problem.h"
 #include "solution.h"
-#include "threadPool.h"
+#include "pool.h"
 
 namespace {
 static constexpr size_t N_LIGHTNING_TESTS = 186;
@@ -34,15 +34,11 @@ std::vector<T> runForEachProblem(const std::string& round, std::function<T(const
     auto threads = cmd.int_args["threads"];
     std::vector<T> result;
     if (threads > 1) {
-        tp::ThreadPoolOptions options;
-        options.setThreadCount(threads);
-        tp::ThreadPool pool(options);
+        ThreadPool pool(threads);
 
         std::vector<std::future<T>> futures;
         for (const auto& p: problems) {
-            std::packaged_task<T()> t([p, f]() { return f(p); });
-            futures.emplace_back(t.get_future());
-            pool.blockingPost(t);
+            futures.emplace_back(pool.enqueue(f, p));
         }
         for (auto& f : futures) {
             result.emplace_back(f.get());
