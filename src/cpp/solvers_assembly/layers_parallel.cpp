@@ -7,13 +7,13 @@
 
 static const size_t max_time_for_search = 60000; // in ms
 
-SolverLayersParallel::SolverLayersParallel(const Matrix& m, bool _search_best_split)
+AssemblySolverLayersParallel::AssemblySolverLayersParallel(const Matrix& m, bool _search_best_split)
 {
     matrix = m;
     search_best_split = _search_best_split;
 }
 
-void SolverLayersParallel::BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces)
+void AssemblySolverLayersParallel::BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces)
 {
     BotTrace& bc = bot_traces[index];
     bc.built_time = time;
@@ -38,7 +38,7 @@ void SolverLayersParallel::BuildBot(size_t time, unsigned index, const vector<Tr
     bc.trace.commands.insert(bc.trace.commands.end(), main_traces[index].commands.begin(), main_traces[index].commands.end());
 }
 
-void SolverLayersParallel::MergeBot(unsigned index)
+void AssemblySolverLayersParallel::MergeBot(unsigned index)
 {
     if (index == 0) return;
     BotTrace& bc0 = bot_traces[index - 1];
@@ -67,7 +67,7 @@ void SolverLayersParallel::MergeBot(unsigned index)
     MergeBot(index - 1);
 }
 
-void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
+void AssemblySolverLayersParallel::FindBestSplit()
 {
     struct SplitInfo
     {
@@ -154,7 +154,7 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
                         }
                     }
                 }
-                uint64_t energy = SolverLayersBase::SolveHelper(mtemp, {(axis == 1) ? i : 0, 0, (axis == 3) ? i : 0}, trace);
+                uint64_t energy = AssemblySolverLayersBase::SolveHelper(mtemp, {(axis == 1) ? i : 0, 0, (axis == 3) ? i : 0}, trace);
                 size_t moves = trace.size();
                 energy -= 30 * matrix.GetVolume() * moves; // We will pay for moves later
                 energy -= 20 * moves; // We will pay for bot-moves later
@@ -228,7 +228,7 @@ void SolverLayersParallel::SolverLayersParallel::FindBestSplit()
     // assert(best_split_valid);
 }
 
-void SolverLayersParallel::Solve(Trace& output)
+void AssemblySolverLayersParallel::Solve(Trace& output)
 {
     output.commands.resize(0);
     output.commands.push_back(Command(Command::Flip));
@@ -259,7 +259,7 @@ void SolverLayersParallel::Solve(Trace& output)
                 }
             }
         }
-        SolverLayersBase::SolveHelper(mtemp, {(split_axis == 1) ? split_coordinate[i] : 0, 0, (split_axis == 3) ? split_coordinate[i] : 0}, personal_traces[i]);
+        AssemblySolverLayersBase::SolveHelper(mtemp, {(split_axis == 1) ? split_coordinate[i] : 0, 0, (split_axis == 3) ? split_coordinate[i] : 0}, personal_traces[i]);
         for (int x = x0; x < x1; ++x)
         {
             for (int y = 0; y < r; ++y)
@@ -311,9 +311,9 @@ void SolverLayersParallel::Solve(Trace& output)
     // cout << "Total moves: " << bot_traces[0].GetTime() << endl;
 }
 
-uint64_t SolverLayersParallel::Solve(const Matrix& m, Trace& output, bool search_best_split)
+uint64_t AssemblySolverLayersParallel::Solve(const Matrix& m, Trace& output, bool search_best_split)
 {
-    SolverLayersParallel solver(m, search_best_split);
+    AssemblySolverLayersParallel solver(m, search_best_split);
     solver.Solve(output);
     return 0;
 }

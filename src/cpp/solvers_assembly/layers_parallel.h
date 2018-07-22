@@ -4,7 +4,7 @@
 #include "../state.h"
 
 // Similar to SolverLayersBase but split Cube to pieces and solve each of them by their own bot.
-class SolverLayersParallel
+class AssemblySolverLayersParallel
 {
 protected:
     struct BotTrace
@@ -27,7 +27,7 @@ protected:
     vector<int> split_coordinate;
     vector<BotTrace> bot_traces;
 
-    SolverLayersParallel(const Matrix& m, bool search_best_split);
+    AssemblySolverLayersParallel(const Matrix& m, bool search_best_split);
 
     void BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces);
     void MergeBot(unsigned index);

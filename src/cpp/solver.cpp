@@ -3,8 +3,8 @@
 #include <future>
 #include <thread>
 
-#include "solvers/layers_base.h"
-#include "solvers/layers_parallel.h"
+#include "solvers_assembly/layers_base.h"
+#include "solvers_assembly/layers_parallel.h"
 
 #include "evaluation.h"
 #include "grounder.h"
@@ -115,7 +115,7 @@ uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
 {
     Trace temp;
     vector<Trace> traces;
-    SolverLayersBase::Solve(m, temp); traces.push_back(temp);
+    AssemblySolverLayersBase::Solve(m, temp); traces.push_back(temp);
     // try {
     //     SolverLayersParallel::Solve(m, temp, false);
     //     traces.push_back(temp);

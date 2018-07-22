@@ -1,7 +1,7 @@
 #include "layers_base.h"
 #include "grounder.h"
 
-SolverLayersBase::SolverLayersBase(const Matrix& m) : matrix(m)
+AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m) : matrix(m)
 {
     state.Init(m.GetR(), Trace());
     helper_mode = false;
@@ -9,14 +9,14 @@ SolverLayersBase::SolverLayersBase(const Matrix& m) : matrix(m)
     target = {0, 0, 0};
 }
 
-void SolverLayersBase::SetTargetCoordinate(const Coordinate& c)
+void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
 {
     helper_mode = true;
     target = c;
     GetBotPosition() = target;
 }
 
-void SolverLayersBase::MoveToCoordinate(int x, int z)
+void AssemblySolverLayersBase::MoveToCoordinate(int x, int z)
 {
     Coordinate& bc = GetBotPosition();
     Command c(Command::SMove);
@@ -59,7 +59,7 @@ void SolverLayersBase::MoveToCoordinate(int x, int z)
     }
 }
 
-void SolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finalize)
+void AssemblySolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finalize)
 {
     Coordinate& bc = GetBotPosition();
     Command c(Command::SMove);
@@ -84,7 +84,7 @@ void SolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finalize)
     }
 }
 
-void SolverLayersBase::SolveInit()
+void AssemblySolverLayersBase::SolveInit()
 {
     if (!helper_mode) {
         if (not projectionGrounded) {
@@ -93,7 +93,7 @@ void SolverLayersBase::SolveInit()
     }
 }
 
-void SolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
+void AssemblySolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
 {
     int r = matrix.GetR();
     z0 = r, z1 = -1;
@@ -107,7 +107,7 @@ void SolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
     }
 }
 
-void SolverLayersBase::SolveZ1_Fill(int x, int y, bool direction)
+void AssemblySolverLayersBase::SolveZ1_Fill(int x, int y, bool direction)
 {
     Coordinate& bc = GetBotPosition();
     for (;;)
@@ -130,7 +130,7 @@ void SolverLayersBase::SolveZ1_Fill(int x, int y, bool direction)
     }
 }
 
-void SolverLayersBase::SolveZ1(int x, int y)
+void AssemblySolverLayersBase::SolveZ1(int x, int y)
 {
     int z0, z1;
     SolveZ1_GetRZ(x, y, z0, z1);
@@ -143,7 +143,7 @@ void SolverLayersBase::SolveZ1(int x, int y)
     SolveZ1_Fill(x, y, zdirection);
 }
 
-void SolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
+void AssemblySolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
 {
     int r = matrix.GetR();
     z0 = r, z1 = -1;
@@ -160,7 +160,7 @@ void SolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
     }
 }
 
-void SolverLayersBase::SolveZ3_Fill(int x, int y, bool direction)
+void AssemblySolverLayersBase::SolveZ3_Fill(int x, int y, bool direction)
 {
     Coordinate& bc = GetBotPosition();
     for (;;)
@@ -183,7 +183,7 @@ void SolverLayersBase::SolveZ3_Fill(int x, int y, bool direction)
     }
 }
 
-void SolverLayersBase::SolveZ3(int x, int y)
+void AssemblySolverLayersBase::SolveZ3(int x, int y)
 {
     int z0, z1;
     SolveZ3_GetRZ(x, y, z0, z1);
@@ -196,7 +196,7 @@ void SolverLayersBase::SolveZ3(int x, int y)
     SolveZ3_Fill(x, y, zdirection);
 }
 
-void SolverLayersBase::SolveLayer(int y)
+void AssemblySolverLayersBase::SolveLayer(int y)
 {
     int r = matrix.GetR();
     // Get box
@@ -250,7 +250,7 @@ void SolverLayersBase::SolveLayer(int y)
     }
 }
 
-void SolverLayersBase::SolveFinalize()
+void AssemblySolverLayersBase::SolveFinalize()
 {
     if (helper_mode)
         MoveToCoordinate(target.x, target.y, target.z, true);
@@ -262,7 +262,7 @@ void SolverLayersBase::SolveFinalize()
     }
 }
 
-void SolverLayersBase::Solve(Trace& output)
+void AssemblySolverLayersBase::Solve(Trace& output)
 {
     SolveInit();
     for (int i = 0; i < matrix.GetR() - 1; ++i)
@@ -273,16 +273,16 @@ void SolverLayersBase::Solve(Trace& output)
     output = state.trace;
 }
 
-uint64_t SolverLayersBase::Solve(const Matrix& m, Trace& output)
+uint64_t AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output)
 {
-    SolverLayersBase solver(m);
+    AssemblySolverLayersBase solver(m);
     solver.Solve(output);
     return solver.state.IsCorrectFinal() ? solver.state.energy : 0;
 }
 
-uint64_t SolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
+uint64_t AssemblySolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
 {
-    SolverLayersBase solver(m);
+    AssemblySolverLayersBase solver(m);
     solver.SetTargetCoordinate(first_and_last);
     solver.Solve(output);
     return solver.state.correct ? solver.state.energy : 0;

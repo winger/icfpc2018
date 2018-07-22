@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../solver.h"
 #include "../state.h"
 
 // TODO:
@@ -11,7 +10,7 @@
 //   4. Check covering by crosses.
 //   4.1. There are 10 different covering by crosses, it's possible to check all of them.
 
-class SolverLayersBase
+class AssemblySolverLayersBase
 {
 protected:
     Matrix matrix;
@@ -21,7 +20,7 @@ protected:
     bool projectionGrounded{false};
     Coordinate target;
 
-    SolverLayersBase(const Matrix& m);
+    AssemblySolverLayersBase(const Matrix& m);
 
     void SetTargetCoordinate(const Coordinate& c);
 
