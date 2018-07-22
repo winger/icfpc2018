@@ -19,6 +19,8 @@ struct Command
     void Encode(vector<uint8_t>& v) const;
     void Decode(const vector<uint8_t>& v, size_t& pos);
 
+    size_t Energy() const;
+
 protected:
     static uint16_t EncodeSCD(const CoordinateDifference& cd)
     {

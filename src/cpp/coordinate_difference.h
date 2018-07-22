@@ -15,6 +15,7 @@ struct CoordinateDifference
     bool IsLongLinearCoordinateDifferences() const { return IsLinearCoordinateDifferences() && (ManhattanLength() <= 15); }
     bool IsNearCoordinateDifferences() const { return (ChessboardLength() == 1) && (ManhattanLength() <= 2); }
     bool IsFarCoordinateDifferences() const { return (CoordinateChanged() > 0) && (ChessboardLength() <= 30); }
+    CoordinateDifference Abs() { return {abs(dx), abs(dy), abs(dy)}; }
 };
 
 inline Coordinate operator+(const Coordinate& c, const CoordinateDifference& cd) { return Coordinate{c.x + cd.dx, c.y + cd.dy, c.z + cd.dz}; }
