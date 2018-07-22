@@ -183,12 +183,14 @@ unsigned Solver::Solve(const Problem& p) {
         model.ReadFromFile(p.GetSource());
         trace.ReadFromFile(p.GetDefaultTrace());
         energy = Evaluation::CheckSolution(model, trace);
+        cout << "Test " << p.index << " " << p.GetType() << ": " << "TBD" << endl;
         return 0;
     } else if (p.reassembly) {
         Matrix model_src;
         model_src.ReadFromFile(p.GetTarget());
         Matrix model_trg;
         model_trg.ReadFromFile(p.GetTarget());
+        cout << "Test " << p.index << " " << p.GetType() << ": " << "TBD" << endl;
         Trace trace;
         trace.ReadFromFile(p.GetDefaultTrace());
         return 0;
