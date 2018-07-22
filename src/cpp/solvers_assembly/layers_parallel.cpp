@@ -7,11 +7,11 @@
 
 static const size_t max_time_for_search = 60000; // in ms
 
-AssemblySolverLayersParallel::AssemblySolverLayersParallel(const Matrix& target, int _split_axis, const vector<int>& _split_coordinate)
-{
+AssemblySolverLayersParallel::AssemblySolverLayersParallel(const Matrix& target, int _split_axis, const vector<int>& _split_coordinate, bool l) {
     matrix = target;
     split_axis = _split_axis;
     split_coordinate = _split_coordinate;
+    levitation = l;
 }
 
 void AssemblySolverLayersParallel::BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces)
@@ -259,7 +259,7 @@ void AssemblySolverLayersParallel::Solve(Trace& output)
                 }
             }
         }
-        AssemblySolverLayersBase::SolveHelper(mtemp, {(split_axis == 1) ? split_coordinate[i] : 0, 0, (split_axis == 3) ? split_coordinate[i] : 0}, personal_traces[i]);
+        AssemblySolverLayersBase::SolveHelper(mtemp, {(split_axis == 1) ? split_coordinate[i] : 0, 0, (split_axis == 3) ? split_coordinate[i] : 0}, personal_traces[i], levitation);
         for (int x = x0; x < x1; ++x)
         {
             for (int y = 0; y < r; ++y)
@@ -311,13 +311,13 @@ void AssemblySolverLayersParallel::Solve(Trace& output)
     // cout << "Total moves: " << bot_traces[0].GetTime() << endl;
 }
 
-void AssemblySolverLayersParallel::Solve(const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output)
+void AssemblySolverLayersParallel::Solve(const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output, bool levitation)
 {
-    AssemblySolverLayersParallel solver(target, split_axis, split_coordinate);
+    AssemblySolverLayersParallel solver(target, split_axis, split_coordinate, levitation);
     solver.Solve(output);
 }
 
-Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& target, Trace& output, SplitSearchMode mode)
+Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& target, Trace& output, SplitSearchMode mode, bool levitation)
 {
     int r = target.GetR();
     int max_bots = min(r, TaskConsts::N_BOTS);
@@ -326,18 +326,18 @@ Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& target, Tra
 
     if (mode == base)
     {
-        Solve(target, 1, CoordinateSplit::SplitUniform(r, max_bots), temp);
+        Solve(target, 1, CoordinateSplit::SplitUniform(r, max_bots), temp, levitation);
         traces.push_back(temp);
-        Solve(target, 3, CoordinateSplit::SplitUniform(r, max_bots), temp);
+        Solve(target, 3, CoordinateSplit::SplitUniform(r, max_bots), temp, levitation);
         traces.push_back(temp);
     }
     else if (mode == base_and_bots)
     {
         for (int bots = 1; bots < max_bots; ++bots)
         {
-            Solve(target, 1, CoordinateSplit::SplitUniform(r, bots), temp);
+            Solve(target, 1, CoordinateSplit::SplitUniform(r, bots), temp, levitation);
             traces.push_back(temp);
-            Solve(target, 3, CoordinateSplit::SplitUniform(r, bots), temp);
+            Solve(target, 3, CoordinateSplit::SplitUniform(r, bots), temp, levitation);
             traces.push_back(temp);
         }
     }

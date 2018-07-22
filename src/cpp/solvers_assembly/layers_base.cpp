@@ -1,7 +1,7 @@
 #include "layers_base.h"
 #include "grounder.h"
 
-AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e) : matrix(m), erase(e) {
+AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e, bool l) : matrix(m), erase(e), levitation(l) {
     state.Init(m.GetR(), Trace());
     if (erase) {
         state.matrix = m;
@@ -91,7 +91,9 @@ void AssemblySolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finali
 void AssemblySolverLayersBase::SolveInit() {
     if (!helper_mode) {
         if (!projectionGrounded) {
-            AddCommand(Command(Command::Flip));
+            if (levitation) {
+                AddCommand(Command(Command::Flip));
+            }
         }
     }
 }
@@ -268,7 +270,9 @@ void AssemblySolverLayersBase::SolveFinalize() {
         MoveToCoordinate(target.x, target.y, target.z, true);
     } else {
         if (!projectionGrounded) {
-            AddCommand(Command(Command::Flip));
+            if (levitation) {
+                AddCommand(Command(Command::Flip));
+            }
         }
         MoveToCoordinate(target.x, target.y, target.z, true);
         AddCommand(Command(Command::Halt));
@@ -290,16 +294,16 @@ void AssemblySolverLayersBase::Solve(Trace& output) {
     output = state.trace;
 }
 
-Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output, bool erase)
+Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& output, bool erase, bool levitation)
 {
-    AssemblySolverLayersBase solver(m, erase);
+    AssemblySolverLayersBase solver(m, erase, levitation);
     solver.Solve(output);
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
 
-Evaluation::Result AssemblySolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output)
+Evaluation::Result AssemblySolverLayersBase::SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output, bool levitation)
 {
-    AssemblySolverLayersBase solver(m, false);
+    AssemblySolverLayersBase solver(m, false, levitation);
     solver.SetTargetCoordinate(first_and_last);
     solver.Solve(output);
     return Evaluation::Result(solver.state.correct, solver.state.energy);

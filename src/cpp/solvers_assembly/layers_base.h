@@ -16,13 +16,14 @@ class AssemblySolverLayersBase
 protected:
     Matrix matrix;
     bool erase;
+    bool levitation;
     State state;
 
     bool helper_mode;
     bool projectionGrounded{false};
     Coordinate target;
 
-    AssemblySolverLayersBase(const Matrix& m, bool e);
+    AssemblySolverLayersBase(const Matrix& m, bool erase, bool levitation);
 
     void SetTargetCoordinate(const Coordinate& c);
 
@@ -43,6 +44,6 @@ protected:
     void Solve(Trace& output);
 
 public:
-    static Evaluation::Result Solve(const Matrix& m, Trace& output, bool erase);
-    static Evaluation::Result SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output);
+    static Evaluation::Result Solve(const Matrix& m, Trace& output, bool erase, bool levitation);
+    static Evaluation::Result SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output, bool levitation);
 };

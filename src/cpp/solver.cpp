@@ -120,8 +120,16 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 {
     Trace temp;
     vector<Trace> traces;
-    AssemblySolverLayersBase::Solve(target, temp, false); traces.push_back(temp);
-    AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base); traces.push_back(temp);
+    AssemblySolverLayersBase::Solve(target, temp, false, true);
+    traces.push_back(temp);
+    AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
+    traces.push_back(temp);
+    if (!cmd.int_args["levitation"]) {
+        AssemblySolverLayersBase::Solve(target, temp, false, false);
+        traces.push_back(temp);
+        AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
+        traces.push_back(temp);
+    }
 
     assert(!traces.empty());
     if (p.assembly) {
@@ -140,7 +148,15 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
 
     {
         Trace trace;
-        AssemblySolverLayersBase::Solve(source, trace, true);
+        AssemblySolverLayersBase::Solve(source, trace, true, true);
+        traces.push_back(trace);
+        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+        assert(result.correct);
+    }
+
+    if (!cmd.int_args["levitation"]) {
+        Trace trace;
+        AssemblySolverLayersBase::Solve(source, trace, true, false);
         traces.push_back(trace);
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
         assert(result.correct);
@@ -175,10 +191,8 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
     {
         Trace tmp1;
         SolveDisassemble(p, source, voidM, tmp1);
-        // cout << tmp1 << endl;
         Trace tmp2;
         SolveAssemble(p, voidM, target, tmp2);
-        // cout << tmp2 << endl;
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
     }
 

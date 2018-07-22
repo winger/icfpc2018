@@ -25,9 +25,10 @@ protected:
 
     int split_axis; // 1 - x, 3 - z
     vector<int> split_coordinate;
+    bool levitation;
     vector<BotTrace> bot_traces;
 
-    AssemblySolverLayersParallel(const Matrix& target, int _split_axis, const vector<int>& _split_coordinate);
+    AssemblySolverLayersParallel(const Matrix& target, int _split_axis, const vector<int>& _split_coordinate, bool levitation);
 
     void BuildBot(size_t time, unsigned index, const vector<Trace>& main_traces);
     void MergeBot(unsigned index);
@@ -38,8 +39,7 @@ protected:
     void Solve(Trace& output);
 
 public:
-    static void Solve(const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output);
-
+    static void Solve(const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output, bool levitation);
 
     enum SplitSearchMode
     {
@@ -47,5 +47,5 @@ public:
         base_and_bots
     };
 
-    static Evaluation::Result Solve(const Matrix& target, Trace& output, SplitSearchMode mode = base);
+    static Evaluation::Result Solve(const Matrix& target, Trace& output, SplitSearchMode mode, bool levitation);
 };
