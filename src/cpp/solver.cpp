@@ -65,7 +65,7 @@ Problems Solver::ListProblems(const std::string& round) {
     return result;
 }
 
-uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
+uint64_t Solver::SolveAssemble(const Problem& p, const Matrix& m, Trace& output)
 {
     Trace temp;
     vector<Trace> traces;
@@ -96,6 +96,59 @@ uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
             output = trace;
         }
     }
+    output.WriteToFile(p.GetProxy());
+    return best_energy;
+}
+
+uint64_t Solver::SolveDisassemble(const Problem& p, const Matrix& m, Trace& output) {
+    Trace temp;
+    vector<Trace> traces;
+
+    temp.ReadFromFile(p.GetDefaultTrace());
+    traces.push_back(temp);
+
+    if (FileExists(p.GetProxy())) {
+        temp.ReadFromFile(p.GetProxy());
+        traces.push_back(temp);
+    } else {
+        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+    }
+
+    uint64_t best_energy = -uint64_t(1);
+    for (const Trace& trace : traces) {
+        uint64_t energy = 2000000000000ULL;
+        if (energy && (best_energy > energy)) {
+            best_energy = energy;
+            output = trace;
+        }
+    }
+    output.WriteToFile(p.GetProxy());
+    return best_energy;
+}
+
+uint64_t Solver::SolveReassemble(const Problem& p, const Matrix& src, const Matrix& trg, Trace& output) {
+    Trace temp;
+    vector<Trace> traces;
+
+    temp.ReadFromFile(p.GetDefaultTrace());
+    traces.push_back(temp);
+
+    if (FileExists(p.GetProxy())) {
+        temp.ReadFromFile(p.GetProxy());
+        traces.push_back(temp);
+    } else {
+        cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+    }
+
+    uint64_t best_energy = -uint64_t(1);
+    for (const Trace& trace : traces) {
+        uint64_t energy = 2000000000000ULL;
+        if (energy && (best_energy > energy)) {
+            best_energy = energy;
+            output = trace;
+        }
+    }
+    output.WriteToFile(p.GetProxy());
     return best_energy;
 }
 
@@ -113,15 +166,15 @@ Solution Solver::Solve(const Problem& p) {
     if (p.assembly) {
         target.ReadFromFile(p.GetTarget());
         source.Init(tager.GetR());
-        SolveAssembly(p, source, target, s.trace);
+        SolveAssemble(p, source, target, s.trace);
     } else if (p.disassembly) {
         source.ReadFromFile(p.GetSource());
         target.Init(source.GetR());
-        SolveDisassembly(p, source, target, s.trace);
+        SolveDisassemble(p, source, target, s.trace);
     } else if (p.reassembly) {
         source.ReadFromFile(p.GetSource());
         target.ReadFromFile(p.GetTarget());
-        SolveReassembly(p, source, target, s.trace);
+        SolveReassemble(p, source, target, s.trace);
     }
     s.trace.WriteToFile(p.GetOutput());
     Evaluation::Result solution_result = Evaluation::CheckSolution(source, target, s.trace);
@@ -215,45 +268,72 @@ void Solver::CheckAll(const std::string& round) {
     std::cout << total_ok << "/" << problems.size() << " Score: " << total_score << std::endl;
 }
 
-void MergeProblemWithSubmit(const Problem& p) {
-  Matrix model;
-  model.ReadFromFile(p.GetTarget());
-  Trace trace;
-  bool ok = trace.TryReadFromFile(p.GetOutput());
-  if (!ok) {
-    cout << p.index << ": NOTHING in src" << endl;
-    return;
-  }
-
-  auto energy = Evaluation::CheckSolution(model, trace);
-  bool result = energy > 0;
-
-  bool need_replace = false;
-  Trace traceBest;
-  bool ok2 = traceBest.TryReadFromFile(p.GetSubmitOutput());
-  uint64_t energy2 = 0;
-  if (ok2) {
-    energy2 = Evaluation::CheckSolution(model, traceBest);
-    bool result2 = energy2 > 0;
-    if (energy < energy2) {
-      need_replace = true;
+bool MergeProblemWithSubmit(const Problem& p) {
+    Trace trace;
+    bool ok = trace.TryReadFromFile(p.GetOutput());
+    if (!ok) {
+        cout << p.index << ": NOTHING in src" << endl;
+        return false;
     }
-  } else {
-    need_replace = true;
-  }
 
-  if (need_replace) {
-    trace.WriteToFile(p.GetSubmitOutput());
-    WriteEnergyToFile(energy, p.GetSubmitEnergyInfo());
-    cout << p.index << ": BETTER " << energy << " < " << energy2 << endl;
-  } else {
-    cout << p.index << ": NOT BETTER" << endl;
-  }
+    bool need_replace = false;
+    uint64_t energy = 2000000000000ULL;
+    uint64_t energy2 = 0;
+    if (p.assembly) {
+        Matrix model;
+        model.ReadFromFile(p.GetTarget());
+
+        energy = Evaluation::CheckSolution(model, trace);
+        bool result = energy > 0;
+
+        Trace traceBest;
+        bool ok2 = traceBest.TryReadFromFile(p.GetSubmitOutput());
+        if (ok2) {
+            energy2 = Evaluation::CheckSolution(model, traceBest);
+            bool result2 = energy2 > 0;
+            if (energy < energy2) {
+                need_replace = true;
+            }
+        } else {
+            need_replace = true;
+        }
+
+    } else {
+        cerr << "[ERROR] Merge unsupported modes" << endl;
+        need_replace = true;
+    }
+    if (need_replace) {
+        trace.WriteToFile(p.GetSubmitOutput());
+        WriteEnergyToFile(energy, p.GetSubmitEnergyInfo());
+        cout << p.index << ": BETTER " << energy << " < " << energy2 << endl;
+    } else {
+        cout << p.index << ": NOT BETTER" << endl;
+    }
+    return need_replace;
 }
 
 void Solver::MergeWithSubmit(const std::string& round) {
-  auto problems = ListProblems(round);
-  for (const auto& p: problems) {
-    MergeProblemWithSubmit(p);
-  }
+    auto problems = ListProblems(round);
+    unsigned total_score = 0;
+    auto threads = cmd.int_args["threads"];
+    if (threads > 1) {
+        tp::ThreadPoolOptions options;
+        options.setThreadCount(threads);
+        tp::ThreadPool pool(options);
+
+        std::vector<std::future<unsigned>> futures;
+        for (const auto& p : problems) {
+            std::packaged_task<unsigned()> t([p]() { return MergeProblemWithSubmit(p); });
+            futures.emplace_back(t.get_future());
+            pool.blockingPost(t);
+        }
+        for (auto& f : futures) {
+            total_score += f.get();
+        }
+    } else {
+        for (const auto& p : problems) {
+            total_score = MergeProblemWithSubmit(p);
+        }
+    }
+    cout << "Merge replaced " << total_score << " solutions." << endl;
 }
