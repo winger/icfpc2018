@@ -1,7 +1,14 @@
 #include "helpers.h"
 
 
+ostream& operator<<(ostream& s, const XZCoord& xz) {
+  s << "{x = " << xz.x << ", z = " << xz.z << "}";
+  return s;
+}
+
+
 vector<int> GetSMovesByOneAxis(int start, int finish) {
+  // cout << " GetSMovesByOneAxis from " << start << " -> " << finish << endl;
   vector<int> result;
   if (start == finish) {
     return result;
@@ -10,7 +17,7 @@ vector<int> GetSMovesByOneAxis(int start, int finish) {
   while (now != finish) {
     int delta = max(-15, min(finish - now, 15));
     result.push_back(delta);
-    start += delta;
+    now += delta;
   }
   return result;
 }
@@ -32,6 +39,7 @@ CommandGroup Inverser::InverseGroup(const CommandGroup& command_group) {
     InverseDirection(command.cd1);
   } else if (command.type == Command::Fission) {
     Command fusionS(Command::FusionS);
+    InverseDirection(command.cd1);
     fusionS.cd1 = command.cd1;
 
     command = Command(Command::FusionP);
@@ -56,15 +64,16 @@ void SetDemolishSquareCommands(const BotSquare& square, vector<Command>& bot_com
   opposite[3] = 0;
   for (int from = 0; from < 4; ++from) {
     int to = opposite[from];
-    Command gfill(Command::GFill);
+    Command gvoid(Command::GVoid);
     // always go below
-    gfill.cd1 = {0, -1, 0};
-    gfill.cd2 = {square[to].x - square[from].x, 0, square[to].z - square[from].z};
-    bot_commands[ square[from].index ] = gfill;
+    gvoid.cd1 = {0, -1, 0};
+    gvoid.cd2 = {square[to].x - square[from].x, 0, square[to].z - square[from].z};
+    bot_commands[ square[from].index ] = gvoid;
   }
 }
 
 vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_waiters) {
+  // cout << " SpawnBotAndMove from " << current << " to " << next << endl;
   int dx = next.x - current.x;
   int dz = next.z - current.z;
   assert (std::abs(sign(dx)) + std::abs(sign(dz)) == 1);
@@ -80,7 +89,7 @@ vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_wait
   {
     Command fission(Command::Fission);
     fission.cd1 = {-sign(dx), 0, -sign(dz)};
-    fission.m = 1;
+    fission.m = 0;
     CommandGroup tmp;
     tmp.push_back(fission);
     AddWaitCommands(tmp, num_waiters);
@@ -91,7 +100,8 @@ vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_wait
   if (dx > 0) {
     Command c(Command::SMove);
     c.cd1 = {0, 0, 0};
-    for (int x : GetSMovesByOneAxis(current.x + sign(dx), next.x)) {
+    auto moves = GetSMovesByOneAxis(current.x + sign(dx), next.x);
+    for (int x : moves) {
         c.cd1.dx = x;
 
         CommandGroup tmp;
@@ -102,7 +112,8 @@ vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_wait
   } else {
     Command c(Command::SMove);
     c.cd1 = {0, 0, 0};
-    for (int z : GetSMovesByOneAxis(current.z + sign(dz), next.z)) {
+    auto moves = GetSMovesByOneAxis(current.z + sign(dz), next.z);
+    for (int z : moves) {
         c.cd1.dz = z;
 
         CommandGroup tmp;

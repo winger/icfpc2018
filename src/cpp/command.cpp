@@ -162,10 +162,10 @@ ostream& operator<<(ostream& s, const Command& c) {
             s << "LMove, cd1=" << c.cd1 << ", cd2=" << c.cd2;
             break;
         case Command::FusionP:
-            s << "FusionP";
+            s << "FusionP cd1=" << c.cd1;
             break;
         case Command::FusionS:
-            s << "FusionS";
+            s << "FusionS cd1=" << c.cd1;
             break;
         case Command::Fission:
             s << "Fission";

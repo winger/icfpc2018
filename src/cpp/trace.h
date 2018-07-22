@@ -7,6 +7,8 @@ class Trace
 {
 public:
     vector<Command> commands;
+    // for debug output
+    std::string tag;
 
     size_t size() const { return commands.size(); }
     void ReadFromFile(const string& filename);

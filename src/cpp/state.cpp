@@ -57,6 +57,10 @@ bool State::IsGrounded() {
 void State::Step()
 {
     vector<unsigned> bots = active_bots;
+    // for (auto bid : active_bots) {
+    //   cout << " bot " << bid << " at " << all_bots[bid].c << endl;
+    // }
+
     assert(trace_pos + bots.size() <= trace.size());
     energy += (harmonics ? 30 : 3) * matrix.GetVolume();
     int hc = 0;

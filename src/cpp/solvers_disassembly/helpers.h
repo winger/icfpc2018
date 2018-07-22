@@ -8,6 +8,9 @@ struct XZCoord {
   int z;
 };
 
+ostream& operator<<(ostream& s, const XZCoord& xz);
+
+
 
 struct BotPoint {
   int index;

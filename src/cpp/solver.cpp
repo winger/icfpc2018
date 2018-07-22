@@ -113,6 +113,7 @@ bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix&
     for (const Trace& trace : traces_to_check)
     {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+        // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
         if (result < best_result)
         {
             best_result = result;
@@ -161,12 +162,12 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    // {
-    //     Trace temp;
-    //     vector<Trace> traces;
-    //     AssemblySolverLayersBase::Solve(source, temp, true);
-    //     traces.push_back(temp);
-    // }
+    {
+        Trace temp;
+        vector<Trace> traces;
+        AssemblySolverLayersBase::Solve(source, temp, true);
+        traces.push_back(temp);
+    }
 
     {
         Trace trace;
@@ -186,17 +187,23 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         } catch (const StopException& e) {
         }
     }
+    {
+        try {
+          Trace trace;
+          Solver2D_Demolition::Solve(source, trace);
+          trace.tag = "Solver2D_Demolition";
+          traces.push_back(trace);
+          Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+          assert(result.correct);
+        } catch (const StopException& e) {
+          // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
+        }
+    }
     // {
     //     Trace temp;
-    //     vector<Trace> traces;
-    //     Solver2D_Demolition::Solve(source, temp);
-    //     traces.push_back(temp);
+    //     temp.ReadFromFile(p.GetDefaultTrace());
+    //     traces.emplace_back(std::move(temp));
     // }
-    {
-        Trace temp;
-        temp.ReadFromFile(p.GetDefaultTrace());
-        traces.emplace_back(std::move(temp));
-    }
 
     if (p.disassembly) {
         if (FileExists(p.GetProxy())) {

@@ -30,6 +30,7 @@ void Trace::ReadFromFile(const string& filename) {
         commands.push_back(t);
     }
     assert(pos == size);
+    tag = filename;
     // cout << "Total commands = " << commands.size() << endl;
 }
 

@@ -10,6 +10,9 @@ struct Coordinate
     bool operator!=(const Coordinate& c) const { return (x != c.x) || (y != c.y) || (z != c.z); }
 };
 
+ostream& operator<<(ostream& s, const Coordinate& c);
+
+
 inline bool operator< (const Coordinate& lhs, const Coordinate& rhs)
 {
     return std::tie(lhs.x, lhs.y, lhs.z) < std::tie(rhs.x, rhs.y, rhs.z);

@@ -42,8 +42,10 @@ void Solver2D_Demolition::TestSomething() {
 
 void Solver2D_Demolition::ExecuteCommands(const CommandGroup& group) {
   for (const auto& c : group) {
+    // cout << "adding command " << c << endl;
     state.trace.commands.push_back(c);
   }
+  // cout << "state.Step()" << endl;
   state.Step();
 }
 
@@ -57,7 +59,7 @@ Solver2D_Demolition::Solver2D_Demolition(const Matrix& m)
 {
   state.Init(m.GetR(), Trace());
   matrix = m;
-  cout << matrix;
+  // cout << matrix;
 }
 
 // Happy copy-pasta from AssemblySolverLayersBase
@@ -106,7 +108,7 @@ void Solver2D_Demolition::MoveToCoordinate(int x, int z)
 
 void Solver2D_Demolition::MoveToCoordinate(int x, int y, int z)
 {
-    cout << "moving to coordinate " << x << " " << y << " " << z;
+    // cout << "moving to coordinate " << x << " " << y << " " << z << endl;
     Coordinate& bc = GetBotPosition();
     Command c(Command::SMove);
     c.cd1 = {0, 0, 0};
@@ -146,6 +148,10 @@ void Solver2D_Demolition::Solve(Trace& output) {
     }
   }
   // for now make work only for 30x30
+  if (x1 - x0 >= 30 || z1 - z0 >= 30) {
+    throw StopException();
+  }
+
   assert (x0 + 30 >= x1);
   assert (z0 + 30 >= z1);
 
@@ -153,11 +159,14 @@ void Solver2D_Demolition::Solve(Trace& output) {
   MoveToCoordinate(x0, y1 + 1, z0);
   // 2. Spawn bots in a gird
   // SpawnBotsInGrid(x0, x1, z0, z1);
+  // cout << "SpawnBotsInGrid2" << endl;
   SpawnBotsInGrid2(x0, x1, z0, z1);
 
   // 3. Go layer by layer and demolish it
   // TODO: enable for big use cases
   // PrepareMovementCommands();
+  // cout << "Demolish layers" << endl;
+
   int direction = 1;
   for (int y_layer = y1; y_layer >= 0; --y_layer) {
     DemolishLayer(y_layer, direction);
@@ -181,6 +190,7 @@ void Solver2D_Demolition::Solve(Trace& output) {
 
   AddCommand(Command(Command::Flip));
   AddCommand(Command(Command::Halt));
+  output = state.trace;
 }
 
 void Solver2D_Demolition::PrepareMovementCommands() {
@@ -234,13 +244,15 @@ void Solver2D_Demolition::SpawnBotsInGrid2(int x0, int x1, int z0, int z1) {
   auto now = xz_coords[0];
   int num_waiters = 0;
   for (int i = 1; i < xz_coords.size(); ++i) {
-    auto groups = SpawnBotAndMove(now, xz_coords[1], num_waiters);
+    auto groups = SpawnBotAndMove(now, xz_coords[i], num_waiters);
+    now = xz_coords[i];
     num_waiters += 1;
     ExecuteCommandGroups(groups);
 
     for (const auto& g : groups) {
       all_groups.push_back(g);
     }
+
 
     // TODO: verify current position of robot and number of active ones
   }
