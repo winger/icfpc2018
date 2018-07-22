@@ -51,7 +51,7 @@ protected:
     void SolveZ3_Fill(int x, int y, bool direction);
     void SolveZ3(int x, int y);
     int GetGreedyEstimation(int x, int y, int z);
-    void SolveGreedy(int y, size_t& count);
+    size_t SolveGreedy(int y, size_t& count);
     size_t GreedyFill(const Coordinate& c0, bool dry, size_t& count);
     void SolveLayer(int y);
     void SolveFinalize();

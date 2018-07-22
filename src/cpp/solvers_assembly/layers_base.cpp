@@ -23,6 +23,8 @@ void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
 
 void AssemblySolverLayersBase::MoveToCoordinate(int x, int z)
 {
+    assert(x >= 0 && x < matrix.GetR());
+    assert(z >= 0 && z < matrix.GetR());
     Coordinate& bc = GetBotPosition();
     Command c(Command::SMove);
     for (; abs(x - bc.x) > 5; )
@@ -214,7 +216,7 @@ void AssemblySolverLayersBase::SolveZ3(int x, int y)
 
 int AssemblySolverLayersBase::GetGreedyEstimation(int x, int y, int z) {
     size_t dummy = 0;
-    return 3 * GreedyFill({x, y, z}, true, dummy) -
+    return 3 * GreedyFill({x, y + 1, z}, true, dummy) -
            MoveEnergy(GetBotPosition().x - x, GetBotPosition().z - z);
 }
 
@@ -224,7 +226,8 @@ size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size
         for (int dz = -1; dz <= 1; ++dz) {
             Coordinate c = {c0.x + dx, c0.y - 1, c0.z + dz};
             CoordinateDifference cd = c0 - c;
-            if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && matrix.Get(c)) {
+            if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && matrix.Get(c) &&
+                ((erase && state.matrix.Get(c)) || (!erase && !state.matrix.Get(c)))) {
                 ++result;
                 if (!dry) {
                     if (!erase) {
@@ -236,6 +239,7 @@ size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size
                         m.cd1 = cd;
                         AddCommand(m);
                     }
+                    assert(count != 0);
                     --count;
                 }
             }
@@ -244,7 +248,7 @@ size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size
     return result;
 }
 
-void AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
+size_t AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
     int bestX = -1;
     int bestZ = -1;
     static constexpr int INF_ESTIMATION = -1000000;
@@ -268,7 +272,7 @@ void AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
     assert(bestEstimation != INF_ESTIMATION);
 
     MoveToCoordinate(bestX, y + 1, bestZ);
-    GreedyFill(GetBotPosition(), false, count);
+    return GreedyFill(GetBotPosition(), false, count);
 }
 
 StateSnapshot AssemblySolverLayersBase::GetSnapshot() {
@@ -349,11 +353,13 @@ void AssemblySolverLayersBase::SolveLayer(int y)
 
     snapshots.emplace_back(GetSnapshot());
 
+    /*
     ApplySnapshot(snapshot);
     while (count) {
-        SolveGreedy(y, count);
+        assert(SolveGreedy(y, count));
     }
     snapshots.emplace_back(GetSnapshot());
+    */
 
     SelectBestSnapshot(snapshots);
 }

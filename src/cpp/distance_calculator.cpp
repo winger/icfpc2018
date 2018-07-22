@@ -24,10 +24,12 @@ struct MoveEnergyCalculator {
         for (; abs(x - bc.x) > 5;) {
             c.cd1 = {max(-15, min(x - bc.x, 15)), 0, 0};
             result += c.Energy();
+            bc += c.cd1;
         }
         for (; abs(z - bc.z) > 5;) {
             c.cd1 = {0, 0, max(-15, min(z - bc.z, 15))};
             result += c.Energy();
+            bc += c.cd1;
         }
         if (bc.x == x) {
             if (bc.z == z) {
@@ -35,16 +37,20 @@ struct MoveEnergyCalculator {
             } else {
                 c.cd1 = {0, 0, z - bc.z};
                 result += c.Energy();
+                bc += c.cd1;
             }
         } else {
             if (bc.z == z) {
                 c.cd1 = {x - bc.x, 0, 0};
                 result += c.Energy();
+                bc += c.cd1;
             } else {
                 c.type = Command::LMove;
                 c.cd1 = {x - bc.x, 0, 0};
                 c.cd2 = {0, 0, z - bc.z};
                 result += c.Energy();
+                bc += c.cd1;
+                bc += c.cd2;
             }
         }
 
