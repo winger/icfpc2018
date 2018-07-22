@@ -33,7 +33,7 @@ std::string Problem::GetType() const {
     if (assembly) {
         return "A";
     }
-    if (reassembly) {
+    if (disassembly) {
         return "D";
     }
     if (reassembly) {
@@ -116,16 +116,16 @@ uint64_t Solver::Solve(const Problem& p, const Matrix& m, Trace& output)
     Trace temp;
     vector<Trace> traces;
     SolverLayersBase::Solve(m, temp); traces.push_back(temp);
-    try {
-        SolverLayersParallel::Solve(m, temp, false);
-        traces.push_back(temp);
-    } catch (const StopException& e) {
-    }
-    try {
-        SolverLayersParallel::Solve(m, temp, true);
-        traces.push_back(temp);
-    } catch (const StopException& e) {
-    }
+    // try {
+    //     SolverLayersParallel::Solve(m, temp, false);
+    //     traces.push_back(temp);
+    // } catch (const StopException& e) {
+    // }
+    // try {
+    //     SolverLayersParallel::Solve(m, temp, true);
+    //     traces.push_back(temp);
+    // } catch (const StopException& e) {
+    // }
     assert(!traces.empty());
     if (FileExists(p.GetProxy())) {
         temp.ReadFromFile(p.GetProxy()); traces.push_back(temp);

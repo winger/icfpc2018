@@ -60,6 +60,9 @@ void Matrix::ReadFromFile(const string& filename)
 {
     // cout << full_filename << endl;
     ifstream file(filename, ios::binary);
+    if (!file.is_open()) {
+        cerr << "Could not read:" << filename << endl;
+    }
     assert(file.is_open());
     // cout << "File is open.";
     char c;
