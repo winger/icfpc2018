@@ -1,3 +1,4 @@
+#pragma once
 #include "base.h"
 
 inline size_t hash_combine(size_t hvalue1, size_t hvalue2)
