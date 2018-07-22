@@ -265,7 +265,7 @@ bool State::MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference
     unsigned l = cd.ManhattanLength();
     for (unsigned i = 1; i <= l; ++i)
     {
-        bs.c = bs.c + step;
+        bs.c += step;
         correct = correct && matrix.IsInside(bs.c) && !matrix.Get(bs.c);
         ic.AddCoordinate(bs.c);
         energy += 2;
