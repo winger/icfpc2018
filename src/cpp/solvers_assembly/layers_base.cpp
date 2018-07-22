@@ -11,6 +11,7 @@ AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m) : matrix(m)
 
 void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
 {
+    state.harmonics = true;
     helper_mode = true;
     target = c;
     GetBotPosition() = target;
