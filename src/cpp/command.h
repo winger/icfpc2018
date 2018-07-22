@@ -51,7 +51,8 @@ protected:
     static uint32_t EncodeFCD(const CoordinateDifference& cd)
     {
         assert(cd.IsFarCoordinateDifferences());
-        return (((cd.dx + 30) << 16) | ((cd.dy + 30) << 8) | (cd.dz + 30));
+        int32_t shift = 30;
+        return (((cd.dx + shift) << 16) | ((cd.dy + shift) << 8) | (cd.dz + shift));
     }
 
     static CoordinateDifference DecodeSCD(uint16_t t)
@@ -93,9 +94,9 @@ protected:
 
     static CoordinateDifference DecodeFCD(uint32_t t)
     {
-        int dz = (t & 255) - 30; t >>= 8;
-        int dy = (t & 255) - 30; t >>= 8;
-        int dx = (t & 255) - 30;
+        int dz = int(t & 255) - 30; t >>= 8;
+        int dy = int(t & 255) - 30; t >>= 8;
+        int dx = int(t & 255) - 30;
         return CoordinateDifference{dx, dy, dz};
     }
 };
