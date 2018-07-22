@@ -55,7 +55,6 @@ void State::Step()
         }
         else if (c.type == Command::Flip)
         {
-            harmonics = !harmonics;
             hc++;
         }
         else if (c.type == Command::SMove)
@@ -205,9 +204,12 @@ void State::Step()
         }
     }
 
+    if (hc & 1)
+    {
+        harmonics = !harmonics;
+    }
     bool icValid = ic.IsValid();
     correct = correct && icValid;
-    correct = correct && hc <= 1;
     if (!cmd.int_args["ndebug"]) {
         bool grounded = harmonics || matrix.IsGrounded();
         correct = correct && grounded;
