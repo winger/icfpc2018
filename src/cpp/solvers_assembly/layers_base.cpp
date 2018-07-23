@@ -1,5 +1,6 @@
 #include "layers_base.h"
 #include "grounder.h"
+#include "distance_calculator.h"
 
 AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e, bool l) : matrix(m), erase(e), levitation(l) {
     state.Init(m.GetR(), Trace());
@@ -22,6 +23,8 @@ void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
 
 void AssemblySolverLayersBase::MoveToCoordinate(int x, int z)
 {
+    assert(x >= 0 && x < matrix.GetR());
+    assert(z >= 0 && z < matrix.GetR());
     Coordinate& bc = GetBotPosition();
     Command c(Command::SMove);
     for (; abs(x - bc.x) > 5; )
@@ -98,13 +101,24 @@ void AssemblySolverLayersBase::SolveInit() {
     }
 }
 
+bool AssemblySolverLayersBase::NeedChange(const Coordinate& c) const {
+    if (matrix.Get(c)) {
+        if (erase) {
+            return state.matrix.Get(c);
+        } else {
+            return !state.matrix.Get(c);
+        }
+    }
+    return false;
+}
+
 void AssemblySolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
 {
     int r = matrix.GetR();
     z0 = r, z1 = -1;
     for (int z = 0; z < r; ++z)
     {
-        if ((!erase && matrix.Get(x, y, z) && !state.matrix.Get(x, y, z)) || (erase && matrix.Get(x, y, z) && state.matrix.Get(x, y, z))) {
+        if (NeedChange({x, y, z})) {
             z0 = min(z0, z);
             z1 = max(z1, z);
         }
@@ -161,7 +175,7 @@ void AssemblySolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
     {
         for (int z = 0; z < r; ++z)
         {
-            if ((!erase && matrix.Get(ix, y, z) && !state.matrix.Get(ix, y, z)) || (erase && matrix.Get(ix, y, z) && state.matrix.Get(ix, y, z))) {
+            if (NeedChange({ix, y, z})) {
                 z0 = min(z0, z);
                 z1 = max(z1, z);
             }
@@ -211,6 +225,68 @@ void AssemblySolverLayersBase::SolveZ3(int x, int y)
     SolveZ3_Fill(x, y, zdirection);
 }
 
+int AssemblySolverLayersBase::GetGreedyEstimation(int x, int y, int z) {
+    size_t dummy = 0;
+    return 3 * GreedyFill({x, y + 1, z}, true, dummy) -
+           MoveEnergy(GetBotPosition().x - x, GetBotPosition().z - z);
+}
+
+size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size_t& count) {
+    size_t result = 0;
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dz = -1; dz <= 1; ++dz) {
+            Coordinate c = {c0.x + dx, c0.y - 1, c0.z + dz};
+            CoordinateDifference cd = c - c0;
+            if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && NeedChange(c)) {
+                ++result;
+                if (!dry) {
+                    assert(GetBotPosition() == c0);
+                    if (!erase) {
+                        Command m(Command::Fill);
+                        m.cd1 = cd;
+                        AddCommand(m);
+                    } else {
+                        Command m(Command::Void);
+                        m.cd1 = cd;
+                        AddCommand(m);
+                    }
+                    assert(!NeedChange(c));
+                    assert(count != 0);
+                    --count;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+size_t AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
+    int bestX = -1;
+    int bestZ = -1;
+    static constexpr int INF_ESTIMATION = -1000000;
+    int bestEstimation = INF_ESTIMATION;
+    size_t count1 = 0;
+
+    for (const auto& xz: matrix.YSlices(y)) {
+        if (NeedChange({xz.x, y, xz.z})) {
+            ++count1;
+            int estimation = GetGreedyEstimation(xz.x, y, xz.z);
+            if (estimation > bestEstimation) {
+                bestX = xz.x;
+                bestZ = xz.z;
+                bestEstimation = estimation;
+            }
+        }
+    }
+
+    assert(count1 == count);
+
+    assert(bestEstimation != INF_ESTIMATION);
+
+    MoveToCoordinate(bestX, y + 1, bestZ);
+    return GreedyFill(GetBotPosition(), false, count);
+}
+
 StateSnapshot AssemblySolverLayersBase::GetSnapshot() {
     return {matrix, state};
 }
@@ -233,25 +309,23 @@ void AssemblySolverLayersBase::SelectBestSnapshot(const StateSnapshots& s) {
     ApplySnapshot(s[best_index]);
 }
 
-void AssemblySolverLayersBase::SolveLayer(int y)
-{
+void AssemblySolverLayersBase::SolveLayer(int y) {
     int r = matrix.GetR();
     // Get box
-    int x0 = r, x1 = -1, z0 = r, z1 = -1;
-    for (int x = 0; x < r; ++x)
-    {
-        for (int z = 0; z < r; ++z)
-        {
-            if (matrix.Get(x, y, z))
-            {
-                x0 = min(x0, x);
-                x1 = max(x1, x);
-                z0 = min(z0, z);
-                z1 = max(z1, z);
-            }
+    int16_t x0 = r, x1 = -1, z0 = r, z1 = -1;
+    size_t count = 0;
+    for (const auto& xz : matrix.YSlices(y)) {
+        if (matrix.Get(xz.x, y, xz.z)) {
+            x0 = min(x0, xz.x);
+            x1 = max(x1, xz.x);
+            z0 = min(z0, xz.z);
+            z1 = max(z1, xz.z);
+            ++count;
         }
     }
-    if (x1 < 0) return; // Nothing to do
+    if (x1 < 0) {
+        return;  // Nothing to do
+    }
 
     Coordinate c = state.all_bots[0].c;
 
@@ -284,6 +358,13 @@ void AssemblySolverLayersBase::SolveLayer(int y)
     }
 
     snapshots.emplace_back(GetSnapshot());
+
+    ApplySnapshot(snapshot);
+    while (count) {
+        assert(SolveGreedy(y, count));
+    }
+    snapshots.emplace_back(GetSnapshot());
+
     SelectBestSnapshot(snapshots);
 }
 

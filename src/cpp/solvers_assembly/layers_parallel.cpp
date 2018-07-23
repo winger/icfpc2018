@@ -259,6 +259,7 @@ void AssemblySolverLayersParallel::Solve(Trace& output)
                 }
             }
         }
+        mtemp.CacheYSlices();
         AssemblySolverLayersBase::SolveHelper(mtemp, {(split_axis == 1) ? split_coordinate[i] : 0, 0, (split_axis == 3) ? split_coordinate[i] : 0}, personal_traces[i], levitation);
         for (int x = x0; x < x1; ++x)
         {

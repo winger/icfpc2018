@@ -143,6 +143,17 @@ void Command::Decode(const vector<uint8_t>& v, size_t& pos)
     }
 }
 
+size_t Command::Energy() const {
+    switch (type) {
+        case SMove:
+            return 2 * cd1.ManhattanLength();
+        case LMove:
+            return 2 * (cd1.ManhattanLength() + 2 + cd2.ManhattanLength());
+        default:
+            assert(false);
+    }
+}
+
 ostream& operator<<(ostream& s, const Command& c) {
     s << "{";
     switch (c.type) {

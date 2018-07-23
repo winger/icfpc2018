@@ -38,7 +38,10 @@ protected:
 
     void SetTargetCoordinate(const Coordinate& c);
 
-    void AddCommand(const Command& c) { state.trace.commands.push_back(c); state.Step(); }
+    void AddCommand(const Command& c) {
+        state.trace.commands.emplace_back(c);
+        state.Step();
+    }
     Coordinate& GetBotPosition() { return state.all_bots[0].c; }
     void MoveToCoordinate(int x, int z);
     void MoveToCoordinate(int x, int y, int z, bool finalize = false);
@@ -50,9 +53,13 @@ protected:
     void SolveZ3_GetRZ(int x, int y, int& z0, int& z1);
     void SolveZ3_Fill(int x, int y, bool direction);
     void SolveZ3(int x, int y);
+    int GetGreedyEstimation(int x, int y, int z);
+    size_t SolveGreedy(int y, size_t& count);
+    size_t GreedyFill(const Coordinate& c0, bool dry, size_t& count);
     void SolveLayer(int y);
     void SolveFinalize();
     void Solve(Trace& output);
+    bool NeedChange(const Coordinate& c) const;
 
 public:
     static Evaluation::Result Solve(const Matrix& m, Trace& output, bool erase, bool levitation);
