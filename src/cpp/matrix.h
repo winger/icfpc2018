@@ -25,6 +25,7 @@ protected:
 public:
     int GetR() const { return size; }
     int GetVolume() const { return volume; }
+    int GetFilledVolume() const;
 
     bool IsInside(int x, int y, int z) const { return (0 <= x) && (x < size) && (0 <= y) && (y < size) && (0 <= z) && (z < size); }
     bool IsInside(const Coordinate& c) const { return IsInside(c.x, c.y, c.z); }
