@@ -57,16 +57,17 @@ void Matrix::Init(int r)
 }
 
 void Matrix::CacheYSlices() {
-    ySlices.resize(size);
+    ySlices = make_shared<TYSlices>();
+    ySlices->resize(size);
     for (int y = 0; y < size; ++y) {
         for (int x = 0; x < size; ++x) {
             for (int z = 0; z < size; ++z) {
                 if (Get(x, y, z)) {
-                    ySlices[y].emplace_back(PointXZ{x, z});
+                    (*ySlices)[y].emplace_back(PointXZ{x, z});
                 }
             }
         }
-        ySlices.shrink_to_fit();
+        (*ySlices)[y].shrink_to_fit();
     }
 }
 
@@ -150,7 +151,7 @@ void Matrix::EraseBlock(int x0, int x1, int y0, int y1, int z0, int z1)
 
 const vector<PointXZ>& Matrix::YSlices(int y) const {
     assert(y >= 0 && y < size);
-    return ySlices[y];
+    return (*ySlices)[y];
 }
 
 void Matrix::DFS(const Coordinate& c, CoordinateSet& cs) const {

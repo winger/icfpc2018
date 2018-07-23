@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "base.h"
 #include "coordinate.h"
 #include "coordinate_difference.h"
@@ -17,7 +19,8 @@ protected:
     int size;
     int volume;
     vector<uint8_t> data;
-    vector<vector<PointXZ>> ySlices;
+    using TYSlices = vector<vector<PointXZ>>;
+    shared_ptr<TYSlices> ySlices;
 
 public:
     int GetR() const { return size; }
