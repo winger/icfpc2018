@@ -445,7 +445,7 @@ void Solver::CheckAll(const std::string& round) {
         total_max_score += cr.max_score;
     }
 
-    std::cout << total_ok << "/" << checkResults.size() << " Score: " << total_score <<  " "  << total_max_score << std::endl;
+    std::cout << total_ok << "/" << checkResults.size() << " Score to ideal: " << total_max_score - total_score << std::endl;
 }
 
 struct MergeResult {
