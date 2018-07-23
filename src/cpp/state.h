@@ -35,10 +35,10 @@ public:
     void Step();
     void Run();
 
+    bool IsGrounded();
+
 protected:
     bool MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference& cd);
 
     void Fulfill();
-
-    bool IsGrounded();
 };
