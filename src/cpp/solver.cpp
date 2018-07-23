@@ -119,28 +119,21 @@ Problems Solver::ListProblems(const std::string& round) {
     return result;
 }
 
-bool Solver::FindBestTrace(
-  const Problem& p,
-  const Matrix& source,
-  const Matrix& target,
-  const vector<Trace>& traces_to_check,
-  Trace& output,
-  bool write)
-{
+bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target,
+                           const vector<Trace>& traces_to_check, Trace& output, bool write) {
     Evaluation::Result best_result;
-    for (const Trace& trace : traces_to_check)
-    {
+    for (const auto& trace : traces_to_check) {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        cout << "trace: " << trace.tag << " --> " << result.energy << " correct: " << result.correct << endl;
-        if (result <= best_result)
-        {
+        cout << "trace: " << trace.tag << " --> " << result.energy << " correct: " << result.correct
+             << " time: " << trace.Duration() << endl;
+        if (result <= best_result) {
             best_result = result;
             output = trace;
         }
     }
     if (best_result.correct && write) {
         // cout << "best trace: " << output.tag << endl;
-      // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
+        // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
         output.WriteToFile(p.GetProxy());
     }
     return best_result.correct;

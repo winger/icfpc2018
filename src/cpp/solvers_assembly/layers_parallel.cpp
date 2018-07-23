@@ -180,5 +180,6 @@ Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& target, Tra
             output = trace;
         }
     }
+    output.Done();
     return best_result;
 }

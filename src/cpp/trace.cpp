@@ -1,5 +1,11 @@
 #include "trace.h"
 
+Trace::Trace() { start = std::chrono::system_clock::now(); }
+
+void Trace::Done() { finish = std::chrono::system_clock::now(); }
+
+int Trace::Duration() const { return std::chrono::duration_cast<std::chrono::duration<int>>(finish - start).count(); }
+
 bool Trace::TryReadFromFile(const string& filename) {
     if (!FileExists(filename)) {
         return false;
@@ -31,6 +37,7 @@ void Trace::ReadFromFile(const string& filename) {
     }
     assert(pos == size);
     tag = filename;
+    Done();
     // cout << "Total commands = " << commands.size() << endl;
 }
 

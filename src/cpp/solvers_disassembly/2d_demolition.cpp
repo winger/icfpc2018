@@ -392,5 +392,6 @@ Evaluation::Result Solver2D_Demolition::Solve(const Matrix& m, Trace& output)
 {
     Solver2D_Demolition solver(m);
     solver.Solve(output);
+    output.Done();
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
