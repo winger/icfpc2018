@@ -1,3 +1,4 @@
+trace=parallel_base energy=794417300 correct=1
 trace=gravitated_solver_stupid energy=3354636132 correct=1
 trace=gravitated_solver_smart energy=660186932 correct=1
 trace=non_gravitated_solver_stupid energy=33373236932 correct=1

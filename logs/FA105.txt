@@ -1,7 +1,9 @@
+trace=parallel_base energy=260706912112 correct=1
 trace=gravitated_solver_stupid energy=117966914984 correct=1
 trace=gravitated_solver_smart energy=60085289294 correct=1
 trace=non_gravitated_solver_stupid energy=1042660387195 correct=1
 trace=non_gravitated_solver_smart energy=423798189555 correct=1
 trace=../../proxyTracesF/FA105.nbt energy=60085289294 correct=1
+trace=parallel_base+autoharmonic energy=260706912112 correct=1
 trace=non_gravitated_solver_stupid+autoharmonic energy=425750524720 correct=1
 trace=non_gravitated_solver_smart+autoharmonic energy=73811544280 correct=1
