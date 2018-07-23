@@ -53,14 +53,40 @@ bool State::IsGrounded() {
         }
         else
         {
+            knownUngrounded.clear();
             if (grounded)
                 grounded = Grounder::IsDeltaGrounded(backMatrix, toAdd);
             else
-                grounded = matrix.IsGrounded();
+                grounded = matrix.IsGrounded(knownUngrounded);
         }
     }
     else
-        grounded = matrix.IsGrounded();
+    {
+        if (!toAdd.empty())
+        {
+            knownUngrounded.clear();
+            grounded = matrix.IsGrounded(knownUngrounded);
+        }
+        else
+        {
+            if (grounded)
+            {
+                grounded = matrix.IsGrounded(knownUngrounded);
+            }
+            else
+            {
+                for (int index : toDelete)
+                {
+                    if (knownUngrounded.find(index) != knownUngrounded.end())
+                        knownUngrounded.erase(index);                    
+                }
+                if (knownUngrounded.size() > 0)
+                    grounded = false;
+                else
+                    grounded = matrix.IsGrounded(knownUngrounded);
+            }
+        }
+    }
     Fulfill();
     return grounded;
 }

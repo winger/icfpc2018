@@ -2,8 +2,9 @@
 
 #include "disjoint_set.h"
 
-bool Matrix::IsGrounded() const
+bool Matrix::IsGrounded(unordered_set<int>& ungrounded) const
 {
+    ungrounded.clear();
     DisjointSet ds(GetVolume() + 1);
     size_t ground = size_t(GetVolume());
     for (int x = 0; x < size; ++x)
@@ -39,13 +40,21 @@ bool Matrix::IsGrounded() const
                 if (Get(x, y, z))
                 {
                     if (ds.Find(index) != ground)
-                        return false;
+                    {
+                        ungrounded.insert(index);
+                    }
                 }
             }
         }
     }
 
-    return true;
+    return ungrounded.size() == 0;
+}
+
+bool Matrix::IsGrounded() const
+{
+    unordered_set<int> ungrounded;
+    return IsGrounded(ungrounded);
 }
 
 void Matrix::Init(int r)
