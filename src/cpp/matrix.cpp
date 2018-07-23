@@ -117,6 +117,37 @@ std::vector<int> Matrix::Reindex(int index) const {
   return std::vector<int>{x, y, z};
 }
 
+void Matrix::CopyBlock(const Matrix& source, int x0, int x1, int y0, int y1, int z0, int z1)
+{
+    assert(size == source.size);
+    for (int x = x0; x < x1; ++x)
+    {
+        for (int y = y0; y < y1; ++y)
+        {
+            for (int z = z0; z < z1; ++z)
+            {
+                int index = Index(x, y, z);
+                data[index] = source.data[index];
+            }
+        }
+    }
+}
+
+void Matrix::ClearBlock(int x0, int x1, int y0, int y1, int z0, int z1)
+{
+    for (int x = x0; x < x1; ++x)
+    {
+        for (int y = y0; y < y1; ++y)
+        {
+            for (int z = z0; z < z1; ++z)
+            {                
+                int index = Index(x, y, z);
+                data[index] = 0;
+            }
+        }
+    }
+}
+
 const vector<PointXZ>& Matrix::YSlices(int y) const {
     assert(y >= 0 && y < size);
     return ySlices[y];

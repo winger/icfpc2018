@@ -34,6 +34,10 @@ public:
     int Index(int x, int y, int z) const { return z + size * (y + size * x); }
     std::vector<int> Reindex(int index) const;
 
+    // Block copy/clear. x1, y1, z1 are not included!
+    void CopyBlock(const Matrix& source, int x0, int x1, int y0, int y1, int z0, int z1);
+    void ClearBlock(int x0, int x1, int y0, int y1, int z0, int z1);
+
     uint32_t FullNum() const { return std::count(data.begin(), data.end(), 1); }
 
     bool IsGrounded() const;
