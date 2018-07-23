@@ -130,7 +130,6 @@ void Solver2D_Demolition::MoveToCoordinate(int x, int y, int z)
 
 void Solver2D_Demolition::Solve(Trace& output) {
   output.commands.resize(0);
-  AddCommand(Command(Command::Flip));
 
   // compute bounding box
   int r = matrix.GetR();
@@ -182,7 +181,30 @@ void Solver2D_Demolition::Solve(Trace& output) {
   // 3. Go layer by layer and demolish it
   // cout << "Demolish layers" << endl;
   int direction = 1;
+  bool flip_done = false;
+
+  {
+    CommandGroup bots_flip;
+    bots_flip.push_back(Command(Command::Flip));
+    for (int i = 1; i < total_bots_in_layer; ++i) {
+      bots_flip.push_back(Command(Command::Wait));
+    }
+    ExecuteCommands(bots_flip);
+  }
+
   for (int y_layer = y1; y_layer >= 0; --y_layer) {
+
+    if (y_layer == 0) {
+      // do a group flip
+      CommandGroup bots_flip;
+      bots_flip.push_back(Command(Command::Flip));
+      for (int i = 1; i < total_bots_in_layer; ++i) {
+        bots_flip.push_back(Command(Command::Wait));
+      }
+      ExecuteCommands(bots_flip);
+      flip_done = true;
+    }
+
     DemolishWholeLayer(y_layer, direction);
     direction *= -1;
 
@@ -198,6 +220,7 @@ void Solver2D_Demolition::Solve(Trace& output) {
       ExecuteCommands(bots_down);
     }
   }
+  assert (flip_done);
   // 4. Despawn back
   // cout << "Despawning bots" << endl;
 
@@ -218,7 +241,7 @@ void Solver2D_Demolition::Solve(Trace& output) {
   // 5. Move to origin
   MoveToCoordinate(0, 0, 0);
 
-  AddCommand(Command(Command::Flip));
+  // AddCommand(Command(Command::Flip));
   AddCommand(Command(Command::Halt));
   output = state.trace;
 }
