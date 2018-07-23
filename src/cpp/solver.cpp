@@ -159,12 +159,14 @@ namespace {
 using Traces = vector<Trace>;
 
 void ApplyAutoHarmonic(const Matrix& source, const Matrix& target, Traces& tr) {
-    size_t old_size = tr.size();
-    for (size_t i = 0; i < old_size; ++i) {
-        Trace temp;
-        AutoHarmonic::ImproveTrace(source, target, tr[i], temp);
-        if (temp.commands.size() > 0) {
-            tr.emplace_back(std::move(temp));
+    if (cmd.int_args["ah"]) {
+        size_t old_size = tr.size();
+        for (size_t i = 0; i < old_size; ++i) {
+            Trace temp;
+            AutoHarmonic::ImproveTrace(source, target, tr[i], temp);
+            if (temp.commands.size() > 0) {
+                tr.emplace_back(std::move(temp));
+            }
         }
     }
 }
