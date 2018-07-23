@@ -151,7 +151,7 @@ int AssemblySolverLayersBase::GetGreedyEstimation(int x, int y, int z) {
 
 size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size_t& count) {
     size_t result = 0;
-    static const vector<PointXZ> DIRS = {{-1, 0}, {1, 0}, {0, 0}, {0, 1}, {0, 1}};
+    static const vector<PointXZ> DIRS = {{-1, 0}, {1, 0}, {0, 0}, {0, 1}, {0, -1}};
     for (const auto& dxz : DIRS) {
         Coordinate c = {c0.x + dxz.x, c0.y - 1, c0.z + dxz.z};
         CoordinateDifference cd = c - c0;
@@ -282,6 +282,7 @@ Evaluation::Result AssemblySolverLayersBase::Solve(const Matrix& m, Trace& outpu
 {
     AssemblySolverLayersBase solver(m, erase, levitation);
     solver.Solve(output);
+    output.Done();
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
 
@@ -290,5 +291,6 @@ Evaluation::Result AssemblySolverLayersBase::SolveHelper(const Matrix& m, Coordi
     AssemblySolverLayersBase solver(m, false, levitation);
     solver.SetTargetCoordinate(first_and_last);
     solver.Solve(output);
+    output.Done();
     return Evaluation::Result(solver.state.correct, solver.state.energy);
 }

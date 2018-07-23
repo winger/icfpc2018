@@ -286,5 +286,6 @@ Evaluation::Result SolverCubeDemolition::Solve(const Matrix& m, Trace& output)
 {
     SolverCubeDemolition solver(m);
     solver.Solve(output);
+    output.Done();
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }

@@ -113,12 +113,12 @@ void SolverGravitated::Solve(Trace& output)
     botnet.Merge(output);
     botnet.Origin(output);
     botnet.Halt(output);
+    output.Done();
 }
 
 uint64_t SolverGravitated::Solve(const Matrix& m, Trace& output)
 {
     SolverGravitated solver(m);
     solver.Solve(output);
-    output.Done();
     return 0;
 }

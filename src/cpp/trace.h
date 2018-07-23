@@ -21,10 +21,12 @@ public:
     static Trace Cat(const Trace& a, const Trace& b);
     void Done();
     int Duration() const;
+    void OverrideDuration(int duration);
 
 private:
     std::chrono::time_point<std::chrono::system_clock> start;
     std::chrono::time_point<std::chrono::system_clock> finish;
+    int duration{};
 };
 
 ostream& operator<<(ostream& s, const Trace& t);

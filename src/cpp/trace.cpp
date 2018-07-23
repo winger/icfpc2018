@@ -4,7 +4,17 @@ Trace::Trace() { start = std::chrono::system_clock::now(); }
 
 void Trace::Done() { finish = std::chrono::system_clock::now(); }
 
-int Trace::Duration() const { return std::chrono::duration_cast<std::chrono::duration<int>>(finish - start).count(); }
+int Trace::Duration() const {
+    if (!duration) {
+        return std::chrono::duration_cast<std::chrono::duration<int>>(finish - start).count();
+    } else {
+        return duration;
+    }
+}
+
+void Trace::OverrideDuration(int d) {
+    duration = d;
+}
 
 bool Trace::TryReadFromFile(const string& filename) {
     if (!FileExists(filename)) {
@@ -58,6 +68,7 @@ Trace Trace::Cat(const Trace& a, const Trace& b) {
     }
     result.commands.insert(result.commands.end(), b.commands.begin(), b.commands.end());
     result.tag = a.tag + ", " + b.tag;
+    result.OverrideDuration(a.Duration() + b.Duration());
     return result;
 }
 
