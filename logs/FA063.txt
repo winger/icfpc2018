@@ -1,0 +1,3 @@
+trace=gravitated_solver_stupid energy=3121473362 correct=1
+trace=gravitated_solver_smart energy=1467612202 correct=1
+trace=../../proxyTracesF/FA063.nbt energy=2291569748 correct=1

@@ -83,4 +83,5 @@ public:
   void Merge(Trace& output); // // DONE
   void Origin(Trace& output); // // DONE
   void Halt(Trace& output); // // DONE
+  void Flip(Trace& output);
 };
