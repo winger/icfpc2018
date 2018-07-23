@@ -27,7 +27,7 @@ static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
 static constexpr size_t REASSEMBLE_THRESHOLD = 31;
-static constexpr size_t BASE_AND_BOTS_THRESHOLD = 70;
+static constexpr size_t BASE_AND_BOTS_THRESHOLD = 60;
 
 namespace {
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
