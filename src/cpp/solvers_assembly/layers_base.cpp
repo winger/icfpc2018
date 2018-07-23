@@ -283,15 +283,30 @@ size_t AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
     int bestEstimation = INF_ESTIMATION;
     size_t count1 = 0;
 
+    std::vector<PointXZ> candidates;
     for (const auto& xz: matrix.YSlices(y)) {
         if (NeedChange({xz.x, y, xz.z})) {
             ++count1;
-            int estimation = GetGreedyEstimation(xz.x, y, xz.z);
-            if (estimation > bestEstimation) {
-                bestX = xz.x;
-                bestZ = xz.z;
-                bestEstimation = estimation;
-            }
+            candidates.emplace_back(xz);
+        }
+    }
+
+    auto dist = [this](const PointXZ& p) { return abs(p.z - GetBotPosition().z) + abs(p.x - GetBotPosition().x); };
+
+    std::sort(candidates.begin(), candidates.end(),
+              [this, dist](const PointXZ& p1, const PointXZ& p2) { return dist(p1) < dist(p2); });
+
+    size_t countEstimations = 0;
+    for (const auto& xz : candidates) {
+        int estimation = GetGreedyEstimation(xz.x, y, xz.z);
+        if (estimation > bestEstimation) {
+            bestX = xz.x;
+            bestZ = xz.z;
+            bestEstimation = estimation;
+        }
+        ++countEstimations;
+        if (countEstimations > 30) {
+            break;
         }
     }
 
