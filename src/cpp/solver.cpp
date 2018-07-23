@@ -7,6 +7,7 @@
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
+#include "solvers_disassembly/3d_demolition.h"
 #include "solvers_disassembly/cube_demolition.h"
 #include "solvers_disassembly/cube_demolition_tuned.h"
 #include "solvers_reassembly/relayers_base.h"
@@ -86,24 +87,24 @@ Problems Solver::ListProblems(const std::string& round) {
     } else if (round == "full") {
         Problem p0;
         p0.round = "F";
-        for (size_t i = 1; i <= N_FULL_ASSEMBLY_TESTS; ++i) {
-            Problem p = p0;
-            p.index = i;
-            p.assembly = true;
-            result.emplace_back(std::move(p));
-        }
-        for (size_t i = 1; i <= N_FULL_DISASSEMBLY_TESTS; ++i) {
+        // for (size_t i = 1; i <= N_FULL_ASSEMBLY_TESTS; ++i) {
+        //     Problem p = p0;
+        //     p.index = i;
+        //     p.assembly = true;
+        //     result.emplace_back(std::move(p));
+        // }
+        for (size_t i = 50; i <= N_FULL_DISASSEMBLY_TESTS; ++i) {
             Problem p = p0;
             p.index = i;
             p.disassembly = true;
             result.emplace_back(std::move(p));
         }
-        for (size_t i = 1; i <= N_FULL_REASSEMBLY_TESTS; ++i) {
-            Problem p = p0;
-            p.index = i;
-            p.reassembly = true;
-            result.emplace_back(std::move(p));
-        }
+        // for (size_t i = 1; i <= N_FULL_REASSEMBLY_TESTS; ++i) {
+        //     Problem p = p0;
+        //     p.index = i;
+        //     p.reassembly = true;
+        //     result.emplace_back(std::move(p));
+        // }
     } else {
         assert(false);
     }
@@ -266,76 +267,90 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
-
-    {
-        Trace trace;
-        AssemblySolverLayersBase::Solve(source, trace, true, true);
-        trace.tag = "base";
-        traces.push_back(trace);
-        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        assert(result.correct);
-    }
-
-    if (p.disassembly && (source.GetR() < REASSEMBLE_THRESHOLD)) {
-        try {
-            Trace temp;
-            ReassemblySolverLayersBase::Solve(source, target, temp, true);
-            traces.push_back(temp);
-        } catch (const StopException& e) {
-        }
-    }
-
-    if (!cmd.int_args["levitation"]) {
-        try {
-            Trace trace;
-            AssemblySolverLayersBase::Solve(source, trace, true, false);
-            trace.tag = "base_no_levitation";
-            traces.push_back(trace);
-            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-            assert(result.correct);
-        } catch (const StopException& e) {
-        }
-    }
-    {
-        try {
-            Trace trace;
-            Solver2D_Demolition::Solve(source, trace);
-            trace.tag = "Solver2D_Demolition";
-            traces.push_back(trace);
-            // cout << "Start Evaluation" << endl;
-            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-            assert(result.correct);
-        } catch (const StopException& e) {
-            // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
-        }
-    }
-    // assert(false);
-
+    //
+    // {
+    //     Trace trace;
+    //     AssemblySolverLayersBase::Solve(source, trace, true, true);
+    //     trace.tag = "base";
+    //     traces.push_back(trace);
+    //     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //     assert(result.correct);
+    // }
+    //
+    // if (p.disassembly && (source.GetR() < REASSEMBLE_THRESHOLD)) {
+    //     try {
+    //         Trace temp;
+    //         ReassemblySolverLayersBase::Solve(source, target, temp, true);
+    //         traces.push_back(temp);
+    //     } catch (const StopException& e) {
+    //     }
+    // }
+    //
+    // if (!cmd.int_args["levitation"]) {
+    //     try {
+    //         Trace trace;
+    //         AssemblySolverLayersBase::Solve(source, trace, true, false);
+    //         trace.tag = "base_no_levitation";
+    //         traces.push_back(trace);
+    //         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //         assert(result.correct);
+    //     } catch (const StopException& e) {
+    //     }
+    // }
+    // {
+    //     try {
+    //         Trace trace;
+    //         Solver2D_Demolition::Solve(source, trace);
+    //         trace.tag = "Solver2D_Demolition";
+    //         traces.push_back(trace);
+    //         // cout << "Start Evaluation" << endl;
+    //         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //         assert(result.correct);
+    //     } catch (const StopException& e) {
+    //         // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
+    //     }
+    // }
+    // // assert(false);
+    //
+    // try {
+    //     Trace trace;
+    //     SolverCubeDemolition::Solve(source, trace);
+    //     trace.tag = "SolverCubeDemolition";
+    //     traces.push_back(trace);
+    //     // cout << "Start Evaluation" << endl;
+    //     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //     assert(result.correct);
+    // } catch (const StopException& e) {
+    // } catch (const UnsupportedException& e) {
+    //   // cout << "[WARN] Problem " << p.Name() << " is not supported for Cube demolition" << endl;
+    // }
+    // // assert(false);
+    //
+    // try {
+    //     Trace trace;
+    //     SolverCubeDemolition_Tuned::Solve(source, trace);
+    //     trace.tag = "SolverCubeDemolition_Tuned";
+    //     traces.push_back(trace);
+    //     // cout << "Start Evaluation" << endl;
+    //     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //     assert(result.correct);
+    // } catch (const StopException& e) {
+    // } catch (const UnsupportedException& e) {
+    //   // cout << "[WARN] Problem " << p.Name() << " is not supported for Cube demolition" << endl;
+    // }
     try {
-        Trace trace;
-        SolverCubeDemolition::Solve(source, trace);
-        trace.tag = "SolverCubeDemolition";
-        traces.push_back(trace);
-        // cout << "Start Evaluation" << endl;
-        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        assert(result.correct);
+      Trace trace;
+      Solver3D_Demolition::Solve(source, trace);
+      // cout << "Start Evaluation" << endl;
+      trace.tag = "Solver3D_Demolition";
+      Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+      if (result.correct) {
+          traces.push_back(trace);
+      } else {
+        cout << "[WARN] Problem " << p.Name() << " 3D demolition failed" << endl;
+      }
     } catch (const StopException& e) {
-    } catch (const UnsupportedException& e) {
-      // cout << "[WARN] Problem " << p.Name() << " is not supported for Cube demolition" << endl;
-    }
-    // assert(false);
-
-    try {
-        Trace trace;
-        SolverCubeDemolition_Tuned::Solve(source, trace);
-        trace.tag = "SolverCubeDemolition_Tuned";
-        traces.push_back(trace);
-        // cout << "Start Evaluation" << endl;
-        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        assert(result.correct);
-    } catch (const StopException& e) {
-    } catch (const UnsupportedException& e) {
-      // cout << "[WARN] Problem " << p.Name() << " is not supported for Cube demolition" << endl;
+      cout << "[WARN] Problem " << p.Name() << " is not supported for 3D demolition" << endl;
     }
     // assert(false);
 
