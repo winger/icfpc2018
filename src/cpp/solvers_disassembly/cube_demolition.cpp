@@ -110,26 +110,7 @@ void SolverCubeDemolition::Solve(Trace& output) {
   ReplicateToTop();
 
   int total_bots_in_layer = 8;
-  {
-    CommandGroup bots_flip;
-    bots_flip.push_back(Command(Command::Flip));
-    for (int i = 1; i < total_bots_in_layer; ++i) {
-      bots_flip.push_back(Command(Command::Wait));
-    }
-    ExecuteCommands(bots_flip);
-  }
-
   DemolishCube();
-
-  {
-    CommandGroup bots_flip;
-    bots_flip.push_back(Command(Command::Flip));
-    for (int i = 1; i < total_bots_in_layer; ++i) {
-      bots_flip.push_back(Command(Command::Wait));
-    }
-    ExecuteCommands(bots_flip);
-  }
-
   ShrinkToBottom();
   ExecuteCommandGroups(despawn_groups);
 
