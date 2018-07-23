@@ -2,6 +2,7 @@
 
 #include <regex>
 
+#include "solvers_assembly/gravitated.h"
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
@@ -21,7 +22,7 @@ static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
-static constexpr size_t REASSEMBLE_THRESHOLD = 1;
+static constexpr size_t REASSEMBLE_THRESHOLD = 41;
 
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
     ofstream file(filename);
@@ -128,7 +129,7 @@ bool Solver::FindBestTrace(
     for (const Trace& trace : traces_to_check)
     {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
+        cout << "trace: " << trace.tag << " --> " << result.energy << " correct: " << result.correct << endl;
         if (result <= best_result)
         {
             best_result = result;
@@ -158,6 +159,17 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
         temp.tag = "parallel base";
         traces.push_back(temp);
+    }
+
+    if (Grounder::IsByLayerGrounded(target)) {
+        try {
+          Trace temp;
+          SolverGravitated::Solve(target, temp);
+          temp.tag = "gravitated solver";
+          traces.push_back(temp);
+        } catch (std::runtime_error const& e) {
+          cerr << "Error: " << e.what() << endl;
+        }
     }
 
     if (source.GetR() < 70) {

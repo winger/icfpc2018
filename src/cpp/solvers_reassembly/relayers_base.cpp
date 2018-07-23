@@ -2,7 +2,9 @@
 #include "../distance_calculator.h"
 
 ReassemblySolverLayersBase::ReassemblySolverLayersBase(const Matrix& s, const Matrix& t, bool levitation)
-    : SolverBase(s, levitation), source(s), target(t) {}
+    : SolverBase(s, levitation), source(s), target(t) {
+    state.matrix = s;
+}
 
 bool ReassemblySolverLayersBase::NeedChange(const Coordinate& c) const {
     return state.matrix.Get(c) != target.Get(c);
@@ -10,9 +12,9 @@ bool ReassemblySolverLayersBase::NeedChange(const Coordinate& c) const {
 
 size_t ReassemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size_t& count) {
     size_t result = 0;
-    for (int dx = -1; dx <= 1; ++dx) {
-        for (int dy = -1; dy <= 1; ++dy) {
-            for (int dz = -1; dz <= 1; ++dz) {
+    for (int dx = -2; dx <= 2; ++dx) {
+        for (int dy = -2; dy <= 2; ++dy) {
+            for (int dz = -2; dz <= 2; ++dz) {
                 Coordinate c = {c0.x + dx, c0.y + dy, c0.z + dz};
                 CoordinateDifference cd = c - c0;
                 if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && NeedChange(c)) {
@@ -40,6 +42,15 @@ size_t ReassemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, si
 }
 
 void ReassemblySolverLayersBase::MoveToCoordinateBFS(const Coordinate& c, bool finalize) {
+    auto path = state.matrix.BFS(GetBotPosition(), c);
+    for (const auto& p: path) {
+        Command c(Command::SMove);
+        c.cd1 = p;
+        assert(state.matrix.IsInside(GetBotPosition() + p));
+        assert(!state.matrix.Get(GetBotPosition() + p));
+        AddCommand(c);
+    }
+    assert(GetBotPosition() == c);
 }
 
 size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
@@ -49,7 +60,6 @@ size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
 
     CoordinateSet candidates;
     state.matrix.DFS(GetBotPosition(), candidates);
-    cout << "Cand: " << candidates.size() << endl;
 
     for (const auto& c : candidates) {
         size_t dummy = 0;
@@ -71,6 +81,27 @@ size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
     return GreedyFill(GetBotPosition(), false, count);
 }
 
+void ReassemblySolverLayersBase::SolveFinalize() {
+    CoordinateSet candidates;
+    state.matrix.DFS(GetBotPosition(), candidates);
+    if (candidates.count(targetC) == 0) {
+        cerr << "reassemble failed" << endl;
+        throw StopException();
+    }
+
+    if (helper_mode) {
+        MoveToCoordinateBFS(targetC, true);
+    } else {
+        if (!projectionGrounded) {
+            if (levitation) {
+                AddCommand(Command(Command::Flip));
+            }
+        }
+        MoveToCoordinateBFS(targetC, true);
+        AddCommand(Command(Command::Halt));
+    }
+}
+
 void ReassemblySolverLayersBase::Solve(Trace& output) {
     SolveInit();
 
@@ -86,8 +117,6 @@ void ReassemblySolverLayersBase::Solve(Trace& output) {
             }
         }
     }
-
-    std::cout << "count: " << count << endl;
 
     while (count) {
         if (!GreedyReassemble(count)) {

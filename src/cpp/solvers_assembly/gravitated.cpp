@@ -46,6 +46,12 @@ void SolverGravitated::Order() {
         }
       }
     }
+    if (order.back().size() == 0) {
+      order.pop_back();
+      break;
+
+      //cerr << "Level = " << y << endl;
+    }
     while (true) {
       auto const& lastLayer = order.back();
       std::vector<int> nextLayer;
@@ -89,17 +95,21 @@ void SolverGravitated::Solve(Trace& output)
 
     // 1. BFS from the bottom to the top
     Order();
+
     // 2. Run bots ...
     botnet.Spread(output);
     int y = -1;
+    int stepCnt = 0;
     for (auto const& layer: order) {
       auto cd = matrix.Reindex(layer[0]);
-      if (y != cd[1]) {
-        y = cd[1];
-        botnet.LevelUp(cd[1], output);
+      int destY = cd[1] + 1;
+      if (y != destY) {
+        y = destY;
+        botnet.LevelUp(destY, output);
       }
       botnet.CoverPatch(layer, output);
     }
+    // 3. Finish
     botnet.Merge(output);
     botnet.Origin(output);
     botnet.Halt(output);

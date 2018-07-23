@@ -179,6 +179,31 @@ void Matrix::DFS(const Coordinate& c, CoordinateSet& cs) const {
 using CoordinateToParent = map<Coordinate, Coordinate>;
 
 vector<CoordinateDifference> Matrix::BFS(const Coordinate& start, const Coordinate& finish) const {
+    CoordinateToParent parent;
+    queue<Coordinate> front;
+    front.emplace(start);
+
+    while (parent.count(finish) == 0) {
+        static const vector<CoordinateDifference> DIRS = {{-1, 0, 0}, {1, 0, 0}, {0, 1, 0},
+                                                          {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+        auto now = front.front();
+        front.pop();
+        for (const auto& d : DIRS) {
+            auto cc = now + d;
+            if (IsInside(cc) && !Get(cc) && (parent.count(cc) == 0)) {
+                parent[cc] = now;
+                front.emplace(cc);
+            }
+        }
+    }
+
     vector<CoordinateDifference> result;
+    auto now = finish;
+    while (now != start) {
+        auto p = parent[now];
+        result.emplace_back(now - p);
+        now = p;
+    }
+    reverse(result.begin(), result.end());
     return result;
 }

@@ -2,7 +2,7 @@
 
 SolverBase::SolverBase(const Matrix& m, bool l) : matrix(m), levitation(l) {
     state.Init(m.GetR(), Trace());
-    target = {0, 0, 0};
+    targetC = {0, 0, 0};
 }
 
 void SolverBase::SolveInit() {
@@ -17,14 +17,14 @@ void SolverBase::SolveInit() {
 
 void SolverBase::SolveFinalize() {
     if (helper_mode) {
-        MoveToCoordinate(target.x, target.y, target.z, true);
+        MoveToCoordinate(targetC, true);
     } else {
         if (!projectionGrounded) {
             if (levitation) {
                 AddCommand(Command(Command::Flip));
             }
         }
-        MoveToCoordinate(target.x, target.y, target.z, true);
+        MoveToCoordinate(targetC, true);
         AddCommand(Command(Command::Halt));
     }
 }

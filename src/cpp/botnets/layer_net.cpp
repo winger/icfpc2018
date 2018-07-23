@@ -20,10 +20,10 @@ void LayerNet::Spread(Trace& output) {
 
   std::vector<int /* x */> coords{0, half};
   std::map<int /* x */, int /* id */> ids;
+  ids[0] = bots[1].id;
   std::map<int /* x */, std::pair<int /* dx */, int /* id */>> pids;
   while (ids.size() != half) {
     std::map<int /* bid */, Command> cmds;
-
     for (int i = 0; i < coords.size() - 1; ++i) {
       int delta = coords[i + 1] - coords[i];
       if (delta == 1) {
@@ -31,27 +31,41 @@ void LayerNet::Spread(Trace& output) {
       } else {
         auto nc = coords[i] + delta / 2;
         int amnt = (coords[i + 1] - nc) * 2 - 1;
-
         auto& bot = bots[ids[coords[i]]];
+        //bot.Print();
         auto pBotCmd = bot.Fission(1, 0, 0, amnt);
+        cmds[bot.id] = pBotCmd.second;
 
         auto& botp = pBotCmd.first;
+        //cerr << botp.id << " - " << (amnt + 1) / 2 << " " << nc << endl;
         pids[botp.x] = std::make_pair(nc, botp.id);
         bots[botp.id] = botp;
-        cmds[bot.id] = pBotCmd.second;
       }
     }
     CleanCmds(output, cmds);
+    bool go = false;
     for (auto const& kv: ids) {
       cmds[kv.second] = Command(Command::Wait);
     }
     for (auto const& kv: pids) {
-      int delta = kv.second.first - kv.first;
-      auto cmd = Command(Command::SMove);
-      cmd.cd1 = {delta, 0, 0};
-      cmds[kv.second.second] = cmd;
+      int dx = kv.second.first;
+      int delta = dx - kv.first;
+      int bid = kv.second.second;
+      Command cmd(Command::Wait);
+      if (delta != 0) {
+        go |= true;
+        cmd = Command(Command::SMove);
+        cmd.cd1 = {delta, 0, 0};
+      }
+      cmds[bid] = cmd;
+      ids[dx] = bid;
+      bots[bid].x = dx;
+      coords.push_back(dx);
     }
-    CleanCmds(output, cmds);
+    std::sort(coords.begin(), coords.end());
+    if (go) {
+      CleanCmds(output, cmds);
+    }
   }
 }
 
@@ -61,8 +75,8 @@ std::pair<LayerBot, Command> LayerBot::Fission(int dx, int dy, int dz, int m) {
   }
   LayerBot bot;
   bot.x = x + dx;
-  bot.y = x + dy;
-  bot.z = x + dz;
+  bot.y = y + dy;
+  bot.z = z + dz;
 
   bot.id = seeds[0];
   for (int i = 0; i < m; ++i) {
@@ -97,16 +111,18 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
   int size = matrix.GetR();
   // 1. SELECT
   std::set<int> dests;
+  /*cerr << "Chunk: ";
   for (int x: chunk) {
     dests.insert(x);
+    cerr << x << " ";
   }
+  cerr << endl;*/
 
   std::set<int> stable;
   std::map<int /* x */, int /* id */> movableBots;
   for (auto const& kv: bots) {
     movableBots[kv.first] = kv.second.id;
   }
-
   std::set<int> toLeave;
   std::set<int> toMove = dests;
   int zstatus = 0;
@@ -116,12 +132,10 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
     if (dests.find(bot.x) != dests.end()) {
       stable.insert(bot.id);
       toLeave.insert(bot.x);
-    } else {
       toMove.erase(bot.x);
       movableBots.erase(bot.x);
     }
   }
-
   // 2. ASSIGN
   std::map<int /* id */, int /* dx */> destsX;
   std::map<int /* id */, int /* dz */> destsZ;
@@ -140,10 +154,9 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
   }
   while (it != movableBots.end()) {
     stable.insert(it->second);
+    ++it;
   }
-
   // 3. LIFT THEM UP
-
   while (true) {
     bool stillGo = false;
     std::map<int /* bid */, Command> cmds;
@@ -161,8 +174,13 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
     if (not stillGo) { break; }
     CleanCmds(output, cmds);
   }
-
   // 4. MOVE THEM TO DEST POS
+  /*
+  cerr << "4. ";
+  for (auto const& kv: bots) {
+    cerr << kv.second.x << " ";
+  }
+  cerr << endl;*/
 
   while (true) {
     bool stillGo = false;
@@ -181,7 +199,6 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
     if (not stillGo) { break; }
     CleanCmds(output, cmds);
   }
-
   // 5. PUT THEM DOWN
 
   while (true) {
@@ -200,6 +217,11 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
     if (not stillGo) { break; }
     CleanCmds(output, cmds);
   }
+/*
+  for (auto const& kv: bots) {
+    cerr << "(" << kv.second.x << " / " << kv.second.y << " / " << kv.second.z << ") ";
+  }
+  cerr << endl;*/
 }
 
 void LayerNet::Cover(
@@ -213,23 +235,33 @@ void LayerNet::Cover(
     zstatus = kv.second.z;
   }
   int destZ = zstatus == 0 ? matrix.GetR() - 1 : 0;
+  //cerr << destZ << endl;
   std::vector<BotCoverTask> tasks;
   for (auto const& kv: pos) {
     if (xzPlane.find(kv.first) == xzPlane.end()) {
       auto& tmp = xzPlane[kv.first];
     }
     tasks.push_back(BotCoverTask(xzPlane[kv.first], kv.second, destZ));
-    xzPlane[kv.first].clear();
+    xzPlane[kv.first].clear();;
   }
   while (true) {
+
     bool stillGo = false;
     std::map<int /* bid */, Command> cmds;
     for (auto& task: tasks) {
       stillGo |= task.DoStupidStep(cmds, bots);
     }
+
     if (stillGo) {
       CleanCmds(output, cmds);
     } else {
+      /*for (auto const& kv: bots) {
+        cerr << "(" << kv.second.x << " / " << kv.second.y << " / " << kv.second.z << ") ";
+      }
+      for (auto const& kv: bots) {
+        cerr << kv.second.x << " ";
+      }
+      cerr << endl;*/
       break;
     }
   }
@@ -237,7 +269,7 @@ void LayerNet::Cover(
 
 bool BotCoverTask::DoStupidStep(
     std::map<int /* bid */, Command>& cmds,
-    std::map<int /* id */, LayerBot> bots) {
+    std::map<int /* id */, LayerBot>& bots) {
   auto& bot = bots[bid];
   Command cmd;
   if (points.size() == 0) {
@@ -285,10 +317,10 @@ void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {
 
 void LayerNet::Merge(Trace& output) {
   int size = matrix.GetR();
-  std::vector<std::vector<LayerBot>> cnt(size);
+  std::vector<std::vector<int>> cnt(size);
   for (auto const& kv: bots) {
-    auto bot = kv.second;
-    cnt[bot.x].push_back(bot);
+    auto const& bot = kv.second;
+    cnt[bot.x].push_back(bot.id);
   }
   std::vector<int> indicies;
   for (int i = 0; i < size; ++i) {
@@ -297,8 +329,8 @@ void LayerNet::Merge(Trace& output) {
       std::sort(
         cnt[i].begin(),
         cnt[i].end(),
-        [](LayerBot const& lhs, LayerBot const& rhs) {
-          return lhs.z < rhs.z;
+        [this](int lhs, int rhs) {
+          return bots[lhs].z < bots[rhs].z;
         });
     }
   }
@@ -315,22 +347,23 @@ void LayerNet::Merge(Trace& output) {
       CleanCmds(output, cmds);
     }
   }
-
+  // cerr << "Second Part" << endl;
   // Second part
-  std::vector<LayerBot> sline;
+  std::vector<int /* id */> sline;
   for (auto ind: indicies) {
     sline.push_back(cnt[ind][0]);
   }
   std::sort(
     sline.begin(),
     sline.end(),
-    [](LayerBot const& lhs, LayerBot const& rhs) {
-      return lhs.x < rhs.x;
+    [this](int lhs, int rhs) {
+      return bots[lhs].x < bots[rhs].x;
     }
   );
+
   while (bots.size() > 1) {
     std::map<int /* bid */, Command> cmds;
-    ShrinkLine(cmds, sline, 2);
+    ShrinkLine(cmds, sline, 0);
     CleanCmds(output, cmds);
   }
 }
@@ -339,7 +372,7 @@ void LayerNet::Origin(Trace& output) {
   if (bots.size() != 1) {
     throw std::runtime_error("LN/Origin fiasca, bratan");
   }
-  auto& bot = bots[0];
+  auto& bot = bots.begin()->second;
   while (bot.x != 0) {
     auto dist = min(bot.x, TaskConsts::LONG_LIN_DIFF);
     bot.CheckLine(matrix, -dist, 0, 0);
@@ -433,13 +466,16 @@ void LayerBot::Fusion(
   if (!Nd(dx, dy, dz)) {
     throw std::runtime_error("LB/Fusion/To far");
   }
+
   Command cfst(Command::FusionP);
-  cfst.cd1 = {dx, dy, dz};
+  cfst.cd1 = {-dx, -dy, -dz};
   cmds[prm.id] = cfst;
 
   Command csnd(Command::FusionS);
-  csnd.cd1 = {-dx, -dy, -dz};
+  csnd.cd1 = {dx, dy, dz};
   cmds[snd.id] = csnd;
+
+  assert(abs(dx) + abs(dy) + abs(dz) > 0);
 
   for (auto v: snd.seeds) {
     prm.seeds.push_back(v);
@@ -450,11 +486,11 @@ void LayerBot::Fusion(
 
 int LayerNet::ShrinkLine(
     std::map<int /* bid */, Command>& cmds,
-    std::vector<LayerBot> line,
+    std::vector<int /* int */>& line,
     int axe) {
   int totalWait = 0;
   if (line.size() == 1) {
-    auto& bot = line[0];
+    auto& bot = bots[line[0]];
     if (bot.Coord(axe) == 0) {
       cmds[bot.id] = Command(Command::Wait);
       totalWait++;
@@ -468,17 +504,20 @@ int LayerNet::ShrinkLine(
     auto& strap = line;
     int start = strap.size() % 2;
     if (start == 1) {
-      cmds[strap[0].id] = Command(Command::Wait);
+      cmds[strap[0]] = Command(Command::Wait);
     }
     for (; start < strap.size(); start += 2) {
-      auto& fst = strap[start];
-      auto& snd = strap[start + 1];
+      auto& fst = bots[strap[start]];
+      auto& snd = bots[strap[start + 1]];
       if (fst.Coord(axe) + 1 == snd.Coord(axe)) {
+        //fst.Print();
+        //snd.Print();
         LayerBot::Fusion(cmds, fst, snd);
         strap.erase(strap.begin() + start + 1);
         bots.erase(snd.id);
         --start;
       } else {
+        //cerr << snd.Coord(axe) << " -- " << fst.Coord(axe) << endl;
         auto dist = min(snd.Coord(axe) - fst.Coord(axe) - 1, TaskConsts::LONG_LIN_DIFF);
         auto ldf = LayerBot::ByAxeDist(axe, -dist);
         snd.CheckLine(matrix, ldf[0], ldf[1], ldf[2]);
@@ -510,4 +549,14 @@ bool LayerBot::Nd(int dx, int dy, int dz) {
     abs(dx) <= 1 &&
     abs(dy) <= 1 &&
     abs(dz) <= 1;
+}
+
+void LayerBot::Print() const {
+  cout << "Id " << id << endl;
+  cout << "Coords " << x << " " << y << " " << z << endl;
+  cout << "Seeds: ";
+  for (auto v: seeds) {
+    cout << v << " ";
+  }
+  cout << endl;
 }
