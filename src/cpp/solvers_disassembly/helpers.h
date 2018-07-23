@@ -41,6 +41,8 @@ vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_acti
 // founds bot position in the list of active bots
 int BotPosition(const State& state, const int bot_id);
 
+void showVector(const vector<int>& v);
+
 // Inverser for very specific use case when we spawn bots from 0 and in linear order
 class Inverser {
 public:

@@ -28,20 +28,10 @@ vector <int> SplitCoordinatesForGFill(int a, int b) {
   return result;
 }
 
-void ShowVector(vector<int> v) {
-  cout << "v = { ";
-  for (const auto& value : v) {
-    cout << value << " ";
-  }
-  cout << "}" << endl;
-}
-
 } // namespace
 
-
-
 void Solver2D_Demolition::TestSomething() {
-  ShowVector(SplitCoordinatesForGFill(0, 31));
+  showVector(SplitCoordinatesForGFill(0, 31));
 }
 
 void Solver2D_Demolition::ExecuteCommands(const CommandGroup& group) {
@@ -247,15 +237,6 @@ void Solver2D_Demolition::Solve(Trace& output) {
   AddCommand(Command(Command::Halt));
   output = state.trace;
 }
-
-void showVector(const vector<int>& vv) {
-  cout << "{ ";
-  for (auto v : vv) {
-    cout << v << " ";
-  }
-  cout << "}" << endl;
-}
-
 
 // index is where smallest x stays
 vector<CommandGroup> Solver2D_Demolition::GetMovementGroups(int index) {
