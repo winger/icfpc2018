@@ -138,20 +138,40 @@ bool Solver::FindBestTrace(
 
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
 {
-    Trace temp;
     vector<Trace> traces;
-    AssemblySolverLayersBase::Solve(target, temp, false, true);
-    traces.push_back(temp);
-    AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
-    traces.push_back(temp);
+    {
+        Trace temp;
+        AssemblySolverLayersBase::Solve(target, temp, false, true);
+        temp.tag = "base";
+        traces.push_back(temp);
+    }
+
+    {
+        Trace temp;
+        AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
+        temp.tag = "parallel base";
+        traces.push_back(temp);
+    }
+
+    if (source.GetR() < 70) {
+        Trace temp;
+        AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base_and_bots, true);
+        temp.tag = "parallel base and bots";
+        traces.push_back(temp);
+    }
+
     if (!cmd.int_args["levitation"]) {
         try {
+            Trace temp;
             AssemblySolverLayersBase::Solve(target, temp, false, false);
+            temp.tag = "base no levitation";
             traces.push_back(temp);
         } catch (const StopException& e) {
         }
         try {
+            Trace temp;
             AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
+            temp.tag = "parallel no levitation";
             traces.push_back(temp);
         } catch (const StopException& e) {
         }
@@ -159,6 +179,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 
     assert(!traces.empty());
     if (p.assembly) {
+        Trace temp;
         if (FileExists(p.GetProxy())) {
             temp.ReadFromFile(p.GetProxy());
             traces.push_back(temp);
@@ -172,35 +193,38 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    // {
-    //     Trace trace;
-    //     AssemblySolverLayersBase::Solve(source, trace, true, true);
-    //     traces.push_back(trace);
-    //     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-    //     assert(result.correct);
-    // }
-    //
-    // if (!cmd.int_args["levitation"]) {
-    //     try {
-    //         Trace trace;
-    //         AssemblySolverLayersBase::Solve(source, trace, true, false);
-    //         traces.push_back(trace);
-    //         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-    //         assert(result.correct);
-    //     } catch (const StopException& e) {
-    //     }
-    // }
+    {
+        Trace trace;
+        AssemblySolverLayersBase::Solve(source, trace, true, true);
+        trace.tag = "base";
+        traces.push_back(trace);
+        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+        assert(result.correct);
+    }
+
+    if (!cmd.int_args["levitation"]) {
+        try {
+            Trace trace;
+            AssemblySolverLayersBase::Solve(source, trace, true, false);
+            trace.tag = "base no levitation";
+            traces.push_back(trace);
+            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+            assert(result.correct);
+        } catch (const StopException& e) {
+        }
+    }
+
     {
         try {
-          Trace trace;
-          Solver2D_Demolition::Solve(source, trace);
-          trace.tag = "Solver2D_Demolition";
-          traces.push_back(trace);
-          // cout << "Start Evaluation" << endl;
-          Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-          assert(result.correct);
+            Trace trace;
+            Solver2D_Demolition::Solve(source, trace);
+            trace.tag = "Solver2D_Demolition";
+            traces.push_back(trace);
+            // cout << "Start Evaluation" << endl;
+            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+            assert(result.correct);
         } catch (const StopException& e) {
-          // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
+            // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
         }
     }
     // assert(false);
@@ -267,7 +291,7 @@ Solution Solver::Solve(const Problem& p) {
         trace_dflt.ReadFromFile(p.GetDefaultTrace());
         Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
         s.Set(solution_result, default_result);
-        cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << endl;
+        cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << " r=" << solution_result.r << endl;
         return s;
     } catch (...) {
         cerr << "Exception in handling '" << p.Name() << "'" << endl;
