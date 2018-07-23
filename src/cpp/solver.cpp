@@ -7,6 +7,7 @@
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
+#include "solvers_disassembly/2d_demolition_tuned.h"
 #include "solvers_disassembly/cube_demolition.h"
 #include "solvers_disassembly/cube_demolition_tuned.h"
 #include "solvers_reassembly/relayers_base.h"
@@ -287,6 +288,21 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
             Trace trace;
             Solver2D_Demolition::Solve(source, trace);
             trace.tag = "Solver2D_Demolition";
+            traces.push_back(trace);
+            // cout << "Start Evaluation" << endl;
+            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+            assert(result.correct);
+        } catch (const StopException& e) {
+            // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
+        }
+    }
+    // assert(false);
+
+    {
+        try {
+            Trace trace;
+            Solver2D_Demolition_Tuned::Solve(source, trace);
+            trace.tag = "Solver2D_Demolition_Tuned";
             traces.push_back(trace);
             // cout << "Start Evaluation" << endl;
             Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
