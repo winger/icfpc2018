@@ -30,17 +30,24 @@ struct LayerBot {
 
 struct BotCoverTask {
   std::vector<int> points;
-  int cur = 0;
+  std::vector<std::pair<int, int>> segments;
   int bid;
+  int bidp{-1};
   int destZ;
+  int state{0};
 
   BotCoverTask(std::vector<int> pointsz, int bidz, int destZz)
     : points(pointsz), bid(bidz), destZ(destZz) {
-    std::sort(points.begin(), points.end());
-    if (destZ == 0) { std::reverse(points.begin(), points.end()); }
+    precompute();
   }
 
+  void precompute();
+
   bool DoStupidStep(
+    std::map<int /* bid */, Command>& cmds,
+    std::map<int /* id */, LayerBot>& bots);
+
+  bool DoSmartStep(
     std::map<int /* bid */, Command>& cmds,
     std::map<int /* id */, LayerBot>& bots);
 };
@@ -50,6 +57,7 @@ class LayerNet
 protected:
   Matrix matrix;
   std::map<int /* id */, LayerBot> bots;
+  bool smart{false};
 
   static void CleanCmds(
     Trace& output,
@@ -60,7 +68,7 @@ protected:
     std::vector<int /* id */>& line,
     int axe);
 public:
-  LayerNet(int size);
+  LayerNet(int size, bool smart);
 
   // Invariant z == 0 || z == R - 1
   void Relocate(Trace& output, std::vector<int> const& chunk);

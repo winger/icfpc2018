@@ -190,17 +190,21 @@ void State::Step()
         else if (c.type == Command::GFill)
         {
             correct = correct && c.cd1.IsNearCoordinateDifferences() && c.cd2.IsFarCoordinateDifferences();
+            assert(correct);
             Coordinate a = bs.c + c.cd1;
             Coordinate b = a + c.cd2;
             correct = correct && matrix.IsInside(a) && matrix.IsInside(b);
+            assert(correct);
             fills[Region(a, b)].push_back(a);
         }
         else if (c.type == Command::GVoid)
         {
             correct = correct && c.cd1.IsNearCoordinateDifferences() && c.cd2.IsFarCoordinateDifferences();
+            assert(correct);
             Coordinate a = bs.c + c.cd1;
             Coordinate b = a + c.cd2;
             correct = correct && matrix.IsInside(a) && matrix.IsInside(b);
+            assert(correct);
             erases[Region(a, b)].push_back(a);
         }
     }

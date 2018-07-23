@@ -1,3 +1,2 @@
 trace=Solver2D_Demolition+autoharmonic, gravitated_solver energy=775687870 correct=1
-trace=../../proxyTracesF/FR041.nbt energy=2367605248 correct=1
-trace=../../proxyTracesF/FR041.nbt+autoharmonic energy=1435652548 correct=1
+trace=../../proxyTracesF/FR041.nbt energy=775687870 correct=1
