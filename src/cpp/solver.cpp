@@ -142,18 +142,21 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     {
         Trace temp;
         AssemblySolverLayersBase::Solve(target, temp, false, true);
+        temp.tag = "base";
         traces.push_back(temp);
     }
 
     {
         Trace temp;
         AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
+        temp.tag = "parallel base";
         traces.push_back(temp);
     }
 
     {
         Trace temp;
         AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base_and_bots, true);
+        temp.tag = "parallel base and bots";
         traces.push_back(temp);
     }
 
@@ -161,12 +164,14 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         try {
             Trace temp;
             AssemblySolverLayersBase::Solve(target, temp, false, false);
+            temp.tag = "base no levitation";
             traces.push_back(temp);
         } catch (const StopException& e) {
         }
         try {
             Trace temp;
             AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
+            temp.tag = "parallel no levitation";
             traces.push_back(temp);
         } catch (const StopException& e) {
         }
@@ -191,6 +196,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
     {
         Trace trace;
         AssemblySolverLayersBase::Solve(source, trace, true, true);
+        trace.tag = "base";
         traces.push_back(trace);
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
         assert(result.correct);
@@ -200,6 +206,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         try {
             Trace trace;
             AssemblySolverLayersBase::Solve(source, trace, true, false);
+            trace.tag = "base no levitation";
             traces.push_back(trace);
             Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
             assert(result.correct);
