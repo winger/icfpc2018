@@ -13,7 +13,7 @@ protected:
     Matrix matrix;
     State state;
     bool levitation;
-    Coordinate target;
+    Coordinate targetC;
     bool helper_mode;
     bool projectionGrounded{false};
 

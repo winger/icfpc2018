@@ -16,6 +16,7 @@ class ReassemblySolverLayersBase : public SolverBase {
     size_t GreedyReassemble(size_t& count);
     size_t GreedyFill(const Coordinate& c0, bool dry, size_t& count);
     void MoveToCoordinateBFS(const Coordinate& c, bool finalize = false);
+    void SolveFinalize();
 
    public:
     static Evaluation::Result Solve(const Matrix& source, const Matrix& target, Trace& output, bool levitation);

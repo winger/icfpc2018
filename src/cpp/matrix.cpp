@@ -190,7 +190,7 @@ vector<CoordinateDifference> Matrix::BFS(const Coordinate& start, const Coordina
         front.pop();
         for (const auto& d : DIRS) {
             auto cc = now + d;
-            if (!Get(cc) && (parent.count(cc) == 0)) {
+            if (IsInside(cc) && !Get(cc) && (parent.count(cc) == 0)) {
                 parent[cc] = now;
                 front.emplace(cc);
             }
@@ -201,7 +201,7 @@ vector<CoordinateDifference> Matrix::BFS(const Coordinate& start, const Coordina
     auto now = finish;
     while (now != start) {
         auto p = parent[now];
-        result.emplace_back(p - now);
+        result.emplace_back(now - p);
         now = p;
     }
     reverse(result.begin(), result.end());

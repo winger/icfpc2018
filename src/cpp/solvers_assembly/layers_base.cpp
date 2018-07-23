@@ -15,8 +15,8 @@ void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
 {
     state.harmonics = true;
     helper_mode = true;
-    target = c;
-    GetBotPosition() = target;
+    targetC = c;
+    GetBotPosition() = targetC;
 }
 
 bool AssemblySolverLayersBase::NeedChange(const Coordinate& c) const {
