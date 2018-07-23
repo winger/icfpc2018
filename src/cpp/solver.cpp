@@ -404,12 +404,12 @@ Solution Solver::Check(const Problem& p, const std::string& filename) {
 void Solver::SolveAll(const std::string& round) {
     bool stop_watching = false;
 
-    std::thread t_watch([&stop_watching, &solving, &solving_mutex]() {
+    std::thread t_watch([&stop_watching]() {
         while (!stop_watching) {
             {
-                std::lock_guard<std::mutex> guard(solving_mutex);
+                std::lock_guard<std::mutex> guard(::solving_mutex);
                 std::string s = "Solving: ";
-                for (const auto& ss : solving) {
+                for (const auto& ss : ::solving) {
                     s += ss + " ";
                 }
                 cout << s << endl;
