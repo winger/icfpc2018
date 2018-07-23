@@ -291,7 +291,7 @@ Solution Solver::Solve(const Problem& p) {
         trace_dflt.ReadFromFile(p.GetDefaultTrace());
         Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
         s.Set(solution_result, default_result);
-        cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << endl;
+        cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << " r=" << solution_result.r << endl;
         return s;
     } catch (...) {
         cerr << "Exception in handling '" << p.Name() << "'" << endl;
