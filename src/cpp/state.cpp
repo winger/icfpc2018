@@ -24,6 +24,7 @@ void State::Init(const Matrix& source, const Trace& _trace)
     active_bots.push_back(0);
     trace = _trace;
     trace_pos = 0;
+    grounded = source.IsGrounded();
 }
 
 bool State::IsCorrectFinal() const
@@ -44,14 +45,24 @@ void State::Fulfill() {
 }
 
 bool State::IsGrounded() {
-  if (toDelete.empty()) {
-    bool result = Grounder::IsDeltaGrounded(backMatrix, toAdd);
+    if (toDelete.empty())
+    {
+        if (toAdd.empty())
+        {
+            // Do nothing
+        }
+        else
+        {
+            if (grounded)
+                grounded = Grounder::IsDeltaGrounded(backMatrix, toAdd);
+            else
+                grounded = matrix.IsGrounded();
+        }
+    }
+    else
+        grounded = matrix.IsGrounded();
     Fulfill();
-    return result;
-  } else {
-    Fulfill();
-    return matrix.IsGrounded();
-  }
+    return grounded;
 }
 
 void State::Step()

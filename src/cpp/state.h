@@ -35,6 +35,10 @@ public:
     void Step();
     void Run();
 
+protected:
+    bool grounded;
+
+public:
     bool IsGrounded();
 
 protected:

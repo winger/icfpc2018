@@ -10,7 +10,7 @@ struct TimePos
     bool grounded;
 };
 
-void ImproveTrace(const Matrix& source, const Matrix& target, const Trace& trace, Trace& output)
+void AutoHarmonic::ImproveTrace(const Matrix& source, const Matrix& target, const Trace& trace, Trace& output)
 {
     output.commands.clear();
     vector<Command> step_commands;
@@ -25,24 +25,48 @@ void ImproveTrace(const Matrix& source, const Matrix& target, const Trace& trace
         if (s.harmonics)
             harmonic_used = true;
     }
+    vtp.push_back(vtp.back());
     if (!harmonic_used) return;
     bool current_harmonic = false;
-    for (unsigned i = 1; i < vtp.size(); ++i)
+    for (size_t i = 1; i + 1 < vtp.size(); ++i)
     {
+        assert(!current_harmonic || vtp[i].harmonic);
         bool drop_flip = false;
         bool enable_flip = false;
-        if (vtp[i].harmonic)
+        if (vtp[i+1].harmonic)
         {
-            if (vtp[i].grounded)
+            if (vtp[i+1].grounded)
             {
-                if (vtp[i-1].harmonic)
+                if (vtp[i].harmonic)
                 {
-                    // Everything is fine
+                    if (current_harmonic)
+                    {
+                        if (vtp[i].grounded)
+                        {
+                            if (vtp[i+2].grounded)
+                            {
+                                // Can disable harmonic for now
+                                enable_flip = true;
+                            }
+                            else
+                            {
+                                // No reason to enable.
+                            }
+                        }
+                        else
+                        {
+                            // We can'd disable harmonic now
+                        }
+                    }
+                    else
+                    {
+                        // Everything is fine
+                    }
                 }
                 else
                 {
                     assert(!current_harmonic);
-                    if (vtp[i+1].grounded)
+                    if (vtp[i+2].grounded)
                     {
                         // Can postpone harmonic
                         drop_flip = true;
@@ -55,7 +79,7 @@ void ImproveTrace(const Matrix& source, const Matrix& target, const Trace& trace
             }
             else
             {
-                if (vtp[i-1].harmonic)
+                if (vtp[i].harmonic)
                 {
                     if (current_harmonic)
                     {
@@ -75,8 +99,8 @@ void ImproveTrace(const Matrix& source, const Matrix& target, const Trace& trace
         }
         else
         {
-            assert(vtp[i].grounded);
-            if (vtp[i-1].harmonic)
+            assert(vtp[i+1].grounded);
+            if (vtp[i].harmonic)
             {
                 // Harmonic disabled
                 if (current_harmonic)
@@ -96,9 +120,9 @@ void ImproveTrace(const Matrix& source, const Matrix& target, const Trace& trace
 
         step_commands.clear();
         bool all_waits = true;
-        for (size_t i = vtp[i].trace_pos; i < vtp[i].trace_pos + vtp[i].bots; ++i)
+        for (size_t j = vtp[i].trace_pos; j < vtp[i].trace_pos + vtp[i].bots; ++j)
         {
-            Command c = trace.commands[i];
+            Command c = trace.commands[j];
             if (c.type == Command::Flip)
             {
                 if (drop_flip)
@@ -132,13 +156,16 @@ void ImproveTrace(const Matrix& source, const Matrix& target, const Trace& trace
             Command c(Command::Flip);
             output.commands.push_back(c);
             c.type = Command::Wait;
-            for (size_t i = 1; i < vtp[i].bots; ++i)
+            for (size_t j = 1; j < vtp[i].bots; ++j)
                 output.commands.push_back(c);
             current_harmonic = !current_harmonic;
             enable_flip = false;
         }
         if (!all_waits)
             output.commands.insert(output.commands.end(), step_commands.begin(), step_commands.end());
-        assert(!current_harmonic || vtp[i].harmonic);
+        assert(!current_harmonic || vtp[i+1].harmonic);
     }
+    // cout << "AH: " << vtp.size() - 2 << " " << trace.commands.size() << " " << output.commands.size() 
+    // << " " << int(output.commands[0].type) << " " << int(output.commands[0].type) << " " << int(output.commands[1].type)
+    // << " " << int(output.commands[output.commands.size() - 2].type) << " " << int(output.commands[output.commands.size() - 1].type) << endl;
 }
