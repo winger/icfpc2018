@@ -1,2 +1,1 @@
-trace=Solver2D_Demolition, non_gravitated_solver_smart_naive energy=2220062671 correct=1
-trace=../../proxyTracesF/FR056.nbt energy=2220062671 correct=1
+trace=Solver2D_Demolition, gravitated_solver_smart energy=2633462963 correct=1

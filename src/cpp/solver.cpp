@@ -224,13 +224,15 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
       cerr << "Error: " << e.what() << endl;
     }
 
-    try {
-      Trace temp;
-      SolverNonGravitated::Solve(target, temp, true, true);
-      temp.tag = "non_gravitated_solver_smart_naive";
-      traces.push_back(temp);
-    } catch (std::runtime_error const& e) {
-      cerr << "Error: " << e.what() << endl;
+    if (false) {
+        try {
+            Trace temp;
+            SolverNonGravitated::Solve(target, temp, true, true);
+            temp.tag = "non_gravitated_solver_smart_naive";
+            traces.push_back(temp);
+        } catch (std::runtime_error const& e) {
+            cerr << "Error: " << e.what() << endl;
+        }
     }
 
     if (cmd.int_args["base"]) {
@@ -253,7 +255,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     }
 
     assert(!traces.empty());
-    if (p.assembly) {
+    if (p.assembly && !cmd.int_args["regen"]) {
         Trace temp;
         if (FileExists(p.GetProxy())) {
             temp.ReadFromFile(p.GetProxy());
@@ -343,7 +345,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
     }
     // assert(false);
 
-    if (p.disassembly) {
+    if (p.disassembly && !cmd.int_args["regen"]) {
         if (FileExists(p.GetProxy())) {
             Trace temp;
             temp.ReadFromFile(p.GetProxy());
@@ -382,7 +384,7 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
     }
 
-    if (FileExists(p.GetProxy())) {
+    if (FileExists(p.GetProxy()) && !cmd.int_args["regen"]) {
         Trace temp;
         temp.ReadFromFile(p.GetProxy());
         traces.emplace_back(std::move(temp));
@@ -522,6 +524,19 @@ MergeResult MergeProblemWithSubmit(const Problem& p) {
     }
 
     auto checkProxy = Solver::Check(p, p.GetProxy());
+    auto replace = [&p, &checkProxy]() {
+        Trace t;
+        t.ReadFromFile(p.GetProxy());
+        t.WriteToFile(p.GetSubmitOutput());
+        WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
+    };
+
+    if (!FileExists(p.GetSubmitOutput())) {
+        replace();
+        cout << p.Name() << ": NEW" << endl;
+        return {true, 0};
+    }
+
     auto checkSubmit = Solver::Check(p, p.GetSubmitOutput());
     assert(checkProxy.correct);
     assert(checkSubmit.correct);
@@ -529,10 +544,7 @@ MergeResult MergeProblemWithSubmit(const Problem& p) {
     bool need_replace = checkProxy < checkSubmit;
     int score_diff = 0;
     if (need_replace) {
-        Trace t;
-        t.ReadFromFile(p.GetProxy());
-        t.WriteToFile(p.GetSubmitOutput());
-        WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
+        replace();
         cout << p.Name() << ": BETTER " << checkProxy.energy << " < " << checkSubmit.energy << endl;
         score_diff = checkProxy.score - checkSubmit.score;
     } else {
