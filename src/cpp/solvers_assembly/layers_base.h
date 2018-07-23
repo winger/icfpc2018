@@ -59,6 +59,7 @@ protected:
     void SolveLayer(int y);
     void SolveFinalize();
     void Solve(Trace& output);
+    bool NeedChange(const Coordinate& c) const;
 
 public:
     static Evaluation::Result Solve(const Matrix& m, Trace& output, bool erase, bool levitation);

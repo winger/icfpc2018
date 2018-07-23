@@ -101,13 +101,24 @@ void AssemblySolverLayersBase::SolveInit() {
     }
 }
 
+bool AssemblySolverLayersBase::NeedChange(const Coordinate& c) const {
+    if (matrix.Get(c)) {
+        if (erase) {
+            return state.matrix.Get(c);
+        } else {
+            return !state.matrix.Get(c);
+        }
+    }
+    return false;
+}
+
 void AssemblySolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
 {
     int r = matrix.GetR();
     z0 = r, z1 = -1;
     for (int z = 0; z < r; ++z)
     {
-        if ((!erase && matrix.Get(x, y, z) && !state.matrix.Get(x, y, z)) || (erase && matrix.Get(x, y, z) && state.matrix.Get(x, y, z))) {
+        if (NeedChange({x, y, z})) {
             z0 = min(z0, z);
             z1 = max(z1, z);
         }
@@ -164,7 +175,7 @@ void AssemblySolverLayersBase::SolveZ3_GetRZ(int x, int y, int& z0, int& z1)
     {
         for (int z = 0; z < r; ++z)
         {
-            if ((!erase && matrix.Get(ix, y, z) && !state.matrix.Get(ix, y, z)) || (erase && matrix.Get(ix, y, z) && state.matrix.Get(ix, y, z))) {
+            if (NeedChange({ix, y, z})) {
                 z0 = min(z0, z);
                 z1 = max(z1, z);
             }
@@ -226,8 +237,7 @@ size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size
         for (int dz = -1; dz <= 1; ++dz) {
             Coordinate c = {c0.x + dx, c0.y - 1, c0.z + dz};
             CoordinateDifference cd = c - c0;
-            if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && matrix.Get(c) &&
-                ((erase && state.matrix.Get(c)) || (!erase && !state.matrix.Get(c)))) {
+            if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && NeedChange(c)) {
                 ++result;
                 if (!dry) {
                     assert(GetBotPosition() == c0);
@@ -240,7 +250,7 @@ size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size
                         m.cd1 = cd;
                         AddCommand(m);
                     }
-                    assert((erase && !state.matrix.Get(c)) || (!erase && state.matrix.Get(c)));
+                    assert(!NeedChange(c));
                     assert(count != 0);
                     --count;
                 }
@@ -259,21 +269,13 @@ size_t AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
 
     for (int x = 0; x < matrix.GetR(); ++x) {
         for (int z = 0; z < matrix.GetR(); ++z) {
-            if (matrix.Get(x, y, z)) {
-                bool change = false;
-                if (erase) {
-                    change = state.matrix.Get(x, y, z);
-                } else {
-                    change = !state.matrix.Get(x, y, z);
-                }
-                if (change) {
-                    ++count1;
-                    int estimation = GetGreedyEstimation(x, y, z);
-                    if (estimation > bestEstimation) {
-                        bestX = x;
-                        bestZ = z;
-                        bestEstimation = estimation;
-                    }
+            if (NeedChange({x, y, z})) {
+                ++count1;
+                int estimation = GetGreedyEstimation(x, y, z);
+                if (estimation > bestEstimation) {
+                    bestX = x;
+                    bestZ = z;
+                    bestEstimation = estimation;
                 }
             }
         }
