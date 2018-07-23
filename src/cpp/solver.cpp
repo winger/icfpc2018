@@ -320,8 +320,16 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
     assert(FindBestTrace(p, source, target, traces, output, true));
 }
 
+std::mutex solving_mutex;
+std::unordered_set<std::string> solving;
+
 Solution Solver::Solve(const Problem& p) {
     try {
+        {
+            std::lock_guard<std::mutex> guard(solving_mutex);
+            solving.insert(p.Name());
+        }
+
         Solution s;
         Matrix source, target;
         if (p.assembly) {
@@ -348,6 +356,10 @@ Solution Solver::Solve(const Problem& p) {
     } catch (...) {
         cerr << "Exception in handling '" << p.Name() << "'" << endl;
         throw;
+    }
+    {
+        std::lock_guard<std::mutex> guard(solving_mutex);
+        solving.erase(p.Name());
     }
 }
 
@@ -378,16 +390,35 @@ Solution Solver::Check(const Problem& p, const std::string& filename) {
 }
 
 void Solver::SolveAll(const std::string& round) {
+    bool stop_watching = false;
+
+    std::thread t_watch([&stop_watching, &solving, &solving_mutex]() {
+        while (!stop_watching) {
+            {
+                std::lock_guard<std::mutex> guard(solving_mutex);
+                std::string s = "Solving: ";
+                for (const auto& ss : solving) {
+                    s += ss + " ";
+                }
+                cout << s << endl;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(30));
+        }
+    });
+
     auto solveResults = runForEachProblem<Solution>(round, [](const Problem& p) { return Solve(p); });
 
     unsigned total_score = 0;
     unsigned total_max_score = 0;
-    for (const auto& s: solveResults) {
+    for (const auto& s : solveResults) {
         total_score += s.score;
         total_max_score += s.max_score;
     }
 
-    cout << "Final score: " << total_score << " "  << total_max_score << endl;
+    cout << "Final score: " << total_score << " " << total_max_score << endl;
+
+    stop_watching = true;
+    t_watch.join();
 }
 
 void Solver::CheckAll(const std::string& round) {

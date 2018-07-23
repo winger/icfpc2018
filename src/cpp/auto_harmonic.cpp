@@ -21,9 +21,10 @@ void AutoHarmonic::ImproveTrace(const Matrix& source, const Matrix& target, cons
     bool harmonic_used = false;
     for (; s.trace_pos != trace.size(); s.Step())
     {
-        vtp.push_back(TimePos{s.trace_pos, s.active_bots.size(), s.harmonics, s.IsGrounded()});
-        if (s.harmonics)
+        vtp.emplace_back(TimePos{s.trace_pos, s.active_bots.size(), s.harmonics, s.IsGrounded()});
+        if (s.harmonics) {
             harmonic_used = true;
+        }
     }
     vtp.push_back(vtp.back());
     if (!harmonic_used) return;
@@ -161,8 +162,9 @@ void AutoHarmonic::ImproveTrace(const Matrix& source, const Matrix& target, cons
             current_harmonic = !current_harmonic;
             enable_flip = false;
         }
-        if (!all_waits)
+        if (!all_waits) {
             output.commands.insert(output.commands.end(), step_commands.begin(), step_commands.end());
+        }
         assert(!current_harmonic || vtp[i+1].harmonic);
     }
     output.tag = trace.tag + ", autoharmonic";
