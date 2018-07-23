@@ -14,6 +14,7 @@ struct LayerBot {
   void CheckLine(Matrix const& m, int dx, int dy, int dz);
   void SMoveUC(Trace& output, int dx, int dy, int dz);
   Command SMoveUC(int dx, int dy, int dz);
+  Command MoveTowards(int destX, int destY, int destZ);
   std::pair<LayerBot, Command> Fission(int dx, int dy, int dz, int m);
 
   static void Fusion(
