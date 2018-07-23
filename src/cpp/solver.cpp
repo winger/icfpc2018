@@ -139,9 +139,25 @@ bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix&
     return best_result.correct;
 }
 
+namespace {
+
+using Traces = vector<Trace>;
+
+void ApplyAutoHarmonic(const Matrix& source, const Matrix& target, Traces& tr) {
+    size_t old_size = tr.size();
+    for (size_t i = 0; i < old_size; ++i) {
+        Trace temp;
+        AutoHarmonic::ImproveTrace(source, target, tr[i], temp);
+        if (temp.commands.size() > 0) {
+            tr.emplace_back(std::move(temp));
+        }
+    }
+}
+}
+
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
 {
-    vector<Trace> traces;
+    Traces traces;
 
     {
         Trace temp;
@@ -188,12 +204,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         }
     }
 
-    {
-        Trace temp;
-        AutoHarmonic::ImproveTrace(source, target, traces.back(), temp);
-        if (temp.commands.size() > 0)
-            traces.push_back(temp);
-    }
+    ApplyAutoHarmonic(source, target, traces);
 
     assert(FindBestTrace(p, source, target, traces, output, p.assembly));
 }
@@ -268,6 +279,8 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
             cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
         }
     }
+
+    ApplyAutoHarmonic(source, target, traces);
 
     assert(FindBestTrace(p, source, target, traces, output, p.disassembly));
 }
