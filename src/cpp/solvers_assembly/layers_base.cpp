@@ -151,27 +151,26 @@ int AssemblySolverLayersBase::GetGreedyEstimation(int x, int y, int z) {
 
 size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size_t& count) {
     size_t result = 0;
-    for (int dx = -1; dx <= 1; ++dx) {
-        for (int dz = -1; dz <= 1; ++dz) {
-            Coordinate c = {c0.x + dx, c0.y - 1, c0.z + dz};
-            CoordinateDifference cd = c - c0;
-            if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && NeedChange(c)) {
-                ++result;
-                if (!dry) {
-                    assert(GetBotPosition() == c0);
-                    if (!erase) {
-                        Command m(Command::Fill);
-                        m.cd1 = cd;
-                        AddCommand(m);
-                    } else {
-                        Command m(Command::Void);
-                        m.cd1 = cd;
-                        AddCommand(m);
-                    }
-                    assert(!NeedChange(c));
-                    assert(count != 0);
-                    --count;
+    static const vector<PointXZ> DIRS = {{-1, 0}, {1, 0}, {0, 0}, {0, 1}, {0, 1}};
+    for (const auto& dxz : DIRS) {
+        Coordinate c = {c0.x + dxz.x, c0.y - 1, c0.z + dxz.z};
+        CoordinateDifference cd = c - c0;
+        if (matrix.IsInside(c) && NeedChange(c)) {
+            ++result;
+            if (!dry) {
+                assert(GetBotPosition() == c0);
+                if (!erase) {
+                    Command m(Command::Fill);
+                    m.cd1 = cd;
+                    AddCommand(m);
+                } else {
+                    Command m(Command::Void);
+                    m.cd1 = cd;
+                    AddCommand(m);
                 }
+                assert(!NeedChange(c));
+                assert(count != 0);
+                --count;
             }
         }
     }
