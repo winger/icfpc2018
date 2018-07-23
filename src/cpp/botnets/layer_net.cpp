@@ -111,17 +111,15 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
   int size = matrix.GetR();
   // 1. SELECT
   std::set<int> dests;
-  /*cerr << "Chunk: ";
+  //cerr << "Chunk: ";
   for (int x: chunk) {
     dests.insert(x);
-    cerr << x << " ";
   }
-  cerr << endl;*/
 
   std::set<int> stable;
   std::map<int /* x */, int /* id */> movableBots;
   for (auto const& kv: bots) {
-    movableBots[kv.first] = kv.second.id;
+    movableBots[bots[kv.first].x] = kv.second.id;
   }
   std::set<int> toLeave;
   std::set<int> toMove = dests;
@@ -136,6 +134,8 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
       movableBots.erase(bot.x);
     }
   }
+
+  //cerr << "toMove: "; for (auto v: toMove) { cerr << v << " "; } cerr << endl;
   // 2. ASSIGN
   std::map<int /* id */, int /* dx */> destsX;
   std::map<int /* id */, int /* dz */> destsZ;
@@ -156,6 +156,7 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
     stable.insert(it->second);
     ++it;
   }
+  //cerr << "3: "; for (auto const& kv: bots) { cerr << "(" << kv.second.x << " / " << kv.second.z << ") "; } cerr << endl;
   // 3. LIFT THEM UP
   while (true) {
     bool stillGo = false;
@@ -167,13 +168,16 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
       int bid = kv.first;
       int destZ = kv.second;
       auto& bot = bots[bid];
+      //cerr << bot.x << " " << bot.z << endl;
       auto cmd = bot.MoveTowards(bot.x, bot.y, destZ);
+
       cmds[bid] = cmd;
       stillGo |= cmd.type != Command::Wait;
     }
     if (not stillGo) { break; }
     CleanCmds(output, cmds);
   }
+  //cerr << "4: "; for (auto const& kv: bots) { cerr << "(" << kv.second.x << " / " << kv.second.z << ") "; } cerr << endl;
   // 4. MOVE THEM TO DEST POS
   /*
   cerr << "4. ";
@@ -199,6 +203,7 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
     if (not stillGo) { break; }
     CleanCmds(output, cmds);
   }
+  //cerr << "5: "; for (auto const& kv: bots) { cerr << "(" << kv.second.x << " / " << kv.second.z << ") "; } cerr << endl;
   // 5. PUT THEM DOWN
 
   while (true) {
@@ -217,11 +222,8 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
     if (not stillGo) { break; }
     CleanCmds(output, cmds);
   }
-/*
-  for (auto const& kv: bots) {
-    cerr << "(" << kv.second.x << " / " << kv.second.y << " / " << kv.second.z << ") ";
-  }
-  cerr << endl;*/
+  //cerr << "F: "; for (auto const& kv: bots) { cerr << "(" << kv.second.x << " / " << kv.second.z << ") "; } cerr << endl;
+  //assert(false);
 }
 
 void LayerNet::Cover(
@@ -310,6 +312,7 @@ void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {
       xvs.begin() + i,
       xvs.begin() + i + curChunkSize,
       chunk.begin());
+    //cerr << "Chunk: "; for (auto v: chunk) { cerr << v << " "; } cerr << endl;
     Relocate(output, chunk);
     Cover(output, xzPlane);
   }

@@ -6,6 +6,7 @@
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
+#include "solvers_disassembly/cube_demolition.h"
 #include "solvers_reassembly/relayers_base.h"
 
 #include "auto_harmonic.h"
@@ -30,7 +31,7 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
     if (!file.is_open()) {
         cerr << filename << " not found." << endl;
     }
-    assert (file.is_open());
+    assert(file.is_open());
     file << energy << endl;
     file.close();
 }
@@ -162,16 +163,16 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         traces.push_back(temp);
     }
 
-    // if (Grounder::IsByLayerGrounded(target)) {
-    //     try {
-    //       Trace temp;
-    //       SolverGravitated::Solve(target, temp);
-    //       temp.tag = "gravitated solver";
-    //       traces.push_back(temp);
-    //     } catch (std::runtime_error const& e) {
-    //       cerr << "Error: " << e.what() << endl;
-    //     }
-    // }
+    if (Grounder::IsByLayerGrounded(target)) {
+        try {
+          Trace temp;
+          SolverGravitated::Solve(target, temp);
+          temp.tag = "gravitated solver";
+          traces.push_back(temp);
+        } catch (std::runtime_error const& e) {
+          cerr << "Error: " << e.what() << endl;
+        }
+    }
 
     if (source.GetR() < 70) {
         Trace temp;
@@ -274,6 +275,20 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         } catch (const StopException& e) {
             // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
         }
+    }
+    // assert(false);
+
+    try {
+        Trace trace;
+        SolverCubeDemolition::Solve(source, trace);
+        trace.tag = "SolverCubeDemolition";
+        traces.push_back(trace);
+        // cout << "Start Evaluation" << endl;
+        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+        assert(result.correct);
+    } catch (const StopException& e) {
+    } catch (const UnsupportedException& e) {
+      // cout << "[WARN] Problem " << p.Name() << " is not supported for Cube demolition" << endl;
     }
     // assert(false);
 

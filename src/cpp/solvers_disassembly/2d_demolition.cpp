@@ -1,7 +1,9 @@
 #include "2d_demolition.h"
 #include "helpers.h"
 
+namespace {
 constexpr bool debug = false;
+}
 
 namespace {
 // using step as 1 less that maximum of long move
@@ -383,75 +385,6 @@ void Solver2D_Demolition::SpawnBotsInGrid2(int x0, int x1, int z0, int z1) {
 
 
 void Solver2D_Demolition::SpawnBotsInGrid(int x0, int x1, int z0, int z1) {
-  // Don't need this anymore
-  // assert (x0 != x1);
-  // assert (z0 != z1);
-  //
-  // x_coords = SplitCoordinatesForGFill(x0, x1);
-  // // this is the width one
-  // z_coords = SplitCoordinatesForGFill(z0, z1);
-  //
-  // assert (x_coords.size() % 2 == 0);
-  // assert (z_coords.size() % 2 == 0);
-  // // split into halfs
-  // {
-  //   Command fission(Command::Fission);
-  //   fission.cd1 = {1, 0, 0};
-  //   fission.m = 19;
-  //   AddCommand(fission);
-  // }
-  // // the child bot became by id=1
-  // auto& child_coord = state.all_bots[1].c;
-  //
-  // // transfer chlid bot into his destination
-  // auto next_moves = GetSMovesByOneAxis(child_coord.x, x_coords[1]);
-  // Command c(Command::SMove);
-  // c.cd1 = {0, 0, 0};
-  // for (auto move : next_moves) {
-  //   cd.cd1.dx = move;
-  //
-  //   state.trace.commands.push_back(Command(Command::Wait));
-  //   state.trace.commands.push_back(c);
-  //   state.Step();
-  // }
-  // assert(chlid_coord.x == x_coords[1]);
-  //
-  // total_other_bots = 0;
-  // for (int i = 1; i < z_coords.size(); ++i) {
-  //   bool last_one = (i == z_coords.size() - 1);
-  //   int next_z = last_one ? z_coords[i] : z_coords[i] + 1;
-  //
-  //   auto& main_bot = state.all_bots[0];
-  //   auto next_z_moves = GetSMovesByOneAxis(main_bot.z, next_z);
-  //
-  //   Command cz(Command::SMove);
-  //   cz.cd1 = {0, 0, 0};
-  //   for (auto move : next_z_moves) {
-  //     cz.cd1.dz = move;
-  //     state.trace.commands.push_back(cz);
-  //     state.trace.commands.push_back(cz);
-  //     for (int j = 0; j < total_other_bots; ++j) {
-  //       state.trace.commands.push_back(Command(Command::Wait));
-  //     }
-  //     state.Step();
-  //   }
-  //
-  //   // drop the bots
-  //   if (!last_one) {
-  //     Command fission(Command::Fission);
-  //     fission.cd1 = {0, 0, -1};
-  //     fission.m = 1;
-  //     AddCommand(fission);
-  //     AddCommand(fission);
-  //     for (int j = 0; j < total_other_bots; ++j) {
-  //       state.trace.commands.push_back(Command(Command::Wait));
-  //     }
-  //     state.Step();
-  //     total_other_bots += 2;
-  //   }
-  // }
-
-  // TODO: verify that everyone is at its position
 }
 
 

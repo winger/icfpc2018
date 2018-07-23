@@ -178,19 +178,42 @@ void Matrix::DFS(const Coordinate& c, CoordinateSet& cs) const {
 
 using CoordinateToParent = map<Coordinate, Coordinate>;
 
+bool Matrix::CanMove(const Coordinate& c, const CoordinateDifference& cd) const {
+    CoordinateDifference step{sign(cd.dx), sign(cd.dy), sign(cd.dz)};
+    unsigned l = cd.ManhattanLength();
+    Coordinate bs = c;
+    for (unsigned i = 1; i <= l; ++i) {
+        bs += step;
+        if (!IsInside(bs)) {
+            return false;
+        }
+        if (Get(bs)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 vector<CoordinateDifference> Matrix::BFS(const Coordinate& start, const Coordinate& finish) const {
     CoordinateToParent parent;
     queue<Coordinate> front;
     front.emplace(start);
 
     while (parent.count(finish) == 0) {
-        static const vector<CoordinateDifference> DIRS = {{-1, 0, 0}, {1, 0, 0}, {0, 1, 0},
-                                                          {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+        static const vector<CoordinateDifference> DIRS = {
+
+#define VCTS(L) \
+    {-L, 0, 0}, {L, 0, 0}, {0, L, 0}, {0, -L, 0}, {0, 0, L}, { 0, 0, -L }
+
+            VCTS(1), VCTS(2),  VCTS(3),  VCTS(4),  VCTS(5),  VCTS(6),  VCTS(7), VCTS(8),
+            VCTS(9), VCTS(10), VCTS(11), VCTS(12), VCTS(13), VCTS(14), VCTS(15)
+
+        };
         auto now = front.front();
         front.pop();
         for (const auto& d : DIRS) {
             auto cc = now + d;
-            if (IsInside(cc) && !Get(cc) && (parent.count(cc) == 0)) {
+            if (CanMove(now, d) && (parent.count(cc) == 0)) {
                 parent[cc] = now;
                 front.emplace(cc);
             }

@@ -37,6 +37,11 @@ class StopException : public std::exception {
     using std::exception::exception;
 };
 
+class UnsupportedException : public std::exception {
+    using std::exception::exception;
+};
+
+
 inline bool FileExists(const std::string& filename) {
     struct stat buffer;
     return stat(filename.c_str(), &buffer) == 0;
