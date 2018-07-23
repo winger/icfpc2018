@@ -10,7 +10,6 @@ struct LayerBot {
 
   int Coord(int axe);
 
-
   void CheckLine(Matrix const& m, int dx, int dy, int dz);
   void SMoveUC(Trace& output, int dx, int dy, int dz);
   Command SMoveUC(int dx, int dy, int dz);
@@ -25,6 +24,23 @@ struct LayerBot {
   static bool Nd(int x, int y, int z);
 
   static std::vector<int> ByAxeDist(int axe, int dist);
+};
+
+struct BotCoverTask {
+  std::vector<int> points;
+  int cur = 0;
+  int bid;
+  int destZ;
+
+  BotCoverTask(std::vector<int> pointsz, int bidz, int destZz)
+    : points(pointsz), bid(bidz), destZ(destZz) {
+    std::sort(points.begin(), points.end());
+    if (destZ == 0) { std::reverse(points.begin(), points.end()); }
+  }
+
+  bool DoStupidStep(
+    std::map<int /* bid */, Command>& cmds,
+    std::map<int /* id */, LayerBot> bots);
 };
 
 class LayerNet
@@ -49,8 +65,7 @@ public:
 
   void Cover(
       Trace& output,
-      std::vector<int> const& chunk,
-      std::map<int /* x */, std::vector<int>> const& xzPlane);
+      std::map<int /* x */, std::vector<int>>& xzPlane);
 
   void Spread(Trace& output); // DONE
   void LevelUp(int level, Trace& output);  // DONE
