@@ -9,6 +9,7 @@
 #include "solvers_disassembly/cube_demolition.h"
 #include "solvers_reassembly/relayers_base.h"
 
+#include "auto_harmonic.h"
 #include "base.h"
 #include "command_line.h"
 #include "evaluation.h"
@@ -148,12 +149,12 @@ bool Solver::FindBestTrace(
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
 {
     vector<Trace> traces;
-    {
-        Trace temp;
-        AssemblySolverLayersBase::Solve(target, temp, false, true);
-        temp.tag = "base";
-        traces.push_back(temp);
-    }
+    // {
+    //     Trace temp;
+    //     AssemblySolverLayersBase::Solve(target, temp, false, true);
+    //     temp.tag = "base";
+    //     traces.push_back(temp);
+    // }
 
     {
         Trace temp;
@@ -189,22 +190,22 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         }
     }
 
-    if (!cmd.int_args["levitation"]) {
-        try {
-            Trace temp;
-            AssemblySolverLayersBase::Solve(target, temp, false, false);
-            temp.tag = "base no levitation";
-            traces.push_back(temp);
-        } catch (const StopException& e) {
-        }
-        try {
-            Trace temp;
-            AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
-            temp.tag = "parallel no levitation";
-            traces.push_back(temp);
-        } catch (const StopException& e) {
-        }
-    }
+    // if (!cmd.int_args["levitation"]) {
+    //     try {
+    //         Trace temp;
+    //         AssemblySolverLayersBase::Solve(target, temp, false, false);
+    //         temp.tag = "base no levitation";
+    //         traces.push_back(temp);
+    //     } catch (const StopException& e) {
+    //     }
+    //     try {
+    //         Trace temp;
+    //         AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
+    //         temp.tag = "parallel no levitation";
+    //         traces.push_back(temp);
+    //     } catch (const StopException& e) {
+    //     }
+    // }
 
     assert(!traces.empty());
     if (p.assembly) {
@@ -214,6 +215,17 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
             traces.push_back(temp);
         } else {
             cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
+        }
+    }
+
+    {
+        unsigned l = traces.size();
+        Trace temp;
+        for (unsigned i = 0; i < l; ++i)
+        {
+            AutoHarmonic::ImproveTrace(source, target, traces[i], temp);
+            if (temp.commands.size() > 0)
+                traces.push_back(temp);
         }
     }
     assert(FindBestTrace(p, source, target, traces, output, p.assembly));
