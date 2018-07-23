@@ -27,7 +27,7 @@ static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
 static constexpr size_t REASSEMBLE_THRESHOLD = 1;
-static constexpr size_t BASE_AND_BOTS_THRESHOLD = 70;
+static constexpr size_t BASE_AND_BOTS_THRESHOLD = 60;
 
 namespace {
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
@@ -273,15 +273,6 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    if (cmd.int_args["base"]) {
-        Trace trace;
-        AssemblySolverLayersBase::Solve(source, trace, true, true);
-        trace.tag = "base";
-        traces.push_back(trace);
-        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        assert(result.correct);
-    }
-
     if (p.disassembly && (source.GetR() < REASSEMBLE_THRESHOLD)) {
         try {
             Trace temp;
@@ -291,17 +282,6 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         }
     }
 
-    if (!cmd.int_args["levitation"]) {
-        try {
-            Trace trace;
-            AssemblySolverLayersBase::Solve(source, trace, true, false);
-            trace.tag = "base_no_levitation";
-            traces.push_back(trace);
-            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-            assert(result.correct);
-        } catch (const StopException& e) {
-        }
-    }
     {
         try {
             Trace trace;
