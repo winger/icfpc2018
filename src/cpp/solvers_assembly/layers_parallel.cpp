@@ -248,29 +248,10 @@ void AssemblySolverLayersParallel::Solve(Trace& output)
         int x1 = (split_axis == 1) ? split_coordinate[i + 1] : r;
         int z0 = (split_axis == 3) ? split_coordinate[i] : 0;
         int z1 = (split_axis == 3) ? split_coordinate[i + 1] : r;
-        for (int x = x0; x < x1; ++x)
-        {
-            for (int y = 0; y < r; ++y)
-            {
-                for (int z = z0; z < z1; ++z)
-                {
-                    if (matrix.Get(x, y, z))
-                        mtemp.Fill(x, y, z);
-                }
-            }
-        }
+        mtemp.CopyBlock(matrix, x0, x1, 0, r, z0, z1);
         mtemp.CacheYSlices();
         AssemblySolverLayersBase::SolveHelper(mtemp, {(split_axis == 1) ? split_coordinate[i] : 0, 0, (split_axis == 3) ? split_coordinate[i] : 0}, personal_traces[i], levitation);
-        for (int x = x0; x < x1; ++x)
-        {
-            for (int y = 0; y < r; ++y)
-            {
-                for (int z = z0; z < z1; ++z)
-                {
-                    mtemp.Erase(x, y, z);
-                }
-            }
-        }
+        mtemp.EraseBlock(x0, x1, 0, r, z0, z1);
     }
 
     bot_traces.resize(personal_traces.size());

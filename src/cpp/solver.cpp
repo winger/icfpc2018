@@ -314,7 +314,6 @@ Solution Solver::Check(const Problem& p, const std::string& filename) {
     Trace trace;
     trace.ReadFromFile(filename);
     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-    cout << p.Name() << " " << ((result.correct) ? "OK" : "Failed") << endl;
 
     Trace trace_dflt;
     trace_dflt.ReadFromFile(p.GetDefaultTrace());
@@ -322,6 +321,7 @@ Solution Solver::Check(const Problem& p, const std::string& filename) {
     Solution s;
     s.trace = trace;
     s.Set(result, default_result);
+    cout << p.Name() << " " << ((result.correct) ? "OK" : "Failed") << " " << s.score << " " << s.max_score <<  endl;
     return s;
 }
 
@@ -343,12 +343,14 @@ void Solver::CheckAll(const std::string& round) {
 
     size_t total_ok = 0;
     unsigned total_score = 0;
+    unsigned total_max_score = 0;
     for (const auto& cr: checkResults) {
         total_ok += cr.correct;
         total_score += cr.score;
+        total_max_score += cr.max_score;
     }
 
-    std::cout << total_ok << "/" << checkResults.size() << " Score: " << total_score << std::endl;
+    std::cout << total_ok << "/" << checkResults.size() << " Score: " << total_score <<  " "  << total_max_score << std::endl;
 }
 
 bool MergeProblemWithSubmit(const Problem& p) {
