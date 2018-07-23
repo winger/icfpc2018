@@ -164,9 +164,7 @@ void ApplyAutoHarmonic(const Matrix& source, const Matrix& target, Traces& tr) {
     }
 }
 
-
-
-} // namespace
+}  // namespace
 
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
 {
@@ -305,14 +303,6 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
 
     Matrix voidM(source.GetR());
 
-    {
-        Trace tmp1;
-        SolveDisassemble(p, source, voidM, tmp1);
-        Trace tmp2;
-        SolveAssemble(p, voidM, target, tmp2);
-        traces.emplace_back(Trace::Cat(tmp1, tmp2));
-    }
-
     if (source.GetR() < REASSEMBLE_THRESHOLD) {
         try {
             Trace temp;
@@ -320,6 +310,14 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
             traces.push_back(temp);
         } catch (const StopException& e) {
         }
+    }
+
+    {
+        Trace tmp1;
+        SolveDisassemble(p, source, voidM, tmp1);
+        Trace tmp2;
+        SolveAssemble(p, voidM, target, tmp2);
+        traces.emplace_back(Trace::Cat(tmp1, tmp2));
     }
 
     if (FileExists(p.GetProxy())) {
@@ -330,6 +328,7 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         cerr << "[WARN] Baseline trace " << p.GetProxy() << " does not exist." << endl;
     }
 
+    ApplyAutoHarmonic(source, target, traces);
     assert(FindBestTrace(p, source, target, traces, output, true));
 }
 
