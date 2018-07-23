@@ -30,15 +30,18 @@ struct LayerBot {
 
 struct BotCoverTask {
   std::vector<int> points;
+  std::vector<std::pair<int, int>> segments;
   int bid;
-  int bidSecond{-1};
+  int bidp{-1};
   int destZ;
+  int state{0};
 
   BotCoverTask(std::vector<int> pointsz, int bidz, int destZz)
     : points(pointsz), bid(bidz), destZ(destZz) {
-    std::sort(points.begin(), points.end());
-    if (destZ == 0) { std::reverse(points.begin(), points.end()); }
+    precompute();
   }
+
+  void precompute();
 
   bool DoStupidStep(
     std::map<int /* bid */, Command>& cmds,

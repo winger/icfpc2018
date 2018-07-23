@@ -182,7 +182,16 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         try {
           Trace temp;
           SolverGravitated::Solve(target, temp, false);
-          temp.tag = "gravitated solver";
+          temp.tag = "gravitated solver stupid";
+          traces.push_back(temp);
+        } catch (std::runtime_error const& e) {
+          cerr << "Error: " << e.what() << endl;
+        }
+
+        try {
+          Trace temp;
+          SolverGravitated::Solve(target, temp, true);
+          temp.tag = "gravitated solver smart";
           traces.push_back(temp);
         } catch (std::runtime_error const& e) {
           cerr << "Error: " << e.what() << endl;
