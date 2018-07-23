@@ -1,8 +1,8 @@
 trace=parallel_base energy=20889452 correct=1
 trace=parallel_base_and_bots energy=16773220 correct=1
 trace=reassembly energy=168165032 correct=1
-trace=../../proxyTracesF/FA015.nbt energy=17565732 correct=1
+trace=../../proxyTracesF/FA015.nbt energy=16773220 correct=1
 trace=parallel_base+autoharmonic energy=20889452 correct=1
 trace=parallel_base_and_bots+autoharmonic energy=16773220 correct=1
 trace=reassembly+autoharmonic energy=94341072 correct=1
-trace=../../proxyTracesF/FA015.nbt+autoharmonic energy=17565732 correct=1
+trace=../../proxyTracesF/FA015.nbt+autoharmonic energy=16773220 correct=1
