@@ -3,8 +3,9 @@
 #include "../command.h"
 #include "../constants.h"
 
-LayerNet::LayerNet(int size) {
+LayerNet::LayerNet(int size, bool smart) {
     matrix.Init(size);
+    this->smart = smart;
     LayerBot bot;
     bot.id = 1;
     bot.x = bot.y = bot.z = 0;
@@ -251,19 +252,16 @@ void LayerNet::Cover(
     bool stillGo = false;
     std::map<int /* bid */, Command> cmds;
     for (auto& task: tasks) {
-      stillGo |= task.DoStupidStep(cmds, bots);
+      if (smart) {
+        stillGo |= task.DoSmartStep(cmds, bots);
+      } else {
+        stillGo |= task.DoStupidStep(cmds, bots);
+      }
     }
 
     if (stillGo) {
       CleanCmds(output, cmds);
     } else {
-      /*for (auto const& kv: bots) {
-        cerr << "(" << kv.second.x << " / " << kv.second.y << " / " << kv.second.z << ") ";
-      }
-      for (auto const& kv: bots) {
-        cerr << kv.second.x << " ";
-      }
-      cerr << endl;*/
       break;
     }
   }
@@ -287,6 +285,13 @@ bool BotCoverTask::DoStupidStep(
   }
   cmds[bid] = cmd;
   return cmd.type != Command::Wait;
+}
+
+bool BotCoverTask::DoSmartStep(
+    std::map<int /* bid */, Command>& cmds,
+    std::map<int /* id */, LayerBot>& bots) {
+
+  return false;
 }
 
 void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {

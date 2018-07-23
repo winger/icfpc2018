@@ -181,8 +181,8 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     if (Grounder::IsByLayerGrounded(target)) {
         try {
           Trace temp;
-          SolverGravitated::Solve(target, temp);
-          temp.tag = "gravitated_solver";
+          SolverGravitated::Solve(target, temp, false);
+          temp.tag = "gravitated solver";
           traces.push_back(temp);
         } catch (std::runtime_error const& e) {
           cerr << "Error: " << e.what() << endl;
