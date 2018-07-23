@@ -1,6 +1,0 @@
-trace=base energy=150794436432 correct=1
-trace=Solver2D_Demolition energy=905156300 correct=1
-trace=../../proxyTracesF/FD068.nbt energy=905156300 correct=1
-trace=base+autoharmonic energy=108135950312 correct=1
-trace=Solver2D_Demolition+autoharmonic energy=194948460 correct=1
-trace=../../proxyTracesF/FD068.nbt+autoharmonic energy=194948460 correct=1
