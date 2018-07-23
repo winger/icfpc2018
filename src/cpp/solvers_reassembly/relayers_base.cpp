@@ -85,6 +85,7 @@ void ReassemblySolverLayersBase::SolveFinalize() {
     CoordinateSet candidates;
     state.matrix.DFS(GetBotPosition(), candidates);
     if (candidates.count(targetC) == 0) {
+        cerr << "reassemble failed" << endl;
         throw StopException();
     }
 

@@ -129,7 +129,7 @@ bool Solver::FindBestTrace(
     for (const Trace& trace : traces_to_check)
     {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        cout << "trace: " << trace.tag << " --> " << result.energy << endl;
+        cout << "trace: " << trace.tag << " --> " << result.energy << " correct: " << result.correct << endl;
         if (result <= best_result)
         {
             best_result = result;
