@@ -1,0 +1,2 @@
+trace=base energy=119806374575040 correct=1
+trace=Solver2D_Demolition energy=773439568667 correct=1
