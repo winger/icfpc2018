@@ -243,7 +243,7 @@ void State::Step()
     }
     bool icValid = ic.IsValid();
     correct = correct && icValid;
-    if (!cmd.int_args["ndebug"]) {
+    if (!cmd.int_args["levitation"]) {
         bool grounded = harmonics || IsGrounded();
         correct = correct && grounded;
         if (!correct) {
