@@ -1,9 +1,11 @@
 #include "2d_demolition.h"
 #include "helpers.h"
 
+constexpr bool debug = false;
+
 namespace {
 // using step as 1 less that maximum of long move
-constexpr int STEP = 29;
+constexpr int STEP = 28;
 // splits the segment sequence of pair points,
 // so that there is at most STEP distance between them and at least 1
 // the last one could on distance of STEP + 1
@@ -41,11 +43,17 @@ void Solver2D_Demolition::TestSomething() {
 }
 
 void Solver2D_Demolition::ExecuteCommands(const CommandGroup& group) {
+  int index = 0;
   for (const auto& c : group) {
-    // cout << "adding command " << c << endl;
+    if (debug) {
+      cout << index << ": adding command " << c << endl;
+    }
     state.trace.commands.push_back(c);
+    index += 1;
   }
-  // cout << "state.Step()" << endl;
+  if (debug) {
+    cout << "state.Step()" << endl;
+  }
   state.Step();
 }
 
@@ -148,12 +156,13 @@ void Solver2D_Demolition::Solve(Trace& output) {
     }
   }
   // for now make work only for 30x30
-  if (x1 - x0 >= 30 || z1 - z0 >= 30) {
-    throw StopException();
-  }
-
-  assert (x0 + 30 >= x1);
-  assert (z0 + 30 >= z1);
+  // if (x1 - x0 >= 30 || z1 - z0 >= 30) {
+  //   cout << "dx = " << x1 - x0 << ", " << "dz = " << z1 - z0 << endl;
+  //   throw StopException();
+  // }
+  //
+  // assert (x0 + 30 >= x1);
+  // assert (z0 + 30 >= z1);
 
   // 1. Move to start of bounding box
   MoveToCoordinate(x0, y1 + 1, z0);
@@ -162,28 +171,49 @@ void Solver2D_Demolition::Solve(Trace& output) {
   // cout << "SpawnBotsInGrid2" << endl;
   SpawnBotsInGrid2(x0, x1, z0, z1);
 
-  // 3. Go layer by layer and demolish it
-  // TODO: enable for big use cases
-  // PrepareMovementCommands();
-  // cout << "Demolish layers" << endl;
+  // after we spawned bots we can set ids for them
+  for (int i = 0; i < total_bots_in_layer / 2; ++i) {
+    first_row.push_back(i + 1);
+    second_row.push_back(total_bots_in_layer - i);
+  }
+  assert (second_row[0] == total_bots_in_layer);
+  second_row[0] = 0;
 
+  // 3. Go layer by layer and demolish it
+  // cout << "Demolish layers" << endl;
   int direction = 1;
   for (int y_layer = y1; y_layer >= 0; --y_layer) {
-    DemolishLayer(y_layer, direction);
+    DemolishWholeLayer(y_layer, direction);
     direction *= -1;
 
     // move everyone down by 1 level
     if (y_layer > 0) {
+      CommandGroup bots_down;
       Command c(Command::SMove);
       c.cd1 = {0, -1, 0};
-      for (int i = 0; i < 2 * x_coords.size(); ++i) {
-        state.trace.commands.push_back(c);
+      for (int i = 0; i < total_bots_in_layer; ++i) {
+        // cout << "Adding DOWN command" << endl;
+        bots_down.push_back(c);
       }
-      state.Step();
+      ExecuteCommands(bots_down);
     }
   }
   // 4. Despawn back
+  // cout << "Despawning bots" << endl;
+
+  // "nice" hack to return into despawnable state
+  if (y1 % 2 == 0) {
+    if (x_coords.size() >= 4) {
+      auto groups = GetMovementGroups(x_coords.size() - 4);
+      for (int i = int(groups.size()) - 1; i >= 0; --i) {
+        auto reversed_group = Inverser::InverseForAllBots(groups[i]);
+        ExecuteCommands(reversed_group);
+      }
+    }
+  }
+
   ExecuteCommandGroups(despawn_groups);
+  // cout << "Done Despawning bots" << endl;
 
   // 5. Move to origin
   MoveToCoordinate(0, 0, 0);
@@ -193,29 +223,87 @@ void Solver2D_Demolition::Solve(Trace& output) {
   output = state.trace;
 }
 
-void Solver2D_Demolition::PrepareMovementCommands() {
-  // TODO: this is empty in small use case
+void showVector(const vector<int>& vv) {
+  cout << "{ ";
+  for (auto v : vv) {
+    cout << v << " ";
+  }
+  cout << "}" << endl;
 }
 
 
-void Solver2D_Demolition::DoDemolishCommands() {
-  // we assume we have only 1 square and 4 bots
-  BotSquare square;
-  square.push_back({1, x_coords[0], z_coords[0]});
-  square.push_back({2, x_coords[0], z_coords[1]});
-  square.push_back({0, x_coords[1], z_coords[0]});
-  square.push_back({3, x_coords[1], z_coords[1]});
+// index is where smallest x stays
+vector<CommandGroup> Solver2D_Demolition::GetMovementGroups(int index) {
+  assert (index + 3 < x_coords.size());
+  auto first_moves = GetSMovesByOneAxis(x_coords[index], x_coords[index + 2]);
+  auto second_moves = GetSMovesByOneAxis(x_coords[index + 1], x_coords[index + 3]);
+  // showVector(first_moves);
+  // showVector(second_moves);
+  // showVector(x_coords);
+  // cout << "index = " << index << endl;
+  assert (first_moves.size() >= second_moves.size());
 
-  CommandGroup bot_commands(4);
-  SetDemolishSquareCommands(square, bot_commands);
+
+  vector<CommandGroup> result;
+  for (int i = 0; i < first_moves.size(); ++i) {
+    CommandGroup bot_commands(total_bots_in_layer);
+    for (const auto id : first_row) {
+      Command c(Command::SMove);
+      c.cd1 = {first_moves[i], 0, 0};
+      bot_commands[id] = c;
+    }
+
+    for (const auto id : second_row) {
+      if (i >= second_moves.size()) {
+        bot_commands[id] = Command(Command::Wait);
+      } else {
+        Command c(Command::SMove);
+        c.cd1 = {second_moves[i], 0, 0};
+        bot_commands[id] = c;
+      }
+    }
+    result.push_back(bot_commands);
+  }
+  return result;
+}
+
+void Solver2D_Demolition::DemolishStrip(int y, int index) {
+  CommandGroup bot_commands(total_bots_in_layer);
+  for (int z_index = 0; z_index < z_coords.size(); z_index += 2) {
+    BotSquare square;
+    square.push_back({first_row[z_index],      x_coords[index],     z_coords[z_index]});
+    square.push_back({first_row[z_index + 1],  x_coords[index],     z_coords[z_index + 1]});
+    square.push_back({second_row[z_index],     x_coords[index + 1], z_coords[z_index]});
+    square.push_back({second_row[z_index + 1], x_coords[index + 1], z_coords[z_index + 1]});
+    SetDemolishSquareCommands(square, bot_commands);
+  }
 
   ExecuteCommands(bot_commands);
 }
 
-void Solver2D_Demolition::DemolishLayer(int y, int direction) {
-  // TODO: y & direction is unused in small use case
-  // so we don't need to move
-  DoDemolishCommands();
+
+
+void Solver2D_Demolition::DemolishWholeLayer(int y, int direction) {
+  if (direction == 1) {
+    // cout << "Going forward" << endl;
+    DemolishStrip(y, 0);
+    for (int index = 0; index + 2 < x_coords.size(); index += 2) {
+      auto groups = GetMovementGroups(index);
+      ExecuteCommandGroups(groups);
+      DemolishStrip(y, index + 2);
+    }
+  } else {
+    // cout << "Going backward" << endl;
+    DemolishStrip(y, x_coords.size() - 2);
+    for (int index = x_coords.size() - 4; index >= 0; index -= 2) {
+      auto groups = GetMovementGroups(index);
+      for (int i = int(groups.size()) - 1; i >= 0; --i) {
+        auto reversed_group = Inverser::InverseForAllBots(groups[i]);
+        ExecuteCommands(reversed_group);
+      }
+      DemolishStrip(y, index);
+    }
+  }
 }
 
 
@@ -238,6 +326,8 @@ void Solver2D_Demolition::SpawnBotsInGrid2(int x0, int x1, int z0, int z1) {
     int z = z_coords[i];
     xz_coords.push_back({x_coords[1], z});
   }
+  total_bots_in_layer = xz_coords.size();
+  assert (total_bots_in_layer % 4 == 0);
 
   vector<CommandGroup> all_groups;
 
@@ -264,7 +354,7 @@ void Solver2D_Demolition::SpawnBotsInGrid2(int x0, int x1, int z0, int z1) {
   // also set the reversed commands
   Inverser inverser(3);
   for (int i = all_groups.size() - 1; i >= 0; --i) {
-    despawn_groups.push_back(inverser.InverseGroup(all_groups[i]));
+    despawn_groups.push_back(inverser.InverseForBot0(all_groups[i]));
   }
 }
 

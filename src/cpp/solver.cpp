@@ -109,19 +109,28 @@ Problems Solver::ListProblems(const std::string& round) {
     return result;
 }
 
-bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target, const vector<Trace>& traces_to_check, Trace& output, bool write) {
+bool Solver::FindBestTrace(
+  const Problem& p,
+  const Matrix& source,
+  const Matrix& target,
+  const vector<Trace>& traces_to_check,
+  Trace& output,
+  bool write)
+{
     Evaluation::Result best_result;
     for (const Trace& trace : traces_to_check)
     {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
         // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
-        if (result < best_result)
+        if (result <= best_result)
         {
             best_result = result;
             output = trace;
         }
     }
     if (best_result.correct && write) {
+        cout << "best trace: " << output.tag << endl;
+      // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
         output.WriteToFile(p.GetProxy());
     }
     return best_result.correct;
@@ -163,36 +172,38 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    {
-        Trace trace;
-        AssemblySolverLayersBase::Solve(source, trace, true, true);
-        traces.push_back(trace);
-        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        assert(result.correct);
-    }
-
-    if (!cmd.int_args["levitation"]) {
-        try {
-            Trace trace;
-            AssemblySolverLayersBase::Solve(source, trace, true, false);
-            traces.push_back(trace);
-            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-            assert(result.correct);
-        } catch (const StopException& e) {
-        }
-    }
+    // {
+    //     Trace trace;
+    //     AssemblySolverLayersBase::Solve(source, trace, true, true);
+    //     traces.push_back(trace);
+    //     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //     assert(result.correct);
+    // }
+    //
+    // if (!cmd.int_args["levitation"]) {
+    //     try {
+    //         Trace trace;
+    //         AssemblySolverLayersBase::Solve(source, trace, true, false);
+    //         traces.push_back(trace);
+    //         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+    //         assert(result.correct);
+    //     } catch (const StopException& e) {
+    //     }
+    // }
     {
         try {
           Trace trace;
           Solver2D_Demolition::Solve(source, trace);
           trace.tag = "Solver2D_Demolition";
           traces.push_back(trace);
+          // cout << "Start Evaluation" << endl;
           Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
           assert(result.correct);
         } catch (const StopException& e) {
-          cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
+          // cout << "[WARN] Problem " << p.Name() << " is not supported for 2D demolition" << endl;
         }
     }
+    // assert(false);
 
     if (p.disassembly) {
         if (FileExists(p.GetProxy())) {
