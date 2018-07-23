@@ -30,6 +30,18 @@ bool AssemblySolverLayersBase::NeedChange(const Coordinate& c) const {
     return false;
 }
 
+void AssemblySolverLayersBase::Change(const CoordinateDifference& cd) {
+    if (!erase) {
+        Command m(Command::Fill);
+        m.cd1 = cd;
+        AddCommand(m);
+    } else {
+        Command m(Command::Void);
+        m.cd1 = cd;
+        AddCommand(m);
+    }
+}
+
 void AssemblySolverLayersBase::SolveZ1_GetRZ(int x, int y, int& z0, int& z1)
 {
     int r = matrix.GetR();
@@ -53,15 +65,7 @@ void AssemblySolverLayersBase::SolveZ1_Fill(int x, int y, bool direction)
             Coordinate c {x, y, bc.z + dz};
             if (matrix.IsInside(c) && matrix.Get(c))
             {
-                if (!erase) {
-                    Command m(Command::Fill);
-                    m.cd1 = {0, -1, dz};
-                    AddCommand(m);
-                } else {
-                    Command m(Command::Void);
-                    m.cd1 = {0, -1, dz};
-                    AddCommand(m);
-                }
+                Change({0, -1, dz});
             }
         }
         int z0, z1;
@@ -111,15 +115,7 @@ void AssemblySolverLayersBase::SolveZ3_Fill(int x, int y, bool direction)
             Coordinate c {x + dx, y, bc.z};
             if (matrix.IsInside(c) && matrix.Get(c))
             {
-                if (!erase) {
-                    Command m(Command::Fill);
-                    m.cd1 = {dx, -1, 0};
-                    AddCommand(m);
-                } else {
-                    Command m(Command::Void);
-                    m.cd1 = {dx, -1, 0};
-                    AddCommand(m);
-                }
+                Change({dx, -1, 0});
             }
         }
         int z0, z1;
@@ -142,6 +138,109 @@ void AssemblySolverLayersBase::SolveZ3(int x, int y)
     MoveToCoordinate(x, y + 1, zstart);
     SolveZ3_Fill(x, y, zdirection);
 }
+
+///////////////// X ///////////////////
+
+
+void AssemblySolverLayersBase::SolveX1_GetRZ(int& x0, int& x1, int y, int z)
+{
+    int r = matrix.GetR();
+    x0 = r, x1 = -1;
+    for (int x = 0; x < r; ++x)
+    {
+        if (NeedChange({x, y, z})) {
+            x0 = min(x0, x);
+            x1 = max(x1, x);
+        }
+    }
+}
+
+void AssemblySolverLayersBase::SolveX1_Fill(int z, int y, bool direction)
+{
+    Coordinate& bc = GetBotPosition();
+    for (;;)
+    {
+        for (int dx = -1; dx <= 1; ++dx)
+        {
+            Coordinate c {bc.x + dx, y, z};
+            if (matrix.IsInside(c) && matrix.Get(c))
+            {
+                Change({dx, -1, 0});
+            }
+        }
+        int x0, x1;
+        SolveX1_GetRZ(x0, x1, y, z);
+        if (x1 < 0) return; // Nothing to do
+        int nextx = (x0 == x1) ? x0 : direction ? x0 + 1 : x1 - 1;
+        MoveToCoordinate(nextx, y + 1, z);
+    }
+}
+
+void AssemblySolverLayersBase::SolveX1(int z, int y)
+{
+    int x0, x1;
+    SolveX1_GetRZ(x0, x1, y, z);
+    if (x1 < 0) return; // Nothing to do
+
+    Coordinate& bc = GetBotPosition();
+    bool xdirection = (bc.x <= (x0 + x1) / 2);
+    int xstart = (x0 == x1) ? x0 : xdirection ? x0 + 1 : x1 - 1;
+    MoveToCoordinate(xstart, y + 1, z);
+    SolveX1_Fill(z, y, xdirection);
+}
+
+void AssemblySolverLayersBase::SolveX3_GetRZ(int& x0, int& x1, int y, int z)
+{
+    int r = matrix.GetR();
+    x0 = r, x1 = -1;
+    for (int iz = max(z - 1, 0); iz <= min(z + 1, r - 1); ++iz)
+    {
+        for (int x = 0; x < r; ++x)
+        {
+            if (NeedChange({x, y, iz})) {
+                x0 = min(x0, x);
+                x1 = max(x1, x);
+            }
+        }
+    }
+}
+
+void AssemblySolverLayersBase::SolveX3_Fill(int z, int y, bool direction)
+{
+    Coordinate& bc = GetBotPosition();
+    for (;;)
+    {
+        for (int dz = -1; dz <= 1; ++dz)
+        {
+            Coordinate c {bc.x, y, z + dz};
+            if (matrix.IsInside(c) && matrix.Get(c))
+            {
+                Change({0, -1, dz});
+            }
+        }
+        int x0, x1;
+        SolveX3_GetRZ(x0, x1, y, z);
+        if (x1 < 0) return; // Nothing to do
+        int nextx = direction ? x0 : x1;
+        MoveToCoordinate(nextx, y + 1, z);
+    }
+}
+
+void AssemblySolverLayersBase::SolveX3(int z, int y)
+{
+    int x0, x1;
+    SolveX3_GetRZ(x0, x1, y, z);
+    if (x1 < 0) return; // Nothing to do
+
+    Coordinate& bc = GetBotPosition();
+    bool xdirection = (bc.x <= (x0 + x1) / 2);
+    int xstart = xdirection ? x0 : x1;
+    MoveToCoordinate(xstart, y + 1, z);
+    SolveX3_Fill(z, y, xdirection);
+}
+
+
+///////////////////////////////////////
 
 int AssemblySolverLayersBase::GetGreedyEstimation(int x, int y, int z) {
     size_t dummy = 0;
@@ -242,6 +341,7 @@ void AssemblySolverLayersBase::SolveLayer(int y) {
 
     ApplySnapshot(snapshot);
 
+
     for (int x = x1; x >= x0;) {
         if (x > x0) {
             SolveZ3(x - 1, y);
@@ -249,6 +349,32 @@ void AssemblySolverLayersBase::SolveLayer(int y) {
         } else {
             SolveZ1(x, y);
             x -= 1;
+        }
+    }
+
+    snapshots.emplace_back(GetSnapshot());
+
+    for (int z = z0; z <= z1;) {
+        if (z < z1) {
+            SolveX3(z + 1, y);
+            z += 3;
+        } else {
+            SolveX1(z, y);
+            z += 1;
+        }
+    }
+
+    snapshots.emplace_back(GetSnapshot());
+
+    ApplySnapshot(snapshot);
+
+    for (int z = z1; z >= z0;) {
+        if (z > z0) {
+            SolveX3(z - 1, y);
+            z -= 3;
+        } else {
+            SolveX1(z, y);
+            z -= 1;
         }
     }
 

@@ -30,6 +30,8 @@ int main(int argc, char* argv[])
         Solver::MergeWithSubmit(round);
     } else if (mode == "2d_test") {
         Solver2D_Demolition::TestSomething();
+    } else if (mode == "metadata") {
+        Solver::WriteMetadata();
     } else {
         assert(false);
     }

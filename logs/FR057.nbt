@@ -1,0 +1,4 @@
+trace=base energy=455681615300 correct=1
+trace=Solver2D_Demolition energy=1537464452 correct=1
+trace=base+autoharmonic energy=107685527460 correct=1
+trace=Solver2D_Demolition+autoharmonic energy=188976132 correct=1

@@ -20,4 +20,5 @@ public:
     static void SolveAll(const std::string& round);
     static void CheckAll(const std::string& round);
     static void MergeWithSubmit(const std::string& round);
+    static void WriteMetadata();
 };

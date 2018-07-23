@@ -2,6 +2,7 @@
 
 #include "../base.h"
 #include "../command.h"
+#include "../state.h"
 
 struct XZCoord {
   int x;
@@ -37,6 +38,8 @@ void AddWaitCommands(vector<Command>& result, int n);
 // assume current and next are within long liner distance
 vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_active, int M=0);
 
+// founds bot position in the list of active bots
+int BotPosition(const State& state, const int bot_id);
 
 // Inverser for very specific use case when we spawn bots from 0 and in linear order
 class Inverser {

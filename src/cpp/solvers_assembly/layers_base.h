@@ -26,12 +26,21 @@ class AssemblySolverLayersBase : public SolverBase {
     void SolveZ3_GetRZ(int x, int y, int& z0, int& z1);
     void SolveZ3_Fill(int x, int y, bool direction);
     void SolveZ3(int x, int y);
+
+    void SolveX1_GetRZ(int& x0, int& x1, int y, int z);
+    void SolveX1_Fill(int x, int y, bool direction);
+    void SolveX1(int z, int y);
+    void SolveX3_GetRZ(int& x0, int& x1, int y, int z);
+    void SolveX3_Fill(int z, int y, bool direction);
+    void SolveX3(int z, int y);
+
     int GetGreedyEstimation(int x, int y, int z);
     size_t SolveGreedy(int y, size_t& count);
     size_t GreedyFill(const Coordinate& c0, bool dry, size_t& count);
     void SolveLayer(int y);
     void Solve(Trace& output);
     bool NeedChange(const Coordinate& c) const;
+    void Change(const CoordinateDifference& cd);
 
    public:
     static Evaluation::Result Solve(const Matrix& m, Trace& output, bool erase, bool levitation);

@@ -1,0 +1,3 @@
+dflt_energy=417059610808
+R=50
+max_score=5000

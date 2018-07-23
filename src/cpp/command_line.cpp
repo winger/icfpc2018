@@ -9,6 +9,7 @@ void CommandLine::Parse(int argc, char* const argv[]) {
     args["round"] = "full";
     int_args["levitation"] = 1;
     int_args["psort"] = 0;
+    int_args["prev"] = 0;
 
     int index = 1;
     while (index + 1 < argc) {

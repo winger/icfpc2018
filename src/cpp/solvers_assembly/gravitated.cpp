@@ -84,10 +84,10 @@ void SolverGravitated::Order() {
   }
 }
 
-void SolverGravitated::Solve(Trace& output)
+void SolverGravitated::Solve(Trace& output, bool smart)
 {
     output.commands.resize(0);
-    LayerNet botnet(matrix.GetR());
+    LayerNet botnet(matrix.GetR(), smart);
     // 1. Run BFS to designate order of data feeling
     //    1.1. BFS runs level by level
     // 2. Run bots level by level to draw the picture
@@ -116,9 +116,9 @@ void SolverGravitated::Solve(Trace& output)
     output.Done();
 }
 
-uint64_t SolverGravitated::Solve(const Matrix& m, Trace& output)
+uint64_t SolverGravitated::Solve(const Matrix& m, Trace& output, bool smart)
 {
     SolverGravitated solver(m);
-    solver.Solve(output);
+    solver.Solve(output, smart);
     return 0;
 }

@@ -190,17 +190,21 @@ void State::Step()
         else if (c.type == Command::GFill)
         {
             correct = correct && c.cd1.IsNearCoordinateDifferences() && c.cd2.IsFarCoordinateDifferences();
+            assert(correct);
             Coordinate a = bs.c + c.cd1;
             Coordinate b = a + c.cd2;
             correct = correct && matrix.IsInside(a) && matrix.IsInside(b);
+            assert(correct);
             fills[Region(a, b)].push_back(a);
         }
         else if (c.type == Command::GVoid)
         {
             correct = correct && c.cd1.IsNearCoordinateDifferences() && c.cd2.IsFarCoordinateDifferences();
+            assert(correct);
             Coordinate a = bs.c + c.cd1;
             Coordinate b = a + c.cd2;
             correct = correct && matrix.IsInside(a) && matrix.IsInside(b);
+            assert(correct);
             erases[Region(a, b)].push_back(a);
         }
     }
@@ -253,7 +257,6 @@ void State::Step()
     //   cout << " bot " << bid << " at " << all_bots[bid].c << endl;
     // }
 
-
     if (hc & 1)
     {
         harmonics = !harmonics;
@@ -261,6 +264,7 @@ void State::Step()
     assert (correct);
     bool icValid = ic.IsValid();
     correct = correct && icValid;
+    assert(correct);
     if (!cmd.int_args["levitation"]) {
         bool grounded = harmonics || IsGrounded();
         correct = correct && grounded;
@@ -294,3 +298,4 @@ bool State::MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference
     }
     return correct;
 }
+

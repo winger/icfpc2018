@@ -1,0 +1,4 @@
+trace=Solver2D_Demolition+autoharmonic, parallel_base+autoharmonic energy=3878191251 correct=1
+trace=../../proxyTracesF/FR056.nbt energy=19119612947 correct=1
+trace=Solver2D_Demolition+autoharmonic, parallel_base+autoharmonic+autoharmonic energy=3878191251 correct=1
+trace=../../proxyTracesF/FR056.nbt+autoharmonic energy=5632813767 correct=1

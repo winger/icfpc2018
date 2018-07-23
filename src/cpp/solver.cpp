@@ -7,6 +7,7 @@
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
 #include "solvers_disassembly/cube_demolition.h"
+#include "solvers_disassembly/cube_demolition_tuned.h"
 #include "solvers_reassembly/relayers_base.h"
 
 #include "auto_harmonic.h"
@@ -124,6 +125,10 @@ Problems Solver::ListProblems(const std::string& round) {
                   [](const Problem& a, const Problem& b) -> bool { return a.index < b.index; });
     }
 
+    if (cmd.int_args["prev"]) {
+        std::reverse(result.begin(), result.end());
+    }
+
     return result;
 }
 
@@ -180,8 +185,17 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     if (Grounder::IsByLayerGrounded(target)) {
         try {
           Trace temp;
-          SolverGravitated::Solve(target, temp);
-          temp.tag = "gravitated_solver";
+          SolverGravitated::Solve(target, temp, false);
+          temp.tag = "gravitated_solver_stupid";
+          traces.push_back(temp);
+        } catch (std::runtime_error const& e) {
+          cerr << "Error: " << e.what() << endl;
+        }
+
+        try {
+          Trace temp;
+          SolverGravitated::Solve(target, temp, true);
+          temp.tag = "gravitated_solver_smart";
           traces.push_back(temp);
         } catch (std::runtime_error const& e) {
           cerr << "Error: " << e.what() << endl;
@@ -271,6 +285,20 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         Trace trace;
         SolverCubeDemolition::Solve(source, trace);
         trace.tag = "SolverCubeDemolition";
+        traces.push_back(trace);
+        // cout << "Start Evaluation" << endl;
+        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+        assert(result.correct);
+    } catch (const StopException& e) {
+    } catch (const UnsupportedException& e) {
+      // cout << "[WARN] Problem " << p.Name() << " is not supported for Cube demolition" << endl;
+    }
+    // assert(false);
+
+    try {
+        Trace trace;
+        SolverCubeDemolition_Tuned::Solve(source, trace);
+        trace.tag = "SolverCubeDemolition_Tuned";
         traces.push_back(trace);
         // cout << "Start Evaluation" << endl;
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
@@ -490,4 +518,39 @@ void Solver::MergeWithSubmit(const std::string& round) {
     }
 
     cout << "Merge replaced " << total_ok << " solutions with " << score_diff << " gain." << endl;
+}
+
+int WriteMetadataForProblem(const Problem& p) {
+  Matrix source, target;
+  if (p.assembly) {
+      target.ReadFromFile(p.GetTarget());
+      source.Init(target.GetR());
+  } else if (p.disassembly) {
+      source.ReadFromFile(p.GetSource());
+      target.Init(source.GetR());
+  } else if (p.reassembly) {
+      source.ReadFromFile(p.GetSource());
+      target.ReadFromFile(p.GetTarget());
+  }
+
+
+  Trace trace_dflt;
+  trace_dflt.ReadFromFile(p.GetDefaultTrace());
+  Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
+  auto max_score = unsigned(1000.0 * unsigned(log(default_result.r) / log(2)));
+
+  ofstream file(p.GetMetadataFile());
+  file << "dflt_energy=" << default_result.energy << endl;
+  file << "R=" << default_result.r << endl;
+  file << "max_score=" << max_score << endl;
+  cout << p.Name() << ": " << default_result.energy << endl;
+  return 0;
+}
+
+
+void Solver::WriteMetadata() {
+  auto results = runForEachProblem<int>("full", [](const Problem& p)
+    {
+        return WriteMetadataForProblem(p);
+    });
 }
