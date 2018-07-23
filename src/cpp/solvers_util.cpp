@@ -100,11 +100,10 @@ void SolverBase::MoveToCoordinate(int x, int y, int z, bool finalize)
 }
 
 StateSnapshot SolverBase::GetSnapshot() {
-    return {matrix, state};
+    return {state};
 }
 
 void SolverBase::ApplySnapshot(const StateSnapshot& s) {
-    matrix = s.matrix;
     state = s.state;
 }
 
@@ -112,7 +111,7 @@ void SolverBase::SelectBestSnapshot(const StateSnapshots& s) {
     size_t best_energy = s[0].state.energy;
     size_t best_index = 0;
     for (size_t i = 1; i < s.size(); ++i) {
-        assert(s[i].matrix == s[0].matrix);
+        assert(s[i].state.matrix == s[0].state.matrix);
         if (s[i].state.energy < best_energy) {
             best_energy = s[i].state.energy;
             best_index = i;
