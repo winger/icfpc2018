@@ -1,4 +1,5 @@
 trace=Solver2D_Demolition energy=1736693508 correct=1
-trace=../../proxyTracesF/FD092.nbt energy=1736693508 correct=1
+trace=Solver2D_Demolition_Tuned energy=1672163016 correct=1
+trace=../../proxyTracesF/FD092.nbt energy=282101028 correct=1
 trace=Solver2D_Demolition+autoharmonic energy=282101028 correct=1
-trace=../../proxyTracesF/FD092.nbt+autoharmonic energy=282101028 correct=1
+trace=Solver2D_Demolition_Tuned+autoharmonic energy=217570536 correct=1
