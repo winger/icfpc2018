@@ -379,10 +379,15 @@ void Solver::CheckAll(const std::string& round) {
     std::cout << total_ok << "/" << checkResults.size() << " Score: " << total_score <<  " "  << total_max_score << std::endl;
 }
 
-bool MergeProblemWithSubmit(const Problem& p) {
+struct MergeResult {
+    bool updated;
+    int score_diff;
+};
+
+MergeResult MergeProblemWithSubmit(const Problem& p) {
     if (!FileExists(p.GetProxy())) {
         cout << p.index << ": NOTHING in src" << endl;
-        return false;
+        return {false, 0};
     }
 
     auto checkProxy = Solver::Check(p, p.GetProxy());
@@ -391,25 +396,29 @@ bool MergeProblemWithSubmit(const Problem& p) {
     assert(checkSubmit.correct);
 
     bool need_replace = checkProxy < checkSubmit;
+    int score_diff = 0;
     if (need_replace) {
         Trace t;
         t.ReadFromFile(p.GetProxy());
         t.WriteToFile(p.GetSubmitOutput());
         WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
         cout << p.Name() << ": BETTER " << checkProxy.energy << " < " << checkSubmit.energy << endl;
+        score_diff = checkProxy.score - checkSubmit.score;
     } else {
         cout << p.Name() << ": NOT BETTER" << endl;
     }
-    return need_replace;
+    return {need_replace, score_diff};
 }
 
 void Solver::MergeWithSubmit(const std::string& round) {
-    auto mergeResults = runForEachProblem<bool>(round, [](const Problem& p) { return MergeProblemWithSubmit(p); });
+    auto mergeResults = runForEachProblem<MergeResult>(round, [](const Problem& p) { return MergeProblemWithSubmit(p); });
 
     size_t total_ok = 0;
+    int score_diff = 0;
     for (const auto& cr: mergeResults) {
-        total_ok += cr;
+        total_ok += cr.updated;
+        score_diff += cr.score_diff;
     }
 
-    cout << "Merge replaced " << total_ok << " solutions." << endl;
+    cout << "Merge replaced " << total_ok << " solutions with " << score_diff << " gain." << endl;
 }
