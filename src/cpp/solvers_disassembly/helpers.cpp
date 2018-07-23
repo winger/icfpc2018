@@ -140,3 +140,16 @@ vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_wait
   }
   return result;
 }
+
+int BotPosition(const State& state, const int bot_id)
+{
+    auto it = std::find(state.active_bots.begin(), state.active_bots.end(), bot_id);
+    if (it == state.active_bots.end())
+    {
+      return -1;
+    } 
+    else
+    {
+      return std::distance(state.active_bots.begin(), it);
+    }
+}
