@@ -40,6 +40,13 @@ size_t ReassemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, si
 }
 
 void ReassemblySolverLayersBase::MoveToCoordinateBFS(const Coordinate& c, bool finalize) {
+    auto path = state.matrix.BFS(GetBotPosition(), c);
+    for (const auto& p: path) {
+        Command c(Command::SMove);
+        c.cd1 = p;
+        AddCommand(c);
+    }
+    assert(GetBotPosition() == c);
 }
 
 size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
