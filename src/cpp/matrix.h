@@ -8,6 +8,8 @@ struct PointXZ {
     int16_t z;
 };
 
+using CoordinateSet = set<Coordinate>;
+
 class Matrix
 {
 protected:
@@ -51,6 +53,8 @@ public:
     const vector<PointXZ>& YSlices(int y) const;
 
     bool operator==(const Matrix& m) const { return data == m.data; }
+
+    void DFS(const Coordinate& c, CoordinateSet& cs) const;
 };
 
 std::ostream& operator<<(std::ostream& s, const Matrix& m);

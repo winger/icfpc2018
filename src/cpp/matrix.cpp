@@ -140,7 +140,7 @@ void Matrix::EraseBlock(int x0, int x1, int y0, int y1, int z0, int z1)
         for (int y = y0; y < y1; ++y)
         {
             for (int z = z0; z < z1; ++z)
-            {                
+            {
                 int index = Index(x, y, z);
                 data[index] = 0;
             }
@@ -151,4 +151,25 @@ void Matrix::EraseBlock(int x0, int x1, int y0, int y1, int z0, int z1)
 const vector<PointXZ>& Matrix::YSlices(int y) const {
     assert(y >= 0 && y < size);
     return ySlices[y];
+}
+
+void Matrix::DFS(const Coordinate& c, CoordinateSet& cs) const {
+    if (!IsInside(c)) {
+        return;
+    }
+
+    if (Get(c)) {
+        return;
+    }
+
+    if (cs.count(c)) {
+        return;
+    }
+
+    DFS({c.x - 1, c.y, c.z}, cs);
+    DFS({c.x + 1, c.y, c.z}, cs);
+    DFS({c.x, c.y - 1, c.z}, cs);
+    DFS({c.x, c.y + 1, c.z}, cs);
+    DFS({c.x, c.y, c.z - 1}, cs);
+    DFS({c.x, c.y, c.z + 1}, cs);
 }
