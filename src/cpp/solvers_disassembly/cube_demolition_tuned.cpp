@@ -112,7 +112,6 @@ void SolverCubeDemolition_Tuned::Solve(Trace& output) {
   MoveToCoordinateXZ(x0 - 1, z0 - 1);
   // 2. Spawn bots in a gird
   SpawnGrid(x0 - 1, x1 + 1, z0 - 1, z1 + 1);
-  cout << "ready to pull up";
   PullUpKurwa();
 
   DemolishCube();
