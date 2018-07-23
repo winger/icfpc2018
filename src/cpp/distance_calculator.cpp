@@ -70,8 +70,8 @@ struct MoveEnergyCalculator3D {
     static constexpr size_t MAX = 50;
 
     MoveEnergyCalculator3D() {
-        vector<int16_t> dummy1(MAX);
-        vector<vector<int16_t>> dummy2(MAX, dummy1);
+        vector<int> dummy1(MAX);
+        vector<vector<int>> dummy2(MAX, dummy1);
         distances.resize(MAX, dummy2);
 
         for (size_t i = 0; i < MAX; ++i) {
@@ -83,11 +83,11 @@ struct MoveEnergyCalculator3D {
         }
     }
 
-    int16_t MoveEnergy(int x, int y, int z) const {
+    int MoveEnergy(int x, int y, int z) const {
         return 8*(abs(x) + abs(y) + abs(z));
     }
 
-    int16_t Get(int x, int y, int z) const {
+    int Get(int x, int y, int z) const {
         if (x < 0 || x >= MAX) {
             return INF_DISTANCE;
         }
@@ -100,7 +100,7 @@ struct MoveEnergyCalculator3D {
         return distances[x][y][z];
     }
 
-    vector<vector<vector<int16_t>>> distances;
+    vector<vector<vector<int>>> distances;
 };
 
 int MoveEnergy(int x, int z) {

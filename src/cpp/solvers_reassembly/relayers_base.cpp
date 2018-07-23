@@ -39,6 +39,9 @@ size_t ReassemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, si
     return result;
 }
 
+void ReassemblySolverLayersBase::MoveToCoordinateBFS(const Coordinate& c, bool finalize) {
+}
+
 size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
     Coordinate bestCoordinate = {-1, -1, -1};
     static constexpr int INF_ESTIMATION = -1000000;
@@ -46,10 +49,11 @@ size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
 
     CoordinateSet candidates;
     state.matrix.DFS(GetBotPosition(), candidates);
+    cout << "Cand: " << candidates.size() << endl;
 
-    for (const auto& c: candidates) {
+    for (const auto& c : candidates) {
         size_t dummy = 0;
-        int estimation = 3*GreedyFill(c, true, dummy);
+        int estimation = 3 * GreedyFill(c, true, dummy);
         if (estimation) {
             estimation -= MoveEnergy(GetBotPosition(), c);
             if (estimation > bestEstimation) {
@@ -63,7 +67,7 @@ size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
         return 0;
     }
 
-    MoveToCoordinate(bestCoordinate);
+    MoveToCoordinateBFS(bestCoordinate);
     return GreedyFill(GetBotPosition(), false, count);
 }
 
@@ -74,14 +78,16 @@ void ReassemblySolverLayersBase::Solve(Trace& output) {
 
     size_t count = 0;
     for (int x = 0; x < source.GetR(); ++x) {
-        for (int y = 0; x < source.GetR(); ++x) {
-            for (int z = 0; x < source.GetR(); ++x) {
+        for (int y = 0; y < source.GetR(); ++y) {
+            for (int z = 0; z < source.GetR(); ++z) {
                 if (NeedChange({x, y, z})) {
                     ++count;
                 }
             }
         }
     }
+
+    std::cout << "count: " << count << endl;
 
     while (count) {
         if (!GreedyReassemble(count)) {

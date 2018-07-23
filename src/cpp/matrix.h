@@ -2,6 +2,7 @@
 
 #include "base.h"
 #include "coordinate.h"
+#include "coordinate_difference.h"
 
 struct PointXZ {
     int16_t x;
@@ -55,6 +56,7 @@ public:
     bool operator==(const Matrix& m) const { return data == m.data; }
 
     void DFS(const Coordinate& c, CoordinateSet& cs) const;
+    vector<CoordinateDifference> BFS(const Coordinate& start, const Coordinate& finish) const;
 };
 
 std::ostream& operator<<(std::ostream& s, const Matrix& m);

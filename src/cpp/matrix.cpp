@@ -175,3 +175,10 @@ void Matrix::DFS(const Coordinate& c, CoordinateSet& cs) const {
     DFS({c.x, c.y, c.z - 1}, cs);
     DFS({c.x, c.y, c.z + 1}, cs);
 }
+
+using CoordinateToParent = map<Coordinate, Coordinate>;
+
+vector<CoordinateDifference> Matrix::BFS(const Coordinate& start, const Coordinate& finish) const {
+    vector<CoordinateDifference> result;
+    return result;
+}
