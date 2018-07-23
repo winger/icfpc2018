@@ -1,6 +1,4 @@
-trace=base energy=13926224719 correct=1
-trace=Solver2D_Demolition energy=47023730 correct=1
-trace=SolverCubeDemolition energy=2470260 correct=1
-trace=SolverCubeDemolition_Tuned energy=1498464 correct=1
-trace=base+autoharmonic energy=6033099199 correct=1
-trace=Solver2D_Demolition+autoharmonic energy=6766570 correct=1
+trace=reassembly energy=6334878784 correct=1
+trace=SolverCubeDemolition_Tuned, gravitated solver smart energy=150808550 correct=1
+trace=../../proxyTracesF/FR026.nbt energy=206780646 correct=1
+trace=reassembly+autoharmonic energy=6277287784 correct=1
