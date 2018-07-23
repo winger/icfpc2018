@@ -129,7 +129,7 @@ bool Solver::FindBestTrace(
         }
     }
     if (best_result.correct && write) {
-        cout << "best trace: " << output.tag << endl;
+        // cout << "best trace: " << output.tag << endl;
       // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
         output.WriteToFile(p.GetProxy());
     }
@@ -172,24 +172,24 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    // {
-    //     Trace trace;
-    //     AssemblySolverLayersBase::Solve(source, trace, true, true);
-    //     traces.push_back(trace);
-    //     Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-    //     assert(result.correct);
-    // }
-    //
-    // if (!cmd.int_args["levitation"]) {
-    //     try {
-    //         Trace trace;
-    //         AssemblySolverLayersBase::Solve(source, trace, true, false);
-    //         traces.push_back(trace);
-    //         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-    //         assert(result.correct);
-    //     } catch (const StopException& e) {
-    //     }
-    // }
+    {
+        Trace trace;
+        AssemblySolverLayersBase::Solve(source, trace, true, true);
+        traces.push_back(trace);
+        Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+        assert(result.correct);
+    }
+
+    if (!cmd.int_args["levitation"]) {
+        try {
+            Trace trace;
+            AssemblySolverLayersBase::Solve(source, trace, true, false);
+            traces.push_back(trace);
+            Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
+            assert(result.correct);
+        } catch (const StopException& e) {
+        }
+    }
     {
         try {
           Trace trace;
