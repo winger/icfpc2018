@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+trace=base energy=48783116083 correct=1
+trace=Solver2D_Demolition energy=377745571 correct=1
+trace=../../proxyTracesF/FD046.nbt energy=47313251 correct=1
+trace=base+autoharmonic energy=32533965443 correct=1
+trace=Solver2D_Demolition+autoharmonic energy=47313251 correct=1
+=======
 trace=base energy=48809997612 correct=1
 trace=Solver2D_Demolition energy=377745571 correct=1
 trace=../../proxyTracesF/FD046.nbt energy=47313251 correct=1
+>>>>>>> 8f59347c4c6492b1f5d52c4afd6d53e095515d9b
