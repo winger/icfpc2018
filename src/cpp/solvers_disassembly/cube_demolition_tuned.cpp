@@ -1,5 +1,6 @@
 #include "cube_demolition_tuned.h"
 #include "helpers.h"
+#include "../constants.h"
 
 namespace {
 constexpr bool debug = false;
@@ -80,13 +81,21 @@ void SolverCubeDemolition_Tuned::Solve(Trace& output) {
       }
     }
   }
+
+  if (x1 <= TaskConsts::FAR_COORD_DIFF + 1 && z1 <= TaskConsts::FAR_COORD_DIFF + 1)
+  {
+    // Small bounding box, no need to move
+    x0 = 1;
+    z0 = 1;
+  }
+
   if (x1 - x0 == 0 || z1 - z0 == 0 || y1 - y0 == 0) {
     cout << "1 dimension is not supported";
     throw UnsupportedException();
   }
 
   // for now make work only for 30x30
-  if (x1 - x0 > 30 || z1 - z0 > 30 || y1 - y0 > 30) {
+  if (x1 - x0 > TaskConsts::FAR_COORD_DIFF || z1 - z0 > TaskConsts::FAR_COORD_DIFF || y1 - y0 > TaskConsts::FAR_COORD_DIFF) {
     cout << "dx = " << x1 - x0 << ", " << "dz = " << z1 - z0 << endl;
     throw UnsupportedException();
   }
