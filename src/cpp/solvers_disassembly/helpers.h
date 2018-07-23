@@ -11,7 +11,6 @@ struct XZCoord {
 ostream& operator<<(ostream& s, const XZCoord& xz);
 
 
-
 struct BotPoint {
   int index;
   int x;
@@ -36,7 +35,7 @@ void AddWaitCommands(vector<Command>& result, int n);
 
 // Creates bots at current spot and moves to another point
 // assume current and next are within long liner distance
-vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_active);
+vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_active, int M=0);
 
 
 // Inverser for very specific use case when we spawn bots from 0 and in linear order

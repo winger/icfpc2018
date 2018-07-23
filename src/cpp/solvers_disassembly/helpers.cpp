@@ -88,7 +88,7 @@ void SetDemolishSquareCommands(const BotSquare& square, vector<Command>& bot_com
   }
 }
 
-vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_waiters) {
+vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_waiters, int M) {
   // cout << " SpawnBotAndMove from " << current << " to " << next << endl;
   int dx = next.x - current.x;
   int dz = next.z - current.z;
@@ -105,7 +105,7 @@ vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_wait
   {
     Command fission(Command::Fission);
     fission.cd1 = {-sign(dx), 0, -sign(dz)};
-    fission.m = 0;
+    fission.m = M;
     CommandGroup tmp;
     tmp.push_back(fission);
     AddWaitCommands(tmp, num_waiters);
