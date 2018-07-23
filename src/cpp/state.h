@@ -22,8 +22,9 @@ public:
     Matrix matrix;
 
     Matrix backMatrix;
-    std::vector<int> toAdd;
-    std::vector<int> toDelete;
+    vector<int> toAdd;
+    vector<int> toDelete;
+    unordered_set<int> knownUngrounded;
 
     vector<BotState> all_bots;
     vector<unsigned> active_bots;
