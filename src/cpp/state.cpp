@@ -4,6 +4,19 @@
 #include "constants.h"
 #include "region.h"
 
+namespace {
+
+const std::vector< std::vector<int> > DIRS_3D {
+  {-1, 0, 0},
+  {1, 0, 0},
+  {0, -1, 0},
+  {0, 1, 0},
+  {0, 0, -1},
+  {0, 0, 1}
+};
+
+}
+
 void State::Init(const Matrix& source, const Trace& _trace)
 {
     correct = true;
@@ -24,12 +37,67 @@ void State::Init(const Matrix& source, const Trace& _trace)
     active_bots.push_back(0);
     trace = _trace;
     trace_pos = 0;
-    grounded = source.IsGrounded();
+
+    ds.Init(source.GetVolume() + 1);
+    run_mode = Unknown;
+    filled_volume = backMatrix.GetFilledVolume();
+    RebuildDS();
 }
 
 bool State::IsCorrectFinal() const
 {
     return correct && (harmonics == 0) && (active_bots.size() == 0) && (trace_pos == trace.size());
+}
+
+void State::RebuildDS()
+{
+    int size = matrix.GetR();
+    knownUngrounded.clear();
+    ds.Init(ds.Size());
+    size_t ground = size_t(matrix.GetVolume());
+    for (int x = 0; x < size; ++x)
+    {
+        for (int y = 0; y < size; ++y)
+        {
+            for (int z = 0; z < size; ++z)
+            {
+                size_t index = size_t(matrix.Index(x, y, z));
+                if (matrix.Get(x, y, z))
+                {
+                    if (y == 0)
+                        ds.Union(ground, index);
+                    else if (matrix.Get(x, y-1, z))
+                        ds.Union(index, size_t(matrix.Index(x, y-1, z)));
+                    if ((x > 0) && matrix.Get(x-1, y, z))
+                        ds.Union(index, size_t(matrix.Index(x-1, y, z)));
+                    if ((z > 0) && matrix.Get(x, y, z-1))
+                        ds.Union(index, size_t(matrix.Index(x, y, z-1)));
+                }
+            }
+        }
+    }
+
+    ground = ds.Find(ground);
+    for (int x = 0; x < size; ++x)
+    {
+        for (int y = 0; y < size; ++y)
+        {
+            for (int z = 0; z < size; ++z)
+            {
+                size_t index = size_t(matrix.Index(x, y, z));
+                if (matrix.Get(x, y, z))
+                {
+                    if (ds.Find(index) != ground)
+                    {
+                        knownUngrounded.insert(index);
+                    }
+                }
+            }
+        }
+    }
+
+    ds_rebuild_required = false;
+    grounded = (knownUngrounded.size() == 0);
 }
 
 
@@ -45,49 +113,83 @@ void State::Fulfill() {
 }
 
 bool State::IsGrounded() {
-    if (toDelete.empty())
+    if (toDelete.empty() && toAdd.empty())
+        return grounded;
+    if (!toDelete.empty())
     {
-        if (toAdd.empty())
+        if (run_mode == Unknown)
         {
-            // Do nothing
+            run_mode = DeleteOnly;
         }
-        else
+        else if ((run_mode == AddOnly) || (run_mode == AddOnly))
         {
-            knownUngrounded.clear();
-            if (grounded)
-                grounded = Grounder::IsDeltaGrounded(backMatrix, toAdd);
-            else
-                grounded = matrix.IsGrounded(knownUngrounded);
+            run_mode = Hybrid;
         }
+        ds_rebuild_required = true;
     }
-    else
+    if (!toAdd.empty())
     {
-        if (!toAdd.empty())
+        if (run_mode == Unknown)
         {
-            knownUngrounded.clear();
-            grounded = matrix.IsGrounded(knownUngrounded);
+            run_mode = AddOnly;
         }
-        else
+        if (run_mode == DeleteOnly)
         {
-            if (grounded)
+            run_mode = DeleteAndAdd;
+        }
+        knownUngrounded.clear();
+    }
+    if (!toAdd.empty())
+    {
+        for (int index : toAdd)
+        {
+            if (backMatrix.Get(index))
+                continue;
+            backMatrix.Fill(index);
+            ++filled_volume;
+            auto v = matrix.Reindex(index);
+            for (const std::vector<int>& vd : DIRS_3D)
             {
-                grounded = matrix.IsGrounded(knownUngrounded);
-            }
-            else
-            {
-                for (int index : toDelete)
+                int x = v[0] + vd[0];
+                int y = v[1] + vd[1];
+                int z = v[2] + vd[2];
+                if (matrix.IsInside(x, y, z))
                 {
-                    if (knownUngrounded.find(index) != knownUngrounded.end())
-                        knownUngrounded.erase(index);                    
+                    int index2 = matrix.Index(x, y, z);
+                    if (matrix.Get(index2))
+                    {
+                        ds.Union(index, index2);
+                    }
                 }
-                if (knownUngrounded.size() > 0)
-                    grounded = false;
-                else
-                    grounded = matrix.IsGrounded(knownUngrounded);
             }
         }
+        if (ds_rebuild_required)
+            RebuildDS();
+        else
+            grounded = (ds.GetSetsCount() + filled_volume == matrix.GetVolume() + 1);
+        toAdd.clear();
     }
-    Fulfill();
+    if (!toDelete.empty())
+    {
+        for (int index : toDelete)
+        {
+            if (!backMatrix.Get(index))
+                continue;
+            backMatrix.Erase(index);
+            --filled_volume;
+            if (knownUngrounded.find(index) != knownUngrounded.end())
+                knownUngrounded.erase(index);
+        }
+        if (knownUngrounded.empty())
+        {
+            if (ds_rebuild_required)
+                RebuildDS();
+            else
+                grounded = true;
+        }
+        else
+            grounded = false;
+    }
     return grounded;
 }
 

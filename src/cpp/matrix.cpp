@@ -2,6 +2,17 @@
 
 #include "disjoint_set.h"
 
+int Matrix::GetFilledVolume() const
+{
+    int sum = 0;
+    for (int index = 0; index < data.size(); ++index)
+    {
+        if (Get(index))
+            sum += 1;
+    }
+    return sum;
+}
+
 bool Matrix::IsGrounded(unordered_set<int>& ungrounded) const
 {
     ungrounded.clear();
