@@ -153,7 +153,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         traces.push_back(temp);
     }
 
-    {
+    if (source.GetR() < 70) {
         Trace temp;
         AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base_and_bots, true);
         temp.tag = "parallel base and bots";
