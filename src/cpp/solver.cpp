@@ -5,7 +5,7 @@
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
-
+#include "solvers_reassembly/relayers_base.h"
 
 #include "base.h"
 #include "command_line.h"
@@ -160,6 +160,15 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         traces.push_back(temp);
     }
 
+    if (source.GetR() < 70) {
+        try {
+            Trace temp;
+            ReassemblySolverLayersBase::Solve(source, target, temp, true);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
+    }
+
     if (!cmd.int_args["levitation"]) {
         try {
             Trace temp;
@@ -200,6 +209,15 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         traces.push_back(trace);
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
         assert(result.correct);
+    }
+
+    if (source.GetR() < 70) {
+        try {
+            Trace temp;
+            ReassemblySolverLayersBase::Solve(source, target, temp, true);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
     }
 
     if (!cmd.int_args["levitation"]) {
@@ -254,6 +272,15 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         Trace tmp2;
         SolveAssemble(p, voidM, target, tmp2);
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
+    }
+
+    if (source.GetR() < 70) {
+        try {
+            Trace temp;
+            ReassemblySolverLayersBase::Solve(source, target, temp, true);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
     }
 
     if (FileExists(p.GetProxy())) {

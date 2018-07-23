@@ -19,16 +19,6 @@ void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
     GetBotPosition() = target;
 }
 
-void AssemblySolverLayersBase::SolveInit() {
-    if (!helper_mode) {
-        if (!projectionGrounded) {
-            if (levitation) {
-                AddCommand(Command(Command::Flip));
-            }
-        }
-    }
-}
-
 bool AssemblySolverLayersBase::NeedChange(const Coordinate& c) const {
     if (matrix.Get(c)) {
         if (erase) {
@@ -272,20 +262,6 @@ void AssemblySolverLayersBase::SolveLayer(int y) {
     snapshots.emplace_back(GetSnapshot());
 
     SelectBestSnapshot(snapshots);
-}
-
-void AssemblySolverLayersBase::SolveFinalize() {
-    if (helper_mode) {
-        MoveToCoordinate(target.x, target.y, target.z, true);
-    } else {
-        if (!projectionGrounded) {
-            if (levitation) {
-                AddCommand(Command(Command::Flip));
-            }
-        }
-        MoveToCoordinate(target.x, target.y, target.z, true);
-        AddCommand(Command(Command::Halt));
-    }
 }
 
 void AssemblySolverLayersBase::Solve(Trace& output) {

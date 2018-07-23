@@ -16,14 +16,10 @@ class AssemblySolverLayersBase : public SolverBase {
    protected:
     bool erase;
 
-    bool helper_mode;
-    bool projectionGrounded{false};
-
     AssemblySolverLayersBase(const Matrix& m, bool erase, bool levitation);
 
     void SetTargetCoordinate(const Coordinate& c);
 
-    void SolveInit();
     void SolveZ1_GetRZ(int x, int y, int& z0, int& z1);
     void SolveZ1_Fill(int x, int y, bool direction);
     void SolveZ1(int x, int y);
@@ -34,7 +30,6 @@ class AssemblySolverLayersBase : public SolverBase {
     size_t SolveGreedy(int y, size_t& count);
     size_t GreedyFill(const Coordinate& c0, bool dry, size_t& count);
     void SolveLayer(int y);
-    void SolveFinalize();
     void Solve(Trace& output);
     bool NeedChange(const Coordinate& c) const;
 

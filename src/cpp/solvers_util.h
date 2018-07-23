@@ -14,12 +14,17 @@ protected:
     State state;
     bool levitation;
     Coordinate target;
+    bool helper_mode;
+    bool projectionGrounded{false};
 
     SolverBase(const Matrix& m, bool levitation);
 
     StateSnapshot GetSnapshot();
     void ApplySnapshot(const StateSnapshot& s);
     void SelectBestSnapshot(const StateSnapshots& s);
+
+    void SolveInit();
+    void SolveFinalize();
 
     void AddCommand(const Command& c) {
         state.trace.commands.emplace_back(c);

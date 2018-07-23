@@ -5,6 +5,30 @@ SolverBase::SolverBase(const Matrix& m, bool l) : matrix(m), levitation(l) {
     target = {0, 0, 0};
 }
 
+void SolverBase::SolveInit() {
+    if (!helper_mode) {
+        if (!projectionGrounded) {
+            if (levitation) {
+                AddCommand(Command(Command::Flip));
+            }
+        }
+    }
+}
+
+void SolverBase::SolveFinalize() {
+    if (helper_mode) {
+        MoveToCoordinate(target.x, target.y, target.z, true);
+    } else {
+        if (!projectionGrounded) {
+            if (levitation) {
+                AddCommand(Command(Command::Flip));
+            }
+        }
+        MoveToCoordinate(target.x, target.y, target.z, true);
+        AddCommand(Command(Command::Halt));
+    }
+}
+
 void SolverBase::MoveToCoordinate(int x, int z)
 {
     assert(x >= 0 && x < matrix.GetR());
