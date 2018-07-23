@@ -1,0 +1,1 @@
+trace=../../proxyTracesF/FA047.nbt energy=121064824 correct=1
