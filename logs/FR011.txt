@@ -1,2 +1,6 @@
 trace=reassembly energy=255021444 correct=1
-trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart energy=40968946 correct=1
+trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic energy=7248946 correct=1
+trace=../../proxyTracesF/FR011.nbt energy=40968946 correct=1
+trace=reassembly+autoharmonic energy=238869484 correct=1
+trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic+autoharmonic energy=7248946 correct=1
+trace=../../proxyTracesF/FR011.nbt+autoharmonic energy=7248946 correct=1

@@ -1,1 +1,4 @@
-trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart energy=33701160 correct=1
+trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic energy=13373160 correct=1
+trace=../../proxyTracesF/FR001.nbt energy=33701160 correct=1
+trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic+autoharmonic energy=13373160 correct=1
+trace=../../proxyTracesF/FR001.nbt+autoharmonic energy=13373160 correct=1
