@@ -86,11 +86,39 @@ void LayerNet::LevelUp(int level, Trace& output) {
   }
 }
 
+
+// Invariant z == 0 || z == R - 1
+void LayerNet::Relocate(Trace& output, std::vector<int> chunk) {
+  std::sort(chunk.begin(), chunk.end());
+  
+}
+
 void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {
-  // min (dx, dz)
-  // preset bot by straps
-  // move forward bots, covering under them
-  //
+  std::set<int> xs;
+  std::vector<int> xvs;
+  std::map<int /* x */, std::vector<int>> xzPlane;
+  for (auto v: layer) {
+    auto coord = matrix.Reindex(v);
+    xs.insert(coord[0]);
+    auto& vv = xzPlane[coord[0]];
+    vv.push_back(coord[2]);
+  }
+  for (auto v: xs) {
+    xvs.push_back(v);
+  }
+
+  int chunkSize = bots.size();
+  std::sort(xvs.begin(), xvs.end());
+  for (int i = 0; i < xvs.size(); i += chunkSize) {
+    int curChunkSize = min(chunkSize, xvs.size() - i);
+    std::vector<int> chunk(curChunkSize);
+    std::copy(
+      xvs.begin() + i,
+      xvs.begin() + i + curChunkSize,
+      chunk.begin());
+    Relocate(output, chunk);
+    Cover(output, chunk, xzPlane);
+  }
 }
 
 void LayerNet::Merge(Trace& output) {
