@@ -145,8 +145,8 @@ void AssemblySolverLayersBase::SolveZ3(int x, int y)
 
 int AssemblySolverLayersBase::GetGreedyEstimation(int x, int y, int z) {
     size_t dummy = 0;
-    return 3 * GreedyFill({x, y + 1, z}, true, dummy) -
-           MoveEnergy(GetBotPosition().x - x, GetBotPosition().z - z);
+    auto fill = GreedyFill({x, y + 1, z}, true, dummy);
+    return 3 * fill - MoveEnergy(GetBotPosition().x - x, GetBotPosition().z - z) - ((fill == 0) ? 1000000 : 0);
 }
 
 size_t AssemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size_t& count) {
