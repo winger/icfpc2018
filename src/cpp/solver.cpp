@@ -3,6 +3,7 @@
 #include <regex>
 
 #include "solvers_assembly/gravitated.h"
+#include "solvers_assembly/non_gravitated.h"
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
@@ -202,6 +203,33 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         } catch (std::runtime_error const& e) {
           cerr << "Error: " << e.what() << endl;
         }
+    }
+
+    try {
+      Trace temp;
+      SolverNonGravitated::Solve(target, temp, false, false);
+      temp.tag = "non_gravitated_solver_stupid";
+      traces.push_back(temp);
+    } catch (std::runtime_error const& e) {
+      cerr << "Error: " << e.what() << endl;
+    }
+
+    try {
+      Trace temp;
+      SolverNonGravitated::Solve(target, temp, true, false);
+      temp.tag = "non_gravitated_solver_smart";
+      traces.push_back(temp);
+    } catch (std::runtime_error const& e) {
+      cerr << "Error: " << e.what() << endl;
+    }
+
+    try {
+      Trace temp;
+      SolverNonGravitated::Solve(target, temp, true, true);
+      temp.tag = "non_gravitated_solver_smart_naive";
+      traces.push_back(temp);
+    } catch (std::runtime_error const& e) {
+      cerr << "Error: " << e.what() << endl;
     }
 
     if (source.GetR() < 70) {

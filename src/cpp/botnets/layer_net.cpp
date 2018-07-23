@@ -580,6 +580,15 @@ void LayerBot::Fusion(
   std::sort(prm.seeds.begin(), prm.seeds.end());
 }
 
+void LayerNet::Flip(Trace& output) {
+  std::map<int /* bid */, Command> cmds;
+  for (auto const& kv: bots) {
+    cmds[kv.first] = Command(Command::Wait);
+  }
+  cmds[bots.begin()->first] = Command(Command::Flip);
+  CleanCmds(output, cmds);
+}
+
 int LayerNet::ShrinkLine(
     std::map<int /* bid */, Command>& cmds,
     std::vector<int /* int */>& line,
