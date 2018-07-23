@@ -3,14 +3,13 @@
 #include "state.h"
 
 struct StateSnapshot {
-    Matrix matrix;
     State state;
 };
 using StateSnapshots = std::vector<StateSnapshot>;
 
 class SolverBase {
 protected:
-    Matrix matrix;
+    const Matrix matrix;
     State state;
     bool levitation;
     Coordinate targetC;
