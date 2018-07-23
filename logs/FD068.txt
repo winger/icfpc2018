@@ -1,3 +1,3 @@
-trace=base energy=151126216624 correct=1
+trace=base energy=150757501095 correct=1
 trace=Solver2D_Demolition energy=905156300 correct=1
 trace=../../proxyTracesF/FD068.nbt energy=194948460 correct=1
