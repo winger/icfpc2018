@@ -167,7 +167,7 @@ void AutoHarmonic::ImproveTrace(const Matrix& source, const Matrix& target, cons
         }
         assert(!current_harmonic || vtp[i+1].harmonic);
     }
-    output.tag = trace.tag + ", autoharmonic";
+    output.tag = trace.tag + "+autoharmonic";
     output.Done();
     // cout << "AH: " << vtp.size() - 2 << " " << trace.commands.size() << " " << output.commands.size()
     // << " " << int(output.commands[0].type) << " " << int(output.commands[0].type) << " " << int(output.commands[1].type)

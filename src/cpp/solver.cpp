@@ -26,6 +26,7 @@ static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
 static constexpr size_t REASSEMBLE_THRESHOLD = 41;
 
+namespace {
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
     ofstream file(filename);
     if (!file.is_open()) {
@@ -35,6 +36,13 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
     file << energy << endl;
     file.close();
 }
+
+void WriteLog(ofstream& file, const Trace& trace, const Evaluation::Result& result) {
+  file << "trace=" << trace.tag ;
+  file << " energy=" << result.energy;
+  file << " correct=" << result.correct << endl;
+}
+} // namespace
 
 template <typename T>
 std::vector<T> runForEachProblem(const std::string& round, std::function<T(const Problem&)> f) {
@@ -121,11 +129,13 @@ Problems Solver::ListProblems(const std::string& round) {
 
 bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target,
                            const vector<Trace>& traces_to_check, Trace& output, bool write) {
+    ofstream file(p.GetLogFile());
     Evaluation::Result best_result;
     for (const auto& trace : traces_to_check) {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
         cout << "trace: " << trace.tag << " --> " << result.energy << " correct: " << result.correct
              << " time: " << trace.Duration() << endl;
+        WriteLog(file, trace, result);
         if (result <= best_result) {
             best_result = result;
             output = trace;
@@ -153,7 +163,10 @@ void ApplyAutoHarmonic(const Matrix& source, const Matrix& target, Traces& tr) {
         }
     }
 }
-}
+
+
+
+} // namespace
 
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
 {
@@ -162,7 +175,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     {
         Trace temp;
         AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base, true);
-        temp.tag = "parallel base";
+        temp.tag = "parallel_base";
         traces.push_back(temp);
     }
 
@@ -170,7 +183,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         try {
           Trace temp;
           SolverGravitated::Solve(target, temp);
-          temp.tag = "gravitated solver";
+          temp.tag = "gravitated_solver";
           traces.push_back(temp);
         } catch (std::runtime_error const& e) {
           cerr << "Error: " << e.what() << endl;
@@ -180,7 +193,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     if (source.GetR() < 70) {
         Trace temp;
         AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base_and_bots, true);
-        temp.tag = "parallel base and bots";
+        temp.tag = "parallel_base_and_bots";
         traces.push_back(temp);
     }
 
@@ -234,7 +247,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         try {
             Trace trace;
             AssemblySolverLayersBase::Solve(source, trace, true, false);
-            trace.tag = "base no levitation";
+            trace.tag = "base_no_levitation";
             traces.push_back(trace);
             Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
             assert(result.correct);
