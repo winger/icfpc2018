@@ -54,3 +54,7 @@ std::string Problem::GetSubmitOutput() const {
 std::string Problem::Name() const {
     return GetType() + GetSI();
 }
+
+std::string Problem::GetLogFile() const {
+    return GetPrefix() + "logs/" + round + GetType() + GetSI() + ".nbt";
+}
