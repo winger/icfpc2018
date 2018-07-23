@@ -56,6 +56,7 @@ public:
     bool operator==(const Matrix& m) const { return data == m.data; }
 
     void DFS(const Coordinate& c, CoordinateSet& cs) const;
+    bool CanMove(const Coordinate& c, const CoordinateDifference& cd) const;
     vector<CoordinateDifference> BFS(const Coordinate& start, const Coordinate& finish) const;
 };
 
