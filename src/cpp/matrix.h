@@ -46,6 +46,7 @@ public:
 
     uint32_t FullNum() const { return std::count(data.begin(), data.end(), 1); }
 
+    bool IsGrounded(unordered_set<int>& output_ungrounded) const;
     bool IsGrounded() const;
 
     Matrix(int r = 0) { Init(r); }
