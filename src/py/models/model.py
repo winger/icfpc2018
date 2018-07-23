@@ -16,6 +16,14 @@ class Model:
         cells.resize(cell_count)
         self.data = cells.reshape((self.size, self.size, self.size))
 
+    def box(self):
+        x, y, z = numpy.nonzero(self.data)
+        return ((x.min(), y.min(), z.min()), (x.max(), y.max(), z.max()))
+
+    def box_size(self):
+        filled = numpy.nonzero(self.data)
+        return tuple(f.max() - f.min() + 1 for f in filled)
+
     def is_well_formed(self):
         """Validates model according to spec"""
         return True # TODO implement
