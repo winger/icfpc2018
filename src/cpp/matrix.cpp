@@ -166,6 +166,8 @@ void Matrix::DFS(const Coordinate& c, CoordinateSet& cs) const {
         return;
     }
 
+    cs.insert(c);
+
     DFS({c.x - 1, c.y, c.z}, cs);
     DFS({c.x + 1, c.y, c.z}, cs);
     DFS({c.x, c.y - 1, c.z}, cs);
