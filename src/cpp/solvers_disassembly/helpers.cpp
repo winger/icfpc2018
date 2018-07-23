@@ -153,3 +153,12 @@ int BotPosition(const State& state, const int bot_id)
       return std::distance(state.active_bots.begin(), it);
     }
 }
+
+void showVector(const vector<int>& v) {
+  cout << "v = { ";
+  for (const auto& value : v) {
+    cout << value << " ";
+  }
+  cout << "}" << endl;
+}
+
