@@ -14,7 +14,7 @@ protected:
     State state;
     bool levitation;
     Coordinate targetC;
-    bool helper_mode;
+    bool helper_mode{false};
     bool projectionGrounded{false};
 
     SolverBase(const Matrix& m, bool levitation);

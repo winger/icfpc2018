@@ -179,7 +179,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         traces.push_back(temp);
     }
 
-    if (source.GetR() < REASSEMBLE_THRESHOLD) {
+    if (p.assembly && (source.GetR() < REASSEMBLE_THRESHOLD)) {
         try {
             Trace temp;
             ReassemblySolverLayersBase::Solve(source, target, temp, true);
@@ -230,7 +230,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         assert(result.correct);
     }
 
-    if (source.GetR() < REASSEMBLE_THRESHOLD) {
+    if (p.disassembly && (source.GetR() < REASSEMBLE_THRESHOLD)) {
         try {
             Trace temp;
             ReassemblySolverLayersBase::Solve(source, target, temp, true);

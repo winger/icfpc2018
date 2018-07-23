@@ -12,9 +12,9 @@ bool ReassemblySolverLayersBase::NeedChange(const Coordinate& c) const {
 
 size_t ReassemblySolverLayersBase::GreedyFill(const Coordinate& c0, bool dry, size_t& count) {
     size_t result = 0;
-    for (int dx = -2; dx <= 2; ++dx) {
-        for (int dy = -2; dy <= 2; ++dy) {
-            for (int dz = -2; dz <= 2; ++dz) {
+    for (int dx = -3; dx <= 3; ++dx) {
+        for (int dy = -3; dy <= 3; ++dy) {
+            for (int dz = -3; dz <= 3; ++dz) {
                 Coordinate c = {c0.x + dx, c0.y + dy, c0.z + dz};
                 CoordinateDifference cd = c - c0;
                 if (matrix.IsInside(c) && cd.IsNearCoordinateDifferences() && NeedChange(c)) {
@@ -63,7 +63,7 @@ size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
 
     for (const auto& c : candidates) {
         size_t dummy = 0;
-        int estimation = 3 * GreedyFill(c, true, dummy);
+        int estimation = 30 * GreedyFill(c, true, dummy);
         if (estimation) {
             estimation -= MoveEnergy(GetBotPosition(), c);
             if (estimation > bestEstimation) {
@@ -81,11 +81,11 @@ size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
     return GreedyFill(GetBotPosition(), false, count);
 }
 
-void ReassemblySolverLayersBase::SolveFinalize() {
+void ReassemblySolverLayersBase::SolveFinalizeDFS() {
     CoordinateSet candidates;
     state.matrix.DFS(GetBotPosition(), candidates);
     if (candidates.count(targetC) == 0) {
-        cerr << "reassemble failed" << endl;
+        // cerr << "reassemble failed" << endl;
         throw StopException();
     }
 
@@ -100,12 +100,12 @@ void ReassemblySolverLayersBase::SolveFinalize() {
         MoveToCoordinateBFS(targetC, true);
         AddCommand(Command(Command::Halt));
     }
+
+    assert(GetBotPosition() == targetC);
 }
 
 void ReassemblySolverLayersBase::Solve(Trace& output) {
     SolveInit();
-
-    output.tag = "reassembly";
 
     size_t count = 0;
     for (int x = 0; x < source.GetR(); ++x) {
@@ -119,13 +119,17 @@ void ReassemblySolverLayersBase::Solve(Trace& output) {
     }
 
     while (count) {
+        // cerr << "count: " << count << endl;
         if (!GreedyReassemble(count)) {
             throw StopException();
         }
     }
 
-    SolveFinalize();
+    assert(state.matrix == target);
+
+    SolveFinalizeDFS();
     output = state.trace;
+    output.tag = "reassembly";
 }
 
 Evaluation::Result ReassemblySolverLayersBase::Solve(const Matrix& source, const Matrix& target, Trace& output, bool levitation) {
