@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+trace=parallel_base energy=1969016 correct=1
+trace=gravitated solver stupid energy=2810524 correct=1
+trace=gravitated solver smart energy=2023044 correct=1
+trace=parallel_base_and_bots energy=1967484 correct=1
+=======
 trace=gravitated_solver_stupid energy=2810524 correct=1
 trace=gravitated_solver_smart energy=2023044 correct=1
+>>>>>>> 9c3eaf9ab2bcdc604d88a8fa6ac8c4c20502a906
 trace=../../proxyTracesF/FA009.nbt energy=1967484 correct=1
