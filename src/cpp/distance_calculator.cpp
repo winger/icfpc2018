@@ -70,3 +70,7 @@ int MoveEnergy(int x, int z) {
     static const MoveEnergyCalculator clc;
     return clc.Get(abs(x), abs(z));
 }
+
+int MoveEnergy(const Coordinate& a, const Coordinate& b) {
+    return 0;
+}

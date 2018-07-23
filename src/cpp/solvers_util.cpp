@@ -121,3 +121,6 @@ void SolverBase::SelectBestSnapshot(const StateSnapshots& s) {
     ApplySnapshot(s[best_index]);
 }
 
+void SolverBase::MoveToCoordinate(const Coordinate& c, bool finalize) {
+    MoveToCoordinate(c.x, c.y, c.z, finalize);
+}

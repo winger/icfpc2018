@@ -1,4 +1,5 @@
 #include "relayers_base.h"
+#include "../distance_calculator.h"
 
 ReassemblySolverLayersBase::ReassemblySolverLayersBase(const Matrix& s, const Matrix& t, bool levitation)
     : SolverBase(s, levitation), source(s), target(t) {}
@@ -42,6 +43,28 @@ size_t ReassemblySolverLayersBase::GreedyReassemble(size_t& count) {
     Coordinate bestCoordinate = {-1, -1, -1};
     static constexpr int INF_ESTIMATION = -1000000;
     int bestEstimation = INF_ESTIMATION;
+
+    CoordinateSet candidates;
+    state.matrix.DFS(GetBotPosition(), candidates);
+
+    for (const auto& c: candidates) {
+        size_t dummy = 0;
+        int estimation = 3*GreedyFill(c, true, dummy);
+        if (estimation) {
+            estimation -= MoveEnergy(GetBotPosition(), c);
+            if (estimation > bestEstimation) {
+                bestEstimation = estimation;
+                bestCoordinate = c;
+            }
+        }
+    }
+
+    if (bestEstimation == INF_ESTIMATION) {
+        return 0;
+    }
+
+    MoveToCoordinate(bestCoordinate);
+    return GreedyFill(GetBotPosition(), false, count);
 }
 
 void ReassemblySolverLayersBase::Solve(Trace& output) {

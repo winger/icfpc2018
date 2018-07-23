@@ -33,4 +33,5 @@ protected:
     Coordinate& GetBotPosition() { return state.all_bots[0].c; }
     void MoveToCoordinate(int x, int z);
     void MoveToCoordinate(int x, int y, int z, bool finalize = false);
+    void MoveToCoordinate(const Coordinate& c, bool finalize = false);
 };
