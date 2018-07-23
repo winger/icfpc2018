@@ -135,6 +135,7 @@ void ReassemblySolverLayersBase::Solve(Trace& output) {
 Evaluation::Result ReassemblySolverLayersBase::Solve(const Matrix& source, const Matrix& target, Trace& output, bool levitation) {
     ReassemblySolverLayersBase solver(source, target, levitation);
     solver.Solve(output);
+    output.Done();
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 
 }

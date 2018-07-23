@@ -119,36 +119,45 @@ Problems Solver::ListProblems(const std::string& round) {
     return result;
 }
 
-bool Solver::FindBestTrace(
-  const Problem& p,
-  const Matrix& source,
-  const Matrix& target,
-  const vector<Trace>& traces_to_check,
-  Trace& output,
-  bool write)
-{
+bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix& target,
+                           const vector<Trace>& traces_to_check, Trace& output, bool write) {
     Evaluation::Result best_result;
-    for (const Trace& trace : traces_to_check)
-    {
+    for (const auto& trace : traces_to_check) {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        cout << "trace: " << trace.tag << " --> " << result.energy << " correct: " << result.correct << endl;
-        if (result <= best_result)
-        {
+        cout << "trace: " << trace.tag << " --> " << result.energy << " correct: " << result.correct
+             << " time: " << trace.Duration() << endl;
+        if (result <= best_result) {
             best_result = result;
             output = trace;
         }
     }
     if (best_result.correct && write) {
         // cout << "best trace: " << output.tag << endl;
-      // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
+        // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
         output.WriteToFile(p.GetProxy());
     }
     return best_result.correct;
 }
 
+namespace {
+
+using Traces = vector<Trace>;
+
+void ApplyAutoHarmonic(const Matrix& source, const Matrix& target, Traces& tr) {
+    size_t old_size = tr.size();
+    for (size_t i = 0; i < old_size; ++i) {
+        Trace temp;
+        AutoHarmonic::ImproveTrace(source, target, tr[i], temp);
+        if (temp.commands.size() > 0) {
+            tr.emplace_back(std::move(temp));
+        }
+    }
+}
+}
+
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
 {
-    vector<Trace> traces;
+    Traces traces;
 
     {
         Trace temp;
@@ -195,12 +204,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         }
     }
 
-    {
-        Trace temp;
-        AutoHarmonic::ImproveTrace(source, target, traces.back(), temp);
-        if (temp.commands.size() > 0)
-            traces.push_back(temp);
-    }
+    ApplyAutoHarmonic(source, target, traces);
 
     assert(FindBestTrace(p, source, target, traces, output, p.assembly));
 }
@@ -276,6 +280,8 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         }
     }
 
+    ApplyAutoHarmonic(source, target, traces);
+
     assert(FindBestTrace(p, source, target, traces, output, p.disassembly));
 }
 
@@ -314,8 +320,16 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
     assert(FindBestTrace(p, source, target, traces, output, true));
 }
 
+std::mutex solving_mutex;
+std::unordered_set<std::string> solving;
+
 Solution Solver::Solve(const Problem& p) {
     try {
+        {
+            std::lock_guard<std::mutex> guard(solving_mutex);
+            solving.insert(p.Name());
+        }
+
         Solution s;
         Matrix source, target;
         if (p.assembly) {
@@ -338,6 +352,10 @@ Solution Solver::Solve(const Problem& p) {
         Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
         s.Set(solution_result, default_result);
         cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << " r=" << solution_result.r << endl;
+        {
+            std::lock_guard<std::mutex> guard(solving_mutex);
+            solving.erase(p.Name());
+        }
         return s;
     } catch (...) {
         cerr << "Exception in handling '" << p.Name() << "'" << endl;
@@ -372,16 +390,35 @@ Solution Solver::Check(const Problem& p, const std::string& filename) {
 }
 
 void Solver::SolveAll(const std::string& round) {
+    bool stop_watching = false;
+
+    std::thread t_watch([&stop_watching, &solving, &solving_mutex]() {
+        while (!stop_watching) {
+            {
+                std::lock_guard<std::mutex> guard(solving_mutex);
+                std::string s = "Solving: ";
+                for (const auto& ss : solving) {
+                    s += ss + " ";
+                }
+                cout << s << endl;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(30));
+        }
+    });
+
     auto solveResults = runForEachProblem<Solution>(round, [](const Problem& p) { return Solve(p); });
 
     unsigned total_score = 0;
     unsigned total_max_score = 0;
-    for (const auto& s: solveResults) {
+    for (const auto& s : solveResults) {
         total_score += s.score;
         total_max_score += s.max_score;
     }
 
-    cout << "Final score: " << total_score << " "  << total_max_score << endl;
+    cout << "Final score: " << total_score << " " << total_max_score << endl;
+
+    stop_watching = true;
+    t_watch.join();
 }
 
 void Solver::CheckAll(const std::string& round) {
