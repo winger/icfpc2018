@@ -253,7 +253,6 @@ void State::Step()
     //   cout << " bot " << bid << " at " << all_bots[bid].c << endl;
     // }
 
-
     if (hc & 1)
     {
         harmonics = !harmonics;
@@ -261,6 +260,7 @@ void State::Step()
     assert (correct);
     bool icValid = ic.IsValid();
     correct = correct && icValid;
+    assert(correct);
     if (!cmd.int_args["levitation"]) {
         bool grounded = harmonics || IsGrounded();
         correct = correct && grounded;
@@ -294,3 +294,4 @@ bool State::MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference
     }
     return correct;
 }
+
