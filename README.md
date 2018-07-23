@@ -76,3 +76,4 @@ One of the approaches here is to just use best of Assembly + Disassembly from al
 
 We tried incremental reassemble, but the idea did not pay out.
 
+Most of the assembly/disassembly algorithm outputs are preprocessed with an optimizer, which turns on/off levitation, when needed.
