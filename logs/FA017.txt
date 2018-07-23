@@ -1,1 +1,7 @@
+trace=non_gravitated_solver_stupid energy=55414806 correct=1
+trace=non_gravitated_solver_smart energy=41284586 correct=1
+trace=non_gravitated_solver_smart_naive energy=4731786 correct=1
 trace=../../proxyTracesF/FA017.nbt energy=14950360 correct=1
+trace=non_gravitated_solver_stupid+autoharmonic energy=9166406 correct=1
+trace=non_gravitated_solver_smart+autoharmonic energy=6916586 correct=1
+trace=../../proxyTracesF/FA017.nbt+autoharmonic energy=14950360 correct=1
