@@ -32,6 +32,10 @@ src/cpp/solver_reassembly/
 
 Let's take a closer look on them.
 
+The solver can use multiple threads for processing (-threads #).
+
+The solver output solutions to cppTracesF. We join the current best solutions with candidates using `-mode merge` mode.
+One can use `-mode check -levitation 0` for validation of current solutions.
 
 ## Assembly
 
@@ -69,3 +73,6 @@ Further action is a sheer prescripted work. We construct the object layer by lay
 ## Reassembly
 
 One of the approaches here is to just use best of Assembly + Disassembly from all of the above solvers.
+
+We tried incremental reassemble, but the idea did not pay out.
+
