@@ -133,7 +133,7 @@ void Matrix::CopyBlock(const Matrix& source, int x0, int x1, int y0, int y1, int
     }
 }
 
-void Matrix::ClearBlock(int x0, int x1, int y0, int y1, int z0, int z1)
+void Matrix::EraseBlock(int x0, int x1, int y0, int y1, int z0, int z1)
 {
     for (int x = x0; x < x1; ++x)
     {
