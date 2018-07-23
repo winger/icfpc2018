@@ -23,7 +23,9 @@ struct Problem {
     std::string GetDefaultTrace() const;
     std::string GetEnergyInfo() const;
     std::string GetOutput() const;
+
     std::string GetLogFile() const;
+    std::string GetMetadataFile() const;
 
     std::string GetSubmitOutput() const;
     std::string GetSubmitEnergyInfo() const;

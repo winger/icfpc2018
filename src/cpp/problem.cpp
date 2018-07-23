@@ -58,3 +58,7 @@ std::string Problem::Name() const {
 std::string Problem::GetLogFile() const {
     return GetPrefix() + "logs/" + round + GetType() + GetSI() + ".nbt";
 }
+
+std::string Problem::GetMetadataFile() const {
+    return GetPrefix() + "metadata/" + round + GetType() + GetSI() + ".nbt";
+}
