@@ -1,8 +1,13 @@
 trace=parallel_base energy=394311570828 correct=1
 trace=non_gravitated_solver_stupid energy=2442574471880 correct=1
 trace=non_gravitated_solver_smart energy=878409492500 correct=1
+<<<<<<< HEAD
 trace=../../proxyTracesF/FA162.nbt energy=878409492500 correct=1
 trace=parallel_base+autoharmonic energy=394311570828 correct=1
 trace=non_gravitated_solver_stupid+autoharmonic energy=681519396280 correct=1
+=======
+trace=../../proxyTracesF/FA162.nbt energy=193943406900 correct=1
+trace=non_gravitated_solver_stupid+autoharmonic energy=679691889880 correct=1
+>>>>>>> ad7eac747168d267423322982df210e1c5d9b848
 trace=non_gravitated_solver_smart+autoharmonic energy=193943406900 correct=1
 trace=../../proxyTracesF/FA162.nbt+autoharmonic energy=193943406900 correct=1

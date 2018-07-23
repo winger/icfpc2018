@@ -306,8 +306,10 @@ size_t AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
             bestEstimation = estimation;
         }
         ++countEstimations;
-        if (countEstimations > 30) {
-            break;
+        if (!cmd.int_args["fgs"]) {
+            if (countEstimations > 30) {
+                break;
+            }
         }
     }
 
