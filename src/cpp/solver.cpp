@@ -2,6 +2,7 @@
 
 #include <regex>
 
+#include "solvers_assembly/gravitated.h"
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
@@ -128,7 +129,7 @@ bool Solver::FindBestTrace(
     for (const Trace& trace : traces_to_check)
     {
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
-        // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
+        cout << "trace: " << trace.tag << " --> " << result.energy << endl;
         if (result <= best_result)
         {
             best_result = result;
@@ -158,6 +159,17 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
         temp.tag = "parallel base";
         traces.push_back(temp);
+    }
+
+    if (Grounder::IsByLayerGrounded(target)) {
+        try {
+          Trace temp;
+          SolverGravitated::Solve(target, temp);
+          temp.tag = "gravitated solver";
+          traces.push_back(temp);
+        } catch (std::runtime_error const& e) {
+          cerr << "Error: " << e.what() << endl;
+        }
     }
 
     if (source.GetR() < 70) {
