@@ -1,4 +1,8 @@
 trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic energy=55784690 correct=1
+<<<<<<< HEAD
 trace=../../proxyTracesF/FR026.nbt energy=57242690 correct=1
+=======
+trace=../../proxyTracesF/FR026.nbt energy=55784690 correct=1
+>>>>>>> 84f880e8db8ca2c5355f4e85fccf58adaa2657d1
 trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic+autoharmonic energy=55784690 correct=1
 trace=../../proxyTracesF/FR026.nbt+autoharmonic energy=55784690 correct=1
