@@ -1,0 +1,4 @@
+trace=SolverCubeDemolition, parallel_base_and_bots+autoharmonic energy=133196824 correct=1
+trace=../../proxyTracesF/FR031.nbt energy=133196824 correct=1
+trace=SolverCubeDemolition, parallel_base_and_bots+autoharmonic+autoharmonic energy=133196824 correct=1
+trace=../../proxyTracesF/FR031.nbt+autoharmonic energy=133196824 correct=1
