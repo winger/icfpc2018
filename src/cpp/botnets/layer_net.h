@@ -21,6 +21,8 @@ struct LayerBot {
     LayerBot& prm,
     LayerBot& snd);
 
+  void Print() const;
+
   static bool Nd(int x, int y, int z);
 
   static std::vector<int> ByAxeDist(int axe, int dist);
@@ -40,7 +42,7 @@ struct BotCoverTask {
 
   bool DoStupidStep(
     std::map<int /* bid */, Command>& cmds,
-    std::map<int /* id */, LayerBot> bots);
+    std::map<int /* id */, LayerBot>& bots);
 };
 
 class LayerNet
@@ -55,7 +57,7 @@ protected:
 
   int ShrinkLine(
     std::map<int /* bid */, Command>& cmds,
-    std::vector<LayerBot> line,
+    std::vector<int /* id */>& line,
     int axe);
 public:
   LayerNet(int size);
