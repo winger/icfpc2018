@@ -29,7 +29,7 @@ void WriteEnergyToFile(uint64_t energy, const string& filename) {
     if (!file.is_open()) {
         cerr << filename << " not found." << endl;
     }
-    assert (file.is_open());
+    assert(file.is_open());
     file << energy << endl;
     file.close();
 }
