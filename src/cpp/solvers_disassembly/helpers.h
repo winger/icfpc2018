@@ -45,7 +45,8 @@ public:
   Inverser(int _last_bot_id) {
     last_bot_id = _last_bot_id;
   }
-  CommandGroup InverseGroup(const CommandGroup& command_group);
+  CommandGroup InverseForBot0(const CommandGroup& command_group);
+  static CommandGroup InverseForAllBots(const CommandGroup& command_group);
 
   static void InverseDirection(CoordinateDifference& cd) {
     cd.dx *= -1;

@@ -180,7 +180,7 @@ ostream& operator<<(ostream& s, const Command& c) {
             s << "GFill";
             break;
         case Command::GVoid:
-            s << "GVoid";
+            s << "GVoid, cd1=" << c.cd1 << ", cd2=" << c.cd2;
             break;
     }
     s << "}";

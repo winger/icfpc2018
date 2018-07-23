@@ -1,5 +1,11 @@
 #include "region.h"
 
+ostream& operator<<(ostream& s, const Region& r) {
+  s << "[ a=" << r.a << ", b=" << r.b << " ]";
+  return s;
+}
+
+
 Region::Region(const Coordinate& c1, const Coordinate& c2)
 {
     a = Coordinate{min(c1.x, c2.x), min(c1.y, c2.y), min(c1.z, c2.z)};

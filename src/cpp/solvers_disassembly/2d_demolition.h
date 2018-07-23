@@ -13,7 +13,14 @@ protected:
   // coordinates of grid how we spawn
   vector<int> x_coords;
   vector<int> z_coords;
+  int total_bots_in_layer{0};
+
   vector<CommandGroup> despawn_groups;
+
+  // indexes compared to position of our bots
+  // first is the row with smaller x
+  vector<int> first_row;
+  vector<int> second_row;
 
   void AddCommand(const Command& c) { state.trace.commands.push_back(c); state.Step(); }
   void ExecuteCommands(const CommandGroup& group);
@@ -26,9 +33,9 @@ protected:
   void SpawnBotsInGrid2(int x0, int x1, int z0, int z1);
 
 
-  void DemolishLayer(int y, int direction);
-  void PrepareMovementCommands();
-  void DoDemolishCommands();
+  vector<CommandGroup> GetMovementGroups(int index);
+  void DemolishWholeLayer(int y, int direction);
+  void DemolishStrip(int y, int index);
 
   Solver2D_Demolition(const Matrix& m);
   void Solve(Trace& output);

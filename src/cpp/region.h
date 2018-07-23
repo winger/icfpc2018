@@ -21,9 +21,11 @@ public:
     bool operator==(const Region& r) const { return a == r.a && b == r.b; }
 };
 
+ostream& operator<<(ostream& s, const Region& r);
+
 inline bool operator< (const Region& lhs, const Region& rhs)
 {
-    return std::tie(lhs.a, lhs.b) < std::tie(lhs.a, lhs.b);
+    return std::tie(lhs.a, lhs.b) < std::tie(rhs.a, rhs.b);
 };
 
 namespace std {

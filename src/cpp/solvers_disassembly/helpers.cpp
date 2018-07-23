@@ -29,7 +29,7 @@ void AddWaitCommands(vector<Command>& result, int n) {
   }
 }
 
-CommandGroup Inverser::InverseGroup(const CommandGroup& command_group) {
+CommandGroup Inverser::InverseForBot0(const CommandGroup& command_group) {
   auto new_group = command_group;
   // only zero bot does anything
   auto& command = new_group[0];
@@ -55,6 +55,21 @@ CommandGroup Inverser::InverseGroup(const CommandGroup& command_group) {
   return new_group;
 }
 
+
+CommandGroup Inverser::InverseForAllBots(const CommandGroup& command_group) {
+  auto new_group = command_group;
+  for (auto& command : new_group) {
+    if (command.type == Command::Wait) {
+      // skip
+    } else if (command.type == Command::SMove) {
+      InverseDirection(command.cd1);
+    } else {
+      cerr << "[ERROR] Unsupported command: " << command;
+      assert (false);
+    }
+  }
+  return new_group;
+}
 
 
 void SetDemolishSquareCommands(const BotSquare& square, vector<Command>& bot_commands) {
