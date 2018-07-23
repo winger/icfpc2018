@@ -1,1 +1,8 @@
+<<<<<<< HEAD
+trace=Solver2D_Demolition+autoharmonic, non_gravitated_solver_smart+autoharmonic energy=132706214 correct=1
+trace=../../proxyTracesF/FR039.nbt energy=510027998 correct=1
+trace=../../proxyTracesF/FR039.nbt+autoharmonic energy=188235678 correct=1
+=======
 trace=Solver2D_Demolition, gravitated_solver_smart energy=510027998 correct=1
+trace=../../proxyTracesF/FR039.nbt energy=510027998 correct=1
+>>>>>>> b42e56ba58ecb159c43eb914fdf24e3df616e123
