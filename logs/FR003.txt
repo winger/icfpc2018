@@ -1,2 +1,2 @@
-trace=SolverCubeDemolition_Tuned, gravitated solver smart energy=7246382 correct=1
-trace=../../proxyTracesF/FR003.nbt energy=7246382 correct=1
+trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic energy=4568370 correct=1
+trace=../../proxyTracesF/FR003.nbt energy=4568370 correct=1
