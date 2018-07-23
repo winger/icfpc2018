@@ -104,8 +104,13 @@ Problems Solver::ListProblems(const std::string& round) {
             }
         }
         if (!filtered.empty()) {
-            return filtered;
+            result = filtered;
         }
+    }
+
+    if (cmd.int_args["psort"]) {
+        std::sort(result.begin(), result.end(),
+                  [](const Problem& a, const Problem& b) -> bool { return a.index < b.index; });
     }
 
     return result;
