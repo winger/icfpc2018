@@ -89,7 +89,117 @@ void LayerNet::LevelUp(int level, Trace& output) {
 
 // Invariant z == 0 || z == R - 1
 void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
+  // 1. Select who needs to move
+  // 2. Assign destinations
+  // 3. Lift them up
+  // 4. Move them where they need to be
+  // 4. Put them backwards
+  int size = matrix.GetR();
+  // 1. SELECT
+  std::set<int> dests;
+  for (int x: chunk) {
+    dests.insert(x);
+  }
 
+  std::set<int> stable;
+  std::map<int /* x */, int /* id */> movableBots;
+  for (auto const& kv: bots) {
+    movableBots[kv.first] = kv.second.id;
+  }
+
+  std::set<int> toLeave;
+  std::set<int> toMove = dests;
+  int zstatus = 0;
+  for (auto const& kv: bots) {
+    auto const& bot = kv.second;
+    zstatus = bot.z;
+    if (dests.find(bot.x) != dests.end()) {
+      stable.insert(bot.id);
+      toLeave.insert(bot.x);
+    } else {
+      toMove.erase(bot.x);
+      movableBots.erase(bot.x);
+    }
+  }
+
+  // 2. ASSIGN
+  std::map<int /* id */, int /* dx */> destsX;
+  std::map<int /* id */, int /* dz */> destsZ;
+  auto it = movableBots.begin();
+  {
+    int step = 0;
+    for (auto dx: toMove) {
+      ++step;
+      destsX[it->second] = dx;
+      destsZ[it->second] = bots[it->second].z == 0 ? step : size - 1 - step;
+      if (destsZ[it->second] < 0 || destsZ[it->second] >= size) {
+        throw std::runtime_error("LN/Relocate/Out of place");
+      }
+      ++it;
+    }
+  }
+  while (it != movableBots.end()) {
+    stable.insert(it->second);
+  }
+
+  // 3. LIFT THEM UP
+
+  while (true) {
+    bool stillGo = false;
+    std::map<int /* bid */, Command> cmds;
+    for (auto const& id: stable) {
+      cmds[id] = Command(Command::Wait);
+    }
+    for (auto const& kv: destsZ) {
+      int bid = kv.first;
+      int destZ = kv.second;
+      auto& bot = bots[bid];
+      auto cmd = bot.MoveTowards(bot.x, bot.y, destZ);
+      cmds[bid] = cmd;
+      stillGo |= cmd.type != Command::Wait;
+    }
+    if (not stillGo) { break; }
+    CleanCmds(output, cmds);
+  }
+
+  // 4. MOVE THEM TO DEST POS
+
+  while (true) {
+    bool stillGo = false;
+    std::map<int /* bid */, Command> cmds;
+    for (auto const& id: stable) {
+      cmds[id] = Command(Command::Wait);
+    }
+    for (auto const& kv: destsX) {
+      int bid = kv.first;
+      int destX = kv.second;
+      auto& bot = bots[bid];
+      auto cmd = bot.MoveTowards(destX, bot.y, bot.z);
+      cmds[bid] = cmd;
+      stillGo |= cmd.type != Command::Wait;
+    }
+    if (not stillGo) { break; }
+    CleanCmds(output, cmds);
+  }
+
+  // 5. PUT THEM DOWN
+
+  while (true) {
+    bool stillGo = false;
+    std::map<int /* bid */, Command> cmds;
+    for (auto id: stable) {
+      cmds[id] = Command(Command::Wait);
+    }
+    for (auto const& kv: destsZ) {
+      int bid = kv.first;
+      auto& bot = bots[bid];
+      auto cmd = bot.MoveTowards(bot.x, bot.y, zstatus);
+      cmds[bid] = cmd;
+      stillGo |= cmd.type != Command::Wait;
+    }
+    if (not stillGo) { break; }
+    CleanCmds(output, cmds);
+  }
 }
 
 void LayerNet::Cover(
@@ -226,6 +336,21 @@ Command LayerBot::SMoveUC(int dx, int dy, int dz) {
   Command cmd(Command::SMove);
   cmd.cd1 = {dx, dy, dz};
   return cmd;
+}
+
+inline int filterLong(int x) {
+  x = max(x, -TaskConsts::LONG_LIN_DIFF);
+  return min(x, TaskConsts::LONG_LIN_DIFF);
+}
+
+Command LayerBot::MoveTowards(int destX, int destY, int destZ) {
+  int dx = filterLong(destX - x);
+  int dy = filterLong(destY - y);
+  int dz = filterLong(destZ - z);
+  if (dx != 0) { return SMoveUC(dx, 0, 0); }
+  if (dy != 0) { return SMoveUC(0, dy, 0); }
+  if (dz != 0) { return SMoveUC(0, 0, dz); }
+  return Command(Command::Wait);
 }
 
 int sgn(int a) {
