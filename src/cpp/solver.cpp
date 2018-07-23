@@ -125,6 +125,10 @@ Problems Solver::ListProblems(const std::string& round) {
                   [](const Problem& a, const Problem& b) -> bool { return a.index < b.index; });
     }
 
+    if (cmd.int_args["prev"]) {
+        std::reverse(result.begin(), result.end());
+    }
+
     return result;
 }
 
