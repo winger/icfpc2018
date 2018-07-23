@@ -12,6 +12,7 @@ void CommandLine::Parse(int argc, char* const argv[]) {
     int_args["prev"] = 0;
     int_args["ah"] = 1;
     int_args["al"] = 1;
+    int_args["base"] = 1;
 
     int index = 1;
     while (index + 1 < argc) {

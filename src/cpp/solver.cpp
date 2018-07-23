@@ -27,6 +27,7 @@ static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
 static constexpr size_t REASSEMBLE_THRESHOLD = 31;
+static constexpr size_t BASE_AND_BOTS_THRESHOLD = 70;
 
 namespace {
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
@@ -178,7 +179,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 {
     Traces traces;
 
-    {
+    if (cmd.int_args["base"]) {
         Trace temp;
         AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base, true);
         temp.tag = "parallel_base";
@@ -232,11 +233,14 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
       cerr << "Error: " << e.what() << endl;
     }
 
-    if (source.GetR() < 70) {
-        Trace temp;
-        AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base_and_bots, true);
-        temp.tag = "parallel_base_and_bots";
-        traces.push_back(temp);
+    if (cmd.int_args["base"]) {
+        if (source.GetR() < BASE_AND_BOTS_THRESHOLD) {
+            Trace temp;
+            AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base_and_bots,
+                                                true);
+            temp.tag = "parallel_base_and_bots";
+            traces.push_back(temp);
+        }
     }
 
     if (p.assembly && (source.GetR() < REASSEMBLE_THRESHOLD)) {
@@ -267,7 +271,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    {
+    if (cmd.int_args["base"]) {
         Trace trace;
         AssemblySolverLayersBase::Solve(source, trace, true, true);
         trace.tag = "base";
