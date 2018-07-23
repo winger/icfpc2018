@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 trace=Solver2D_Demolition energy=14829121642 correct=1
-trace=../../proxyTracesF/FD128.nbt energy=14829121642 correct=1
+trace=Solver2D_Demolition_Tuned energy=14276789046 correct=1
+trace=../../proxyTracesF/FD128.nbt energy=3042122602 correct=1
 trace=Solver2D_Demolition+autoharmonic energy=3042122602 correct=1
+=======
+trace=Solver2D_Demolition_Tuned energy=14276789046 correct=1
+trace=../../proxyTracesF/FD128.nbt energy=3042122602 correct=1
+>>>>>>> 083e19f88990e6e0d6a3b4ef513d45ea13274d53
+trace=Solver2D_Demolition_Tuned+autoharmonic energy=2777789286 correct=1
 trace=../../proxyTracesF/FD128.nbt+autoharmonic energy=3042122602 correct=1
