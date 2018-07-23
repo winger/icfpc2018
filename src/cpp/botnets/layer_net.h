@@ -43,6 +43,14 @@ protected:
 public:
   LayerNet(int size);
 
+  // Invariant z == 0 || z == R - 1
+  void Relocate(Trace& output, std::vector<int> const& chunk);
+
+  void Cover(
+      Trace& output,
+      std::vector<int> const& chunk,
+      std::map<int /* x */, std::vector<int>> const& xzPlane);
+
   void Spread(Trace& output); // DONE
   void LevelUp(int level, Trace& output);  // DONE
   void CoverPatch(std::vector<int> layer, Trace& output);

@@ -88,9 +88,15 @@ void LayerNet::LevelUp(int level, Trace& output) {
 
 
 // Invariant z == 0 || z == R - 1
-void LayerNet::Relocate(Trace& output, std::vector<int> chunk) {
-  std::sort(chunk.begin(), chunk.end());
-  
+void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
+
+}
+
+void LayerNet::Cover(
+    Trace& output,
+    std::vector<int> const& chunk,
+    std::map<int /* x */, std::vector<int>> const& xzPlane) {
+
 }
 
 void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {
@@ -110,7 +116,7 @@ void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {
   int chunkSize = bots.size();
   std::sort(xvs.begin(), xvs.end());
   for (int i = 0; i < xvs.size(); i += chunkSize) {
-    int curChunkSize = min(chunkSize, xvs.size() - i);
+    int curChunkSize = min(chunkSize, (int)xvs.size() - i);
     std::vector<int> chunk(curChunkSize);
     std::copy(
       xvs.begin() + i,
