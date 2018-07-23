@@ -551,36 +551,31 @@ void Solver::MergeWithSubmit(const std::string& round) {
 }
 
 int WriteMetadataForProblem(const Problem& p) {
-  Matrix source, target;
-  if (p.assembly) {
-      target.ReadFromFile(p.GetTarget());
-      source.Init(target.GetR());
-  } else if (p.disassembly) {
-      source.ReadFromFile(p.GetSource());
-      target.Init(source.GetR());
-  } else if (p.reassembly) {
-      source.ReadFromFile(p.GetSource());
-      target.ReadFromFile(p.GetTarget());
-  }
+    Matrix source, target;
+    if (p.assembly) {
+        target.ReadFromFile(p.GetTarget());
+        source.Init(target.GetR());
+    } else if (p.disassembly) {
+        source.ReadFromFile(p.GetSource());
+        target.Init(source.GetR());
+    } else if (p.reassembly) {
+        source.ReadFromFile(p.GetSource());
+        target.ReadFromFile(p.GetTarget());
+    }
 
+    Trace trace_dflt;
+    trace_dflt.ReadFromFile(p.GetDefaultTrace());
+    Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
+    auto max_score = unsigned(1000.0 * unsigned(log(default_result.r) / log(2)));
 
-  Trace trace_dflt;
-  trace_dflt.ReadFromFile(p.GetDefaultTrace());
-  Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
-  auto max_score = unsigned(1000.0 * unsigned(log(default_result.r) / log(2)));
-
-  ofstream file(p.GetMetadataFile());
-  file << "dflt_energy=" << default_result.energy << endl;
-  file << "R=" << default_result.r << endl;
-  file << "max_score=" << max_score << endl;
-  cout << p.Name() << ": " << default_result.energy << endl;
-  return 0;
+    ofstream file(p.GetMetadataFile());
+    file << "dflt_energy=" << default_result.energy << endl;
+    file << "R=" << default_result.r << endl;
+    file << "max_score=" << max_score << endl;
+    cout << p.Name() << ": " << default_result.energy << endl;
+    return 0;
 }
 
-
 void Solver::WriteMetadata() {
-  auto results = runForEachProblem<int>("full", [](const Problem& p)
-    {
-        return WriteMetadataForProblem(p);
-    });
+    auto results = runForEachProblem<int>("full", [](const Problem& p) { return WriteMetadataForProblem(p); });
 }

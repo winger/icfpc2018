@@ -45,22 +45,18 @@ void State::Fulfill() {
 }
 
 bool State::IsGrounded() {
-    if (toDelete.empty())
-    {
-        if (toAdd.empty())
-        {
+    if (toDelete.empty()) {
+        if (toAdd.empty()) {
             // Do nothing
-        }
-        else
-        {
+        } else {
             if (grounded)
                 grounded = Grounder::IsDeltaGrounded(backMatrix, toAdd);
             else
                 grounded = matrix.IsGrounded();
         }
-    }
-    else
+    } else {
         grounded = matrix.IsGrounded();
+    }
     Fulfill();
     return grounded;
 }
