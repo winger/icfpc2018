@@ -129,7 +129,7 @@ bool Solver::FindBestTrace(
         }
     }
     if (best_result.correct && write) {
-        cout << "best trace: " << output.tag << endl;
+        // cout << "best trace: " << output.tag << endl;
       // cout << "trace: " << trace.tag << " --> " << result.energy << endl;
         output.WriteToFile(p.GetProxy());
     }
@@ -213,7 +213,6 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         } catch (const StopException& e) {
         }
     }
-
     {
         try {
             Trace trace;
