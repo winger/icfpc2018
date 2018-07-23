@@ -21,6 +21,8 @@ static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
+static constexpr size_t REASSEMBLE_THRESHOLD = 30;
+
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
     ofstream file(filename);
     if (!file.is_open()) {
@@ -160,7 +162,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         traces.push_back(temp);
     }
 
-    if (source.GetR() < 70) {
+    if (source.GetR() < REASSEMBLE_THRESHOLD) {
         try {
             Trace temp;
             ReassemblySolverLayersBase::Solve(source, target, temp, true);
@@ -211,7 +213,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         assert(result.correct);
     }
 
-    if (source.GetR() < 70) {
+    if (source.GetR() < REASSEMBLE_THRESHOLD) {
         try {
             Trace temp;
             ReassemblySolverLayersBase::Solve(source, target, temp, true);
@@ -274,7 +276,7 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
     }
 
-    if (source.GetR() < 70) {
+    if (source.GetR() < REASSEMBLE_THRESHOLD) {
         try {
             Trace temp;
             ReassemblySolverLayersBase::Solve(source, target, temp, true);
