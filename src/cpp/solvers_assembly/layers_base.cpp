@@ -1,6 +1,7 @@
 #include "layers_base.h"
-#include "grounder.h"
+#include "command_line.h"
 #include "distance_calculator.h"
+#include "grounder.h"
 
 AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e, bool l) : SolverBase(m, l), erase(e) {
     if (erase) {
@@ -338,78 +339,84 @@ void AssemblySolverLayersBase::SolveLayer(int y) {
 
     Coordinate c = state.all_bots[0].c;
 
-    StateSnapshots snapshots;
+    if (cmd.int_args["al"]) {
+        StateSnapshots snapshots;
 
-    auto snapshot = GetSnapshot();
+        auto snapshot = GetSnapshot();
 
-    {
-        for (int x = x0; x <= x1;) {
-            if (x < x1) {
-                SolveZ3(x + 1, y);
-                x += 3;
-            } else {
-                SolveZ1(x, y);
-                x += 1;
+        {
+            for (int x = x0; x <= x1;) {
+                if (x < x1) {
+                    SolveZ3(x + 1, y);
+                    x += 3;
+                } else {
+                    SolveZ1(x, y);
+                    x += 1;
+                }
             }
+
+            snapshots.emplace_back(GetSnapshot());
+            ApplySnapshot(snapshot);
         }
 
-        snapshots.emplace_back(GetSnapshot());
-        ApplySnapshot(snapshot);
-    }
-
-    {
-        for (int x = x1; x >= x0;) {
-            if (x > x0) {
-                SolveZ3(x - 1, y);
-                x -= 3;
-            } else {
-                SolveZ1(x, y);
-                x -= 1;
+        {
+            for (int x = x1; x >= x0;) {
+                if (x > x0) {
+                    SolveZ3(x - 1, y);
+                    x -= 3;
+                } else {
+                    SolveZ1(x, y);
+                    x -= 1;
+                }
             }
+
+            snapshots.emplace_back(GetSnapshot());
+            ApplySnapshot(snapshot);
         }
 
-        snapshots.emplace_back(GetSnapshot());
-        ApplySnapshot(snapshot);
-    }
-
-    {
-        for (int z = z0; z <= z1;) {
-            if (z < z1) {
-                SolveX3(z + 1, y);
-                z += 3;
-            } else {
-                SolveX1(z, y);
-                z += 1;
+        {
+            for (int z = z0; z <= z1;) {
+                if (z < z1) {
+                    SolveX3(z + 1, y);
+                    z += 3;
+                } else {
+                    SolveX1(z, y);
+                    z += 1;
+                }
             }
+
+            snapshots.emplace_back(GetSnapshot());
+            ApplySnapshot(snapshot);
         }
 
-        snapshots.emplace_back(GetSnapshot());
-        ApplySnapshot(snapshot);
-    }
-
-    {
-        for (int z = z1; z >= z0;) {
-            if (z > z0) {
-                SolveX3(z - 1, y);
-                z -= 3;
-            } else {
-                SolveX1(z, y);
-                z -= 1;
+        {
+            for (int z = z1; z >= z0;) {
+                if (z > z0) {
+                    SolveX3(z - 1, y);
+                    z -= 3;
+                } else {
+                    SolveX1(z, y);
+                    z -= 1;
+                }
             }
+
+            snapshots.emplace_back(GetSnapshot());
+            ApplySnapshot(snapshot);
         }
 
-        snapshots.emplace_back(GetSnapshot());
-        ApplySnapshot(snapshot);
-    }
+        {
+            while (count) {
+                assert(SolveGreedy(y, count));
+            }
+            snapshots.emplace_back(GetSnapshot());
+        }
 
-    {
+        SelectBestSnapshot(snapshots);
+    } else {
         while (count) {
             assert(SolveGreedy(y, count));
         }
-        snapshots.emplace_back(GetSnapshot());
     }
-
-    SelectBestSnapshot(snapshots);
 }
 
 void AssemblySolverLayersBase::Solve(Trace& output) {
