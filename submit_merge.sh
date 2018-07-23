@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -e
 git pull
-cd src/cpp && make && ./build/cpp_solver -mode merge -threads 1
+cd src/cpp && make && ./build/cpp_solver -mode merge
