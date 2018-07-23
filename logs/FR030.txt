@@ -1,3 +1,2 @@
-trace=reassembly energy=13519728700 correct=1
 trace=SolverCubeDemolition_Tuned, gravitated_solver_smart energy=144552084 correct=1
 trace=../../proxyTracesF/FR030.nbt energy=144552084 correct=1
