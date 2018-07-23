@@ -524,6 +524,19 @@ MergeResult MergeProblemWithSubmit(const Problem& p) {
     }
 
     auto checkProxy = Solver::Check(p, p.GetProxy());
+    auto replace = [&p, &checkProxy]() {
+        Trace t;
+        t.ReadFromFile(p.GetProxy());
+        t.WriteToFile(p.GetSubmitOutput());
+        WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
+    };
+
+    if (!FileExists(p.GetSubmitOutput())) {
+        replace();
+        cout << p.Name() << ": NEW" << endl;
+        return {true, 0};
+    }
+
     auto checkSubmit = Solver::Check(p, p.GetSubmitOutput());
     assert(checkProxy.correct);
     assert(checkSubmit.correct);
@@ -531,10 +544,7 @@ MergeResult MergeProblemWithSubmit(const Problem& p) {
     bool need_replace = checkProxy < checkSubmit;
     int score_diff = 0;
     if (need_replace) {
-        Trace t;
-        t.ReadFromFile(p.GetProxy());
-        t.WriteToFile(p.GetSubmitOutput());
-        WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
+        replace();
         cout << p.Name() << ": BETTER " << checkProxy.energy << " < " << checkSubmit.energy << endl;
         score_diff = checkProxy.score - checkSubmit.score;
     } else {

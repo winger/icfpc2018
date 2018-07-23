@@ -1,2 +1,4 @@
 trace=gravitated_solver_stupid energy=810081713542 correct=1
 trace=gravitated_solver_smart energy=481559561642 correct=1
+trace=non_gravitated_solver_stupid energy=7102636976338 correct=1
+trace=non_gravitated_solver_smart energy=3582251779838 correct=1
