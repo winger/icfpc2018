@@ -2,6 +2,7 @@
 
 #include "../timer.h"
 #include "../constants.h"
+#include "../botnets/layer_net.h"
 
 SolverGravitated::SolverGravitated(const Matrix& m)
 {
@@ -50,12 +51,12 @@ void SolverGravitated::Order() {
       std::vector<int> nextLayer;
       for (int ind: lastLayer) {
         auto cd = matrix.Reindex(ind);
-        for (int d = 0; d < DIRS_2D; ++d) {
+        for (auto const& dir: DIRS_2D) {
           auto nc = cd;
           for (int i = 0; i < nc.size(); ++i) {
-            nc[i] += DIRS_2D[i];
+            nc[i] += dir[i];
           }
-          auto nindex = matrix.Index(nc[0], nc[1], nc[2]):
+          auto nindex = matrix.Index(nc[0], nc[1], nc[2]);
           if (matrix.IsInside(nc[0], nc[1], nc[2])
              && matrix.Get(nindex)
              && was.find(nindex) == was.end()) {
@@ -67,7 +68,7 @@ void SolverGravitated::Order() {
       if (nextLayer.empty()) {
         if (layerSize != was.size()) {
           cerr << "[ERR] Ungrounded" << endl;
-          throw std::exception("Layerly Ungrounded model");
+          throw std::runtime_error("Layer Ungrounded model");
         }
         was.clear();
         break;
@@ -80,7 +81,7 @@ void SolverGravitated::Order() {
 void SolverGravitated::Solve(Trace& output)
 {
     output.commands.resize(0);
-    LayerNet botnet(matrix.getR());
+    LayerNet botnet(matrix.GetR());
     // 1. Run BFS to designate order of data feeling
     //    1.1. BFS runs level by level
     // 2. Run bots level by level to draw the picture
@@ -106,7 +107,7 @@ void SolverGravitated::Solve(Trace& output)
 
 uint64_t SolverGravitated::Solve(const Matrix& m, Trace& output)
 {
-    SolverSpan solver(m);
+    SolverGravitated solver(m);
     solver.Solve(output);
     return 0;
 }

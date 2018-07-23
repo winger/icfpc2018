@@ -3,23 +3,50 @@
 #include "../solver.h"
 #include "../state.h"
 
+struct LayerBot {
+  int x, y, z;
+  int id;
+  std::vector<int> seeds;
+
+  int Coord(int axe);
+
+
+  void CheckLine(Matrix const& m, int dx, int dy, int dz);
+  void SMoveUC(Trace& output, int dx, int dy, int dz);
+  Command SMoveUC(int dx, int dy, int dz);
+  std::pair<LayerBot, Command> Fission(int dx, int dy, int dz, int m);
+
+  static void Fusion(
+    std::map<int /* bid */, Command>& cmds,
+    LayerBot& prm,
+    LayerBot& snd);
+
+  static bool Nd(int x, int y, int z);
+
+  static std::vector<int> ByAxeDist(int axe, int dist);
+};
+
 class LayerNet
 {
 protected:
-    Matrix matrix;
-    std::vector<> order;
+  Matrix matrix;
+  std::map<int /* id */, LayerBot> bots;
 
-    SolverGravitated(const Matrix& m);
+  static void CleanCmds(
+    Trace& output,
+    std::map<int /* bid */, Command>& cmds);
 
-    void Solve(Trace& output);
-    void Order();
-
-
+  int ShrinkLine(
+    std::map<int /* bid */, Command>& cmds,
+    std::vector<LayerBot> line,
+    int axe);
 public:
-  Spread(Trace& output);
-  LevelUp(int level, Trace& output);
-  CoverPatch(std::vector<int> layer, Trace& output);
-  Merge(Trace& output);
-  Origin(Trace& output);
-  Halt(Trace& output);
+  LayerNet(int size);
+
+  void Spread(Trace& output); // DONE
+  void LevelUp(int level, Trace& output);  // DONE
+  void CoverPatch(std::vector<int> layer, Trace& output);
+  void Merge(Trace& output); // // DONE
+  void Origin(Trace& output); // // DONE
+  void Halt(Trace& output); // // DONE
 };
