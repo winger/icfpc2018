@@ -56,8 +56,21 @@ void Matrix::Init(int r)
     data.resize(volume, 0);
 }
 
-void Matrix::ReadFromFile(const string& filename)
-{
+void Matrix::CacheYSlices() {
+    ySlices.resize(size);
+    for (int y = 0; y < size; ++y) {
+        for (int x = 0; x < size; ++x) {
+            for (int z = 0; z < size; ++z) {
+                if (Get(x, y, z)) {
+                    ySlices[y].emplace_back(PointXZ{x, z});
+                }
+            }
+        }
+        ySlices.shrink_to_fit();
+    }
+}
+
+void Matrix::ReadFromFile(const string& filename) {
     // cout << full_filename << endl;
     ifstream file(filename, ios::binary);
     if (!file.is_open()) {
@@ -72,12 +85,13 @@ void Matrix::ReadFromFile(const string& filename)
     volume = size * size * size;
     unsigned volume8 = (volume + 7) / 8;
     vector<uint8_t> data_bool(volume8);
-    file.read(reinterpret_cast<char*>(&(data_bool[0])), volume8);
+    file.read(reinterpret_cast<char*>(data_bool.data()), volume8);
     file.close();
-    for (unsigned i = 0; i < volume; ++i)
-    {
+    for (unsigned i = 0; i < volume; ++i) {
         data[i] = (data_bool[i / 8] >> (i % 8)) & 1;
     }
+
+    CacheYSlices();
 }
 
 std::ostream& operator<<(std::ostream& s, const Matrix& m) {
@@ -101,4 +115,9 @@ std::vector<int> Matrix::Reindex(int index) const {
   index /= size;
   int x = index % size;
   return std::vector<int>{x, y, z};
+}
+
+const vector<PointXZ>& Matrix::YSlices(int y) const {
+    assert(y >= 0 && y < size);
+    return ySlices[y];
 }

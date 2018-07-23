@@ -3,12 +3,18 @@
 #include "base.h"
 #include "coordinate.h"
 
+struct PointXZ {
+    int16_t x;
+    int16_t z;
+};
+
 class Matrix
 {
 protected:
     int size;
     int volume;
     vector<uint8_t> data;
+    vector<vector<PointXZ>> ySlices;
 
 public:
     int GetR() const { return size; }
@@ -35,6 +41,9 @@ public:
     void Init(int r);
     void ReadFromFile(const string& filename);
     void Print() const;
+
+    void CacheYSlices();
+    const vector<PointXZ>& YSlices(int y) const;
 
     bool operator==(const Matrix& m) const { return data == m.data; }
 };

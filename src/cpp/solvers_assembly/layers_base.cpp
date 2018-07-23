@@ -267,19 +267,18 @@ size_t AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
     int bestEstimation = INF_ESTIMATION;
     size_t count1 = 0;
 
-    for (int x = 0; x < matrix.GetR(); ++x) {
-        for (int z = 0; z < matrix.GetR(); ++z) {
-            if (NeedChange({x, y, z})) {
-                ++count1;
-                int estimation = GetGreedyEstimation(x, y, z);
-                if (estimation > bestEstimation) {
-                    bestX = x;
-                    bestZ = z;
-                    bestEstimation = estimation;
-                }
+    for (const auto& xz: matrix.YSlices(y)) {
+        if (NeedChange({xz.x, y, xz.z})) {
+            ++count1;
+            int estimation = GetGreedyEstimation(xz.x, y, xz.z);
+            if (estimation > bestEstimation) {
+                bestX = xz.x;
+                bestZ = xz.z;
+                bestEstimation = estimation;
             }
         }
     }
+
     assert(count1 == count);
 
     assert(bestEstimation != INF_ESTIMATION);
@@ -310,21 +309,18 @@ void AssemblySolverLayersBase::SelectBestSnapshot(const StateSnapshots& s) {
     ApplySnapshot(s[best_index]);
 }
 
-void AssemblySolverLayersBase::SolveLayer(int y)
-{
+void AssemblySolverLayersBase::SolveLayer(int y) {
     int r = matrix.GetR();
     // Get box
-    int x0 = r, x1 = -1, z0 = r, z1 = -1;
+    int16_t x0 = r, x1 = -1, z0 = r, z1 = -1;
     size_t count = 0;
-    for (int x = 0; x < r; ++x) {
-        for (int z = 0; z < r; ++z) {
-            if (matrix.Get(x, y, z)) {
-                x0 = min(x0, x);
-                x1 = max(x1, x);
-                z0 = min(z0, z);
-                z1 = max(z1, z);
-                ++count;
-            }
+    for (const auto& xz : matrix.YSlices(y)) {
+        if (matrix.Get(xz.x, y, xz.z)) {
+            x0 = min(x0, xz.x);
+            x1 = max(x1, xz.x);
+            z0 = min(z0, xz.z);
+            z1 = max(z1, xz.z);
+            ++count;
         }
     }
     if (x1 < 0) {
