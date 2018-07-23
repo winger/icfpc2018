@@ -39,7 +39,7 @@ protected:
     void Solve(Trace& output);
 
 public:
-    static void Solve(const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output, bool levitation);
+    static void Solve(const Matrix& source, const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output, bool levitation);
 
     enum SplitSearchMode
     {
@@ -47,5 +47,5 @@ public:
         base_and_bots
     };
 
-    static Evaluation::Result Solve(const Matrix& target, Trace& output, SplitSearchMode mode, bool levitation);
+    static Evaluation::Result Solve(const Matrix& source, const Matrix& target, Trace& output, SplitSearchMode mode, bool levitation);
 };

@@ -2,6 +2,7 @@
 
 #include "layers_base.h"
 
+#include "../auto_harmonic.h"
 #include "../constants.h"
 #include "../coordinate_split.h"
 
@@ -132,13 +133,15 @@ void AssemblySolverLayersParallel::Solve(Trace& output)
     // cout << "Total moves: " << bot_traces[0].GetTime() << endl;
 }
 
-void AssemblySolverLayersParallel::Solve(const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output, bool levitation)
+void AssemblySolverLayersParallel::Solve(const Matrix& source, const Matrix& target, int split_axis, const vector<int>& split_coordinate, Trace& output, bool levitation)
 {
+    Trace temp;
     AssemblySolverLayersParallel solver(target, split_axis, split_coordinate, levitation);
-    solver.Solve(output);
+    solver.Solve(temp);
+    AutoHarmonic::ImproveTrace(source, target, temp, output);
 }
 
-Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& target, Trace& output, SplitSearchMode mode, bool levitation)
+Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& source, const Matrix& target, Trace& output, SplitSearchMode mode, bool levitation)
 {
     int r = target.GetR();
     int max_bots = min(r, TaskConsts::N_BOTS);
@@ -149,9 +152,9 @@ Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& target, Tra
     {
         for (int axis = 1; axis <= 3; axis += 2)
         {
-            Solve(target, axis, CoordinateSplit::SplitUniform(r, max_bots), temp, levitation);
+            Solve(source, target, axis, CoordinateSplit::SplitUniform(r, max_bots), temp, levitation);
             traces.push_back(temp);
-            Solve(target, axis, CoordinateSplit::SplitByVolume(target, axis, max_bots), temp, levitation);
+            Solve(source, target, axis, CoordinateSplit::SplitByVolume(target, axis, max_bots), temp, levitation);
             traces.push_back(temp);
         }
     }
@@ -161,15 +164,14 @@ Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& target, Tra
         {
             for (int axis = 1; axis <= 3; axis += 2)
             {
-                Solve(target, axis, CoordinateSplit::SplitUniform(r, bots), temp, levitation);
+                Solve(source, target, axis, CoordinateSplit::SplitUniform(r, bots), temp, levitation);
                 traces.push_back(temp);
-                Solve(target, axis, CoordinateSplit::SplitByVolume(target, axis, bots), temp, levitation);
+                Solve(source, target, axis, CoordinateSplit::SplitByVolume(target, axis, bots), temp, levitation);
                 traces.push_back(temp);
             }
         }
     }
 
-    Matrix source(r);
     Evaluation::Result best_result;
     for (const Trace& trace : traces)
     {

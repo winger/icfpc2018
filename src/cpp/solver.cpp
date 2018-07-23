@@ -142,16 +142,10 @@ bool Solver::FindBestTrace(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output)
 {
     vector<Trace> traces;
-    // {
-    //     Trace temp;
-    //     AssemblySolverLayersBase::Solve(target, temp, false, true);
-    //     temp.tag = "base";
-    //     traces.push_back(temp);
-    // }
 
     {
         Trace temp;
-        AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, true);
+        AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base, true);
         temp.tag = "parallel base";
         traces.push_back(temp);
     }
@@ -169,7 +163,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 
     if (source.GetR() < 70) {
         Trace temp;
-        AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base_and_bots, true);
+        AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base_and_bots, true);
         temp.tag = "parallel base and bots";
         traces.push_back(temp);
     }
@@ -183,23 +177,6 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         }
     }
 
-    // if (!cmd.int_args["levitation"]) {
-    //     try {
-    //         Trace temp;
-    //         AssemblySolverLayersBase::Solve(target, temp, false, false);
-    //         temp.tag = "base no levitation";
-    //         traces.push_back(temp);
-    //     } catch (const StopException& e) {
-    //     }
-    //     try {
-    //         Trace temp;
-    //         AssemblySolverLayersParallel::Solve(target, temp, AssemblySolverLayersParallel::base, false);
-    //         temp.tag = "parallel no levitation";
-    //         traces.push_back(temp);
-    //     } catch (const StopException& e) {
-    //     }
-    // }
-
     assert(!traces.empty());
     if (p.assembly) {
         Trace temp;
@@ -212,15 +189,12 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     }
 
     {
-        unsigned l = traces.size();
         Trace temp;
-        for (unsigned i = 0; i < l; ++i)
-        {
-            AutoHarmonic::ImproveTrace(source, target, traces[i], temp);
-            if (temp.commands.size() > 0)
-                traces.push_back(temp);
-        }
+        AutoHarmonic::ImproveTrace(source, target, traces.back(), temp);
+        if (temp.commands.size() > 0)
+            traces.push_back(temp);
     }
+
     assert(FindBestTrace(p, source, target, traces, output, p.assembly));
 }
 
