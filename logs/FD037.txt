@@ -1,4 +1,4 @@
-trace=base energy=2704229596 correct=1
+trace=base energy=2691268816 correct=1
 trace=reassembly energy=2664701296 correct=1
 trace=Solver2D_Demolition energy=48798593 correct=1
 trace=SolverCubeDemolition energy=2624973 correct=1
