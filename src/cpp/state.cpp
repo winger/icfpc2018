@@ -38,6 +38,7 @@ void State::Init(const Matrix& source, const Trace& _trace)
     trace = _trace;
     trace_pos = 0;
 
+    ground = unsigned(source.GetVolume());
     ds.Init(source.GetVolume() + 1);
     run_mode = Unknown;
     filled_volume = backMatrix.GetFilledVolume();
@@ -54,7 +55,6 @@ void State::RebuildDS()
     int size = matrix.GetR();
     knownUngrounded.clear();
     ds.Init(ds.Size());
-    size_t ground = size_t(matrix.GetVolume());
     for (int x = 0; x < size; ++x)
     {
         for (int y = 0; y < size; ++y)
@@ -77,7 +77,7 @@ void State::RebuildDS()
         }
     }
 
-    ground = ds.Find(ground);
+    unsigned ground_head = ds.Find(ground);
     for (int x = 0; x < size; ++x)
     {
         for (int y = 0; y < size; ++y)
@@ -87,7 +87,7 @@ void State::RebuildDS()
                 size_t index = size_t(matrix.Index(x, y, z));
                 if (matrix.Get(x, y, z))
                 {
-                    if (ds.Find(index) != ground)
+                    if (ds.Find(index) != ground_head)
                     {
                         knownUngrounded.insert(index);
                     }
@@ -161,6 +161,8 @@ bool State::IsGrounded() {
                         ds.Union(index, index2);
                     }
                 }
+                if (y == 0)
+                    ds.Union(index, ground);
             }
         }
         if (ds_rebuild_required)
@@ -189,6 +191,7 @@ bool State::IsGrounded() {
         }
         else
             grounded = false;
+        toDelete.clear();
     }
     return grounded;
 }

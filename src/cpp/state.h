@@ -46,6 +46,7 @@ protected:
     RunMode run_mode;
     unsigned filled_volume;
     bool grounded;
+    unsigned ground;
     DisjointSet ds;
     bool ds_rebuild_required;
     vector<int> toAdd;
