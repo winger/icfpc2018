@@ -215,6 +215,7 @@ void State::Step()
         }
     }
 
+    assert (correct);
     for (auto const& erase : erases)
     {
         set<Coordinate> corners = erase.first.Corners();
@@ -237,10 +238,16 @@ void State::Step()
         }
     }
 
+    // for (auto bid : active_bots) {
+    //   cout << " bot " << bid << " at " << all_bots[bid].c << endl;
+    // }
+
+
     if (hc & 1)
     {
         harmonics = !harmonics;
     }
+    assert (correct);
     bool icValid = ic.IsValid();
     correct = correct && icValid;
     if (!cmd.int_args["levitation"]) {

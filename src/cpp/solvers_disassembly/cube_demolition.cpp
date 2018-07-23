@@ -1,6 +1,9 @@
 #include "cube_demolition.h"
 #include "helpers.h"
 
+namespace {
+constexpr bool debug = false;
+}
 
 
 void SolverCubeDemolition::DemolishCube() {
@@ -29,16 +32,16 @@ void SolverCubeDemolition::DemolishCube() {
 
   vector<Coordinate> cube(8);
   for (const auto& point : bottom_square) {
-    cube[ point.index ] = {point.x, 0, point.y};
+    cube[ point.index ] = {point.x, 0, point.z};
   }
   for (const auto& point : top_square) {
-    cube[ point.index ] = {point.x, 1, point.y};
+    cube[ point.index ] = {point.x, y1, point.z};
   }
 
   CommandGroup bot_commands(8);
   for (int from = 0; from < 8; ++from) {
     int to = opposite[from];
-    assert(to > 0);
+    assert(to >= 0);
 
     Command gvoid(Command::GVoid);
     int dx = cube[to].x - cube[from].x;
@@ -91,14 +94,22 @@ void SolverCubeDemolition::Solve(Trace& output) {
   //
   // assert (x0 + 30 >= x1);
   // assert (z0 + 30 >= z1);
+  if (debug) {
+    cout << "Bounding box:" << endl;
+    cout << "x = " << x0 << " <-> " << x1 << endl;
+    cout << "y = " << y0 << " <-> " << y1 << endl;
+    cout << "z = " << z0 << " <-> " << z1 << endl;
+  }
+
+
 
   // 1. Move to start of bounding box
-  MoveToCoordinate(x0 - 1, 0, z0 - 1);
+  MoveToCoordinateXZ(x0 - 1, z0 - 1);
   // 2. Spawn bots in a gird
   SpawnDoubleBotsOnFloor(x0 - 1, x1 + 1, z0 - 1, z1 + 1);
   ReplicateToTop();
 
-  total_bots_in_layer = 8;
+  int total_bots_in_layer = 8;
   {
     CommandGroup bots_flip;
     bots_flip.push_back(Command(Command::Flip));
@@ -123,12 +134,79 @@ void SolverCubeDemolition::Solve(Trace& output) {
   ExecuteCommandGroups(despawn_groups);
 
   // 6. Move to origin
-  MoveToCoordinate(0, 0, 0);
+  MoveToCoordinateXZ(0, 0);
 
   // AddCommand(Command(Command::Flip));
   AddCommand(Command(Command::Halt));
   output = state.trace;
 }
+
+
+// Happy copy-pasta from AssemblySolverLayersBase
+void SolverCubeDemolition::MoveToCoordinateXZ(int x, int z)
+{
+    Coordinate& bc = GetBotPosition();
+    Command c(Command::SMove);
+    for (; abs(x - bc.x) > 5; )
+    {
+        c.cd1 = {max(-15, min(x - bc.x, 15)), 0, 0};
+        AddCommand(c);
+    }
+    for (; abs(z - bc.z) > 5; )
+    {
+        c.cd1 = {0, 0, max(-15, min(z - bc.z, 15))};
+        AddCommand(c);
+    }
+    if (bc.x == x)
+    {
+        if (bc.z == z)
+        {
+            // Already here
+        }
+        else
+        {
+            c.cd1 = {0, 0, z - bc.z};
+            AddCommand(c);
+        }
+    }
+    else
+    {
+        if (bc.z == z)
+        {
+            c.cd1 = {x - bc.x, 0, 0};
+            AddCommand(c);
+        }
+        else
+        {
+            c.type = Command::LMove;
+            c.cd1 = {x - bc.x, 0, 0};
+            c.cd2 = {0, 0, z - bc.z};
+            AddCommand(c);
+        }
+    }
+}
+
+void SolverCubeDemolition::ExecuteCommands(const CommandGroup& group) {
+  int index = 0;
+  for (const auto& c : group) {
+    if (debug) {
+      cout << index << ": adding command " << c << endl;
+    }
+    state.trace.commands.push_back(c);
+    index += 1;
+  }
+  if (debug) {
+    cout << "state.Step()" << endl;
+  }
+  state.Step();
+}
+
+void SolverCubeDemolition::ExecuteCommandGroups(const vector<CommandGroup>& groups) {
+  for (const auto& g : groups) {
+    ExecuteCommands(g);
+  }
+}
+
 
 void SolverCubeDemolition::ReplicateToTop() {
   CommandGroup replication_group;
@@ -177,7 +255,7 @@ void SolverCubeDemolition::ShrinkToBottom() {
     }
     {
       Command fusionS(Command::FusionS);
-      fusionP.cd1 = {0, -1, 0};
+      fusionS.cd1 = {0, -1, 0};
       fusion_group[ top_ids[i] ] = fusionS;
     }
   }
@@ -214,6 +292,14 @@ void SolverCubeDemolition::SpawnDoubleBotsOnFloor(int xmin, int xmax, int zmin, 
     despawn_groups.push_back(inverser.InverseForBot0(all_groups[i]));
   }
 }
+
+SolverCubeDemolition::SolverCubeDemolition(const Matrix& m)
+{
+  state.Init(m.GetR(), Trace());
+  matrix = m;
+  // cout << matrix;
+}
+
 
 Evaluation::Result SolverCubeDemolition::Solve(const Matrix& m, Trace& output)
 {

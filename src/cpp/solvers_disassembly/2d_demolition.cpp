@@ -1,7 +1,9 @@
 #include "2d_demolition.h"
 #include "helpers.h"
 
+namespace {
 constexpr bool debug = false;
+}
 
 namespace {
 // using step as 1 less that maximum of long move

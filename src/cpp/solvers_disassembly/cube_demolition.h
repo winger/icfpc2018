@@ -10,6 +10,7 @@ protected:
   Matrix matrix;
   State state;
 
+  // int total_bots_in_layer{0};
   vector<CommandGroup> despawn_groups;
 
   // bounding box
@@ -23,8 +24,15 @@ protected:
   void SpawnDoubleBotsOnFloor(int xmin, int xmax, int zmin, int zmax);
   void ReplicateToTop();
   void ShrinkToBottom();
-
   void DemolishCube();
+
+  // copy-copy-pasta
+  Coordinate& GetBotPosition() { return state.all_bots[0].c; }
+  void AddCommand(const Command& c) { state.trace.commands.push_back(c); state.Step(); }
+  void ExecuteCommands(const CommandGroup& group);
+  void ExecuteCommandGroups(const vector<CommandGroup>& groups);
+
+  void MoveToCoordinateXZ(int x, int z);
 
   SolverCubeDemolition(const Matrix& m);
   void Solve(Trace& output);

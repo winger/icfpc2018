@@ -113,7 +113,7 @@ vector<CommandGroup> SpawnBotAndMove(XZCoord current, XZCoord next, int num_wait
   }
   num_waiters += 1;
 
-  if (dx > 0) {
+  if (dx != 0) {
     Command c(Command::SMove);
     c.cd1 = {0, 0, 0};
     auto moves = GetSMovesByOneAxis(current.x + sign(dx), next.x);
