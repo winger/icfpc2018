@@ -50,6 +50,7 @@ Trace Trace::Cat(const Trace& a, const Trace& b) {
         result.commands.pop_back();
     }
     result.commands.insert(result.commands.end(), b.commands.begin(), b.commands.end());
+    result.tag = a.tag + ", " + b.tag;
     return result;
 }
 
