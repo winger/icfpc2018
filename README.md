@@ -4,6 +4,14 @@
 Team name is a fusion from 2 teams: "Snakes vs Lambdas" and "Coding Monkeys" of
 the corresponding team members that were participating separately before.
 
+## Team members
+
+* Alex
+* Den
+* Dmitry
+* Oleg
+* Seva
+
 ## Usage
 
 
