@@ -180,12 +180,12 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 {
     Traces traces;
 
-    if (cmd.int_args["base"]) {
-        Trace temp;
-        AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base, true);
-        temp.tag = "parallel_base";
-        traces.push_back(temp);
-    }
+    // if (cmd.int_args["base"]) {
+    //     Trace temp;
+    //     AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base, true);
+    //     temp.tag = "parallel_base";
+    //     traces.push_back(temp);
+    // }
 
     if (Grounder::IsByLayerGrounded(target)) {
         try {

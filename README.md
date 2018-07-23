@@ -4,6 +4,14 @@
 Team name is a fusion from 2 teams: "Snakes vs Lambdas" and "Coding Monkeys" of
 the corresponding team members that were participating separately before.
 
+## Team members
+
+* Alex
+* Den
+* Dmitry
+* Oleg
+* Seva
+
 ## Usage
 
 
@@ -63,12 +71,17 @@ Further action is a sheer prescripted work. We construct the object layer by lay
 
 `SolverCubeDemolition`
 
-* This only works on problems less than `30x30x30` dimensions of bounding box.
-* It forks bots and puts into corners of the cube.
-* Then does one `GVoid` to wipe it
-* Doesn't even flip the harmonics
+ * This only works on problems less than `30x30x30` dimensions of bounding box.
+ * It forks bots and puts into corners of the cube.
+ * Then does one `GVoid` to wipe it
+ * Doesn't even flip the harmonics
 
+`Solver2D_Demolition_Tuned` and `SolverCubeDemolition_Tuned`
 
+ * Obviously, finely tuned versions to improve energy usage
+ * Fissions and fusions are manually aligned to axis to save energy
+ * Bounding box is (0, 0, 0)-based when possible to save time on movement
+ * Empty slices are ignored
 
 ## Reassembly
 

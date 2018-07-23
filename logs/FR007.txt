@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+trace=SolverCubeDemolition_Tuned, parallel_base_and_bots+autoharmonic energy=4465605 correct=1
+trace=../../proxyTracesF/FR007.nbt energy=4465605 correct=1
+trace=SolverCubeDemolition_Tuned, parallel_base_and_bots+autoharmonic+autoharmonic energy=4465605 correct=1
+=======
 trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart+autoharmonic energy=5133979 correct=1
 trace=../../proxyTracesF/FR007.nbt energy=4465605 correct=1
+>>>>>>> 84f880e8db8ca2c5355f4e85fccf58adaa2657d1
 trace=../../proxyTracesF/FR007.nbt+autoharmonic energy=4465605 correct=1
