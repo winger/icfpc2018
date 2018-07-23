@@ -2,15 +2,13 @@
 #include "grounder.h"
 #include "distance_calculator.h"
 
-AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e, bool l) : matrix(m), erase(e), levitation(l) {
-    state.Init(m.GetR(), Trace());
+AssemblySolverLayersBase::AssemblySolverLayersBase(const Matrix& m, bool e, bool l) : SolverBase(m, l), erase(e) {
     if (erase) {
         state.matrix = m;
         state.backMatrix = m;
     }
     helper_mode = false;
     projectionGrounded = Grounder::IsProjectionGrounded(m);
-    target = {0, 0, 0};
 }
 
 void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
@@ -19,86 +17,6 @@ void AssemblySolverLayersBase::SetTargetCoordinate(const Coordinate& c)
     helper_mode = true;
     target = c;
     GetBotPosition() = target;
-}
-
-void AssemblySolverLayersBase::MoveToCoordinate(int x, int z)
-{
-    assert(x >= 0 && x < matrix.GetR());
-    assert(z >= 0 && z < matrix.GetR());
-    Coordinate& bc = GetBotPosition();
-    Command c(Command::SMove);
-    for (; abs(x - bc.x) > 5; )
-    {
-        c.cd1 = {max(-15, min(x - bc.x, 15)), 0, 0};
-        AddCommand(c);
-    }
-    for (; abs(z - bc.z) > 5; )
-    {
-        c.cd1 = {0, 0, max(-15, min(z - bc.z, 15))};
-        AddCommand(c);
-    }
-    if (bc.x == x)
-    {
-        if (bc.z == z)
-        {
-            // Already here
-        }
-        else
-        {
-            c.cd1 = {0, 0, z - bc.z};
-            AddCommand(c);
-        }
-    }
-    else
-    {
-        if (bc.z == z)
-        {
-            c.cd1 = {x - bc.x, 0, 0};
-            AddCommand(c);
-        }
-        else
-        {
-            c.type = Command::LMove;
-            c.cd1 = {x - bc.x, 0, 0};
-            c.cd2 = {0, 0, z - bc.z};
-            AddCommand(c);
-        }
-    }
-}
-
-void AssemblySolverLayersBase::MoveToCoordinate(int x, int y, int z, bool finalize)
-{
-    Coordinate& bc = GetBotPosition();
-    Command c(Command::SMove);
-    c.cd1 = {0, 0, 0};
-    if (finalize)
-    {
-        MoveToCoordinate(x, z);
-        for (; bc.y != y; )
-        {
-            c.cd1.dy = max(-15, min(y - bc.y, 15));
-            AddCommand(c);
-        }
-    }
-    else
-    {
-        for (; bc.y != y; )
-        {
-            c.cd1.dy = max(-15, min(y - bc.y, 15));
-            AddCommand(c);
-        }
-        MoveToCoordinate(x, z);
-    }
-}
-
-void AssemblySolverLayersBase::SolveInit() {
-    if (!helper_mode) {
-        if (!projectionGrounded) {
-            if (levitation) {
-                AddCommand(Command(Command::Flip));
-            }
-        }
-    }
 }
 
 bool AssemblySolverLayersBase::NeedChange(const Coordinate& c) const {
@@ -287,28 +205,6 @@ size_t AssemblySolverLayersBase::SolveGreedy(int y, size_t& count) {
     return GreedyFill(GetBotPosition(), false, count);
 }
 
-StateSnapshot AssemblySolverLayersBase::GetSnapshot() {
-    return {matrix, state};
-}
-
-void AssemblySolverLayersBase::ApplySnapshot(const StateSnapshot& s) {
-    matrix = s.matrix;
-    state = s.state;
-}
-
-void AssemblySolverLayersBase::SelectBestSnapshot(const StateSnapshots& s) {
-    size_t best_energy = s[0].state.energy;
-    size_t best_index = 0;
-    for (size_t i = 1; i < s.size(); ++i) {
-        assert(s[i].matrix == s[0].matrix);
-        if (s[i].state.energy < best_energy) {
-            best_energy = s[i].state.energy;
-            best_index = i;
-        }
-    }
-    ApplySnapshot(s[best_index]);
-}
-
 void AssemblySolverLayersBase::SolveLayer(int y) {
     int r = matrix.GetR();
     // Get box
@@ -366,20 +262,6 @@ void AssemblySolverLayersBase::SolveLayer(int y) {
     snapshots.emplace_back(GetSnapshot());
 
     SelectBestSnapshot(snapshots);
-}
-
-void AssemblySolverLayersBase::SolveFinalize() {
-    if (helper_mode) {
-        MoveToCoordinate(target.x, target.y, target.z, true);
-    } else {
-        if (!projectionGrounded) {
-            if (levitation) {
-                AddCommand(Command(Command::Flip));
-            }
-        }
-        MoveToCoordinate(target.x, target.y, target.z, true);
-        AddCommand(Command(Command::Halt));
-    }
 }
 
 void AssemblySolverLayersBase::Solve(Trace& output) {

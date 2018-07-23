@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../evaluation.h"
+#include "../solvers_util.h"
 #include "../state.h"
 
 // TODO:
@@ -11,42 +12,14 @@
 //   4. Check covering by crosses.
 //   4.1. There are 10 different covering by crosses, it's possible to check all of them.
 
-struct StateSnapshot {
-    Matrix matrix;
-    State state;
-};
-
-class AssemblySolverLayersBase
-{
-protected:
-    using StateSnapshots = std::vector<StateSnapshot>;
-
-    StateSnapshot GetSnapshot();
-    void ApplySnapshot(const StateSnapshot& s);
-    void SelectBestSnapshot(const StateSnapshots& s);
-
-    Matrix matrix;
+class AssemblySolverLayersBase : public SolverBase {
+   protected:
     bool erase;
-    bool levitation;
-    State state;
-
-    bool helper_mode;
-    bool projectionGrounded{false};
-    Coordinate target;
 
     AssemblySolverLayersBase(const Matrix& m, bool erase, bool levitation);
 
     void SetTargetCoordinate(const Coordinate& c);
 
-    void AddCommand(const Command& c) {
-        state.trace.commands.emplace_back(c);
-        state.Step();
-    }
-    Coordinate& GetBotPosition() { return state.all_bots[0].c; }
-    void MoveToCoordinate(int x, int z);
-    void MoveToCoordinate(int x, int y, int z, bool finalize = false);
-
-    void SolveInit();
     void SolveZ1_GetRZ(int x, int y, int& z0, int& z1);
     void SolveZ1_Fill(int x, int y, bool direction);
     void SolveZ1(int x, int y);
@@ -57,11 +30,10 @@ protected:
     size_t SolveGreedy(int y, size_t& count);
     size_t GreedyFill(const Coordinate& c0, bool dry, size_t& count);
     void SolveLayer(int y);
-    void SolveFinalize();
     void Solve(Trace& output);
     bool NeedChange(const Coordinate& c) const;
 
-public:
+   public:
     static Evaluation::Result Solve(const Matrix& m, Trace& output, bool erase, bool levitation);
     static Evaluation::Result SolveHelper(const Matrix& m, Coordinate first_and_last, Trace& output, bool levitation);
 };

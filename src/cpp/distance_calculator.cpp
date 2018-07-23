@@ -66,7 +66,49 @@ struct MoveEnergyCalculator {
     vector<vector<int16_t>> distances;
 };
 
+struct MoveEnergyCalculator3D {
+    static constexpr size_t MAX = 50;
+
+    MoveEnergyCalculator3D() {
+        vector<int16_t> dummy1(MAX);
+        vector<vector<int16_t>> dummy2(MAX, dummy1);
+        distances.resize(MAX, dummy2);
+
+        for (size_t i = 0; i < MAX; ++i) {
+            for (size_t j = 0; j < MAX; ++j) {
+                for (size_t k = 0; k < MAX; ++k) {
+                    distances[i][j][k] = MoveEnergy(i, j, k);
+                }
+            }
+        }
+    }
+
+    int16_t MoveEnergy(int x, int y, int z) const {
+        return 8*(abs(x) + abs(y) + abs(z));
+    }
+
+    int16_t Get(int x, int y, int z) const {
+        if (x < 0 || x >= MAX) {
+            return INF_DISTANCE;
+        }
+        if (y < 0 || y >= MAX) {
+            return INF_DISTANCE;
+        }
+        if (z < 0 || z >= MAX) {
+            return INF_DISTANCE;
+        }
+        return distances[x][y][z];
+    }
+
+    vector<vector<vector<int16_t>>> distances;
+};
+
 int MoveEnergy(int x, int z) {
     static const MoveEnergyCalculator clc;
     return clc.Get(abs(x), abs(z));
+}
+
+int MoveEnergy(const Coordinate& a, const Coordinate& b) {
+    static const MoveEnergyCalculator3D clc;
+    return clc.Get(abs(a.x - b.x), abs(a.y - b.y), abs(a.z - b.z));
 }

@@ -5,7 +5,7 @@
 #include "solvers_assembly/layers_base.h"
 #include "solvers_assembly/layers_parallel.h"
 #include "solvers_disassembly/2d_demolition.h"
-
+#include "solvers_reassembly/relayers_base.h"
 
 #include "base.h"
 #include "command_line.h"
@@ -20,6 +20,8 @@ static constexpr size_t N_LIGHTNING_TESTS = 186;
 static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
+
+static constexpr size_t REASSEMBLE_THRESHOLD = 30;
 
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
     ofstream file(filename);
@@ -160,6 +162,15 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
         traces.push_back(temp);
     }
 
+    if (source.GetR() < REASSEMBLE_THRESHOLD) {
+        try {
+            Trace temp;
+            ReassemblySolverLayersBase::Solve(source, target, temp, true);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
+    }
+
     if (!cmd.int_args["levitation"]) {
         try {
             Trace temp;
@@ -200,6 +211,15 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
         traces.push_back(trace);
         Evaluation::Result result = Evaluation::Evaluate(source, target, trace);
         assert(result.correct);
+    }
+
+    if (source.GetR() < REASSEMBLE_THRESHOLD) {
+        try {
+            Trace temp;
+            ReassemblySolverLayersBase::Solve(source, target, temp, true);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
     }
 
     if (!cmd.int_args["levitation"]) {
@@ -254,6 +274,15 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         Trace tmp2;
         SolveAssemble(p, voidM, target, tmp2);
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
+    }
+
+    if (source.GetR() < REASSEMBLE_THRESHOLD) {
+        try {
+            Trace temp;
+            ReassemblySolverLayersBase::Solve(source, target, temp, true);
+            traces.push_back(temp);
+        } catch (const StopException& e) {
+        }
     }
 
     if (FileExists(p.GetProxy())) {
@@ -352,10 +381,15 @@ void Solver::CheckAll(const std::string& round) {
     std::cout << total_ok << "/" << checkResults.size() << " Score: " << total_score <<  " "  << total_max_score << std::endl;
 }
 
-bool MergeProblemWithSubmit(const Problem& p) {
+struct MergeResult {
+    bool updated;
+    int score_diff;
+};
+
+MergeResult MergeProblemWithSubmit(const Problem& p) {
     if (!FileExists(p.GetProxy())) {
         cout << p.index << ": NOTHING in src" << endl;
-        return false;
+        return {false, 0};
     }
 
     auto checkProxy = Solver::Check(p, p.GetProxy());
@@ -364,25 +398,29 @@ bool MergeProblemWithSubmit(const Problem& p) {
     assert(checkSubmit.correct);
 
     bool need_replace = checkProxy < checkSubmit;
+    int score_diff = 0;
     if (need_replace) {
         Trace t;
         t.ReadFromFile(p.GetProxy());
         t.WriteToFile(p.GetSubmitOutput());
         WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
         cout << p.Name() << ": BETTER " << checkProxy.energy << " < " << checkSubmit.energy << endl;
+        score_diff = checkProxy.score - checkSubmit.score;
     } else {
         cout << p.Name() << ": NOT BETTER" << endl;
     }
-    return need_replace;
+    return {need_replace, score_diff};
 }
 
 void Solver::MergeWithSubmit(const std::string& round) {
-    auto mergeResults = runForEachProblem<bool>(round, [](const Problem& p) { return MergeProblemWithSubmit(p); });
+    auto mergeResults = runForEachProblem<MergeResult>(round, [](const Problem& p) { return MergeProblemWithSubmit(p); });
 
     size_t total_ok = 0;
+    int score_diff = 0;
     for (const auto& cr: mergeResults) {
-        total_ok += cr;
+        total_ok += cr.updated;
+        score_diff += cr.score_diff;
     }
 
-    cout << "Merge replaced " << total_ok << " solutions." << endl;
+    cout << "Merge replaced " << total_ok << " solutions with " << score_diff << " gain." << endl;
 }

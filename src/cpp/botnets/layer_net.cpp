@@ -204,9 +204,55 @@ void LayerNet::Relocate(Trace& output, std::vector<int> const& chunk) {
 
 void LayerNet::Cover(
     Trace& output,
-    std::vector<int> const& chunk,
-    std::map<int /* x */, std::vector<int>> const& xzPlane) {
+    std::map<int /* x */, std::vector<int>>& xzPlane) {
 
+  std::map<int /* x */, int /* id */> pos;
+  int zstatus = 0;
+  for (auto const& kv: bots) {
+    pos[kv.second.x] = kv.first;
+    zstatus = kv.second.z;
+  }
+  int destZ = zstatus == 0 ? matrix.GetR() - 1 : 0;
+  std::vector<BotCoverTask> tasks;
+  for (auto const& kv: pos) {
+    if (xzPlane.find(kv.first) == xzPlane.end()) {
+      auto& tmp = xzPlane[kv.first];
+    }
+    tasks.push_back(BotCoverTask(xzPlane[kv.first], kv.second, destZ));
+    xzPlane[kv.first].clear();
+  }
+  while (true) {
+    bool stillGo = false;
+    std::map<int /* bid */, Command> cmds;
+    for (auto& task: tasks) {
+      stillGo |= task.DoStupidStep(cmds, bots);
+    }
+    if (stillGo) {
+      CleanCmds(output, cmds);
+    } else {
+      break;
+    }
+  }
+}
+
+bool BotCoverTask::DoStupidStep(
+    std::map<int /* bid */, Command>& cmds,
+    std::map<int /* id */, LayerBot> bots) {
+  auto& bot = bots[bid];
+  Command cmd;
+  if (points.size() == 0) {
+    cmd = bot.MoveTowards(bot.x, bot.y, destZ);
+  } else {
+    if (points[0] == bot.z) {
+      cmd = Command(Command::Fill);
+      cmd.cd1 = {0, -1, 0};
+      points.erase(points.begin());
+    } else {
+      cmd = bot.MoveTowards(bot.x, bot.y, points[0]);
+    }
+  }
+  cmds[bid] = cmd;
+  return cmd.type != Command::Wait;
 }
 
 void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {
@@ -233,7 +279,7 @@ void LayerNet::CoverPatch(std::vector<int> layer, Trace& output) {
       xvs.begin() + i + curChunkSize,
       chunk.begin());
     Relocate(output, chunk);
-    Cover(output, chunk, xzPlane);
+    Cover(output, xzPlane);
   }
 }
 
