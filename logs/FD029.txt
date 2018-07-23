@@ -1,8 +1,5 @@
-trace=base energy=882138974 correct=1
-trace=reassembly energy=8894430124 correct=1
 trace=Solver2D_Demolition energy=47092610 correct=1
 trace=SolverCubeDemolition energy=2539140 correct=1
 trace=SolverCubeDemolition_Tuned energy=1567344 correct=1
 trace=../../proxyTracesF/FD029.nbt energy=1567344 correct=1
-trace=reassembly+autoharmonic energy=8650215124 correct=1
 trace=Solver2D_Demolition+autoharmonic energy=6835450 correct=1
