@@ -38,6 +38,7 @@ std::vector<T> runForEachProblem(const std::string& round, std::function<T(const
     auto threads = cmd.int_args["threads"];
     std::vector<T> result;
     if (threads > 1) {
+        cout << "run in " << threads << " threads" << endl;
         ThreadPool pool(threads);
 
         std::vector<std::future<T>> futures;
