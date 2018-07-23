@@ -352,14 +352,14 @@ Solution Solver::Solve(const Problem& p) {
         Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
         s.Set(solution_result, default_result);
         cout << "Test " << p.Name() << ": " << s.score << " " << s.max_score << " r=" << solution_result.r << endl;
+        {
+            std::lock_guard<std::mutex> guard(solving_mutex);
+            solving.erase(p.Name());
+        }
         return s;
     } catch (...) {
         cerr << "Exception in handling '" << p.Name() << "'" << endl;
         throw;
-    }
-    {
-        std::lock_guard<std::mutex> guard(solving_mutex);
-        solving.erase(p.Name());
     }
 }
 
