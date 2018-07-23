@@ -1,2 +1,2 @@
-trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart_naive energy=5098481 correct=1
-trace=../../proxyTracesF/FR008.nbt energy=5098481 correct=1
+trace=SolverCubeDemolition_Tuned, non_gravitated_solver_smart energy=41651281 correct=1
+trace=../../proxyTracesF/FR008.nbt energy=9227281 correct=1

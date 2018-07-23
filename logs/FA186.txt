@@ -1,1 +1,2 @@
-trace=../../proxyTracesF/FA186.nbt energy=13822505463144 correct=1
+trace=non_gravitated_solver_stupid energy=49322933450446 correct=1
+trace=non_gravitated_solver_smart energy=11800207338326 correct=1

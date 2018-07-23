@@ -1,0 +1,1 @@
+trace=Solver2D_Demolition, non_gravitated_solver_smart energy=13402048694344 correct=1

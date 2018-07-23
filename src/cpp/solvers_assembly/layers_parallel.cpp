@@ -3,6 +3,7 @@
 #include "layers_base.h"
 
 #include "../auto_harmonic.h"
+#include "../command_line.h"
 #include "../constants.h"
 #include "../coordinate_split.h"
 
@@ -138,7 +139,9 @@ void AssemblySolverLayersParallel::Solve(const Matrix& source, const Matrix& tar
     Trace temp;
     AssemblySolverLayersParallel solver(target, split_axis, split_coordinate, levitation);
     solver.Solve(temp);
-    AutoHarmonic::ImproveTrace(source, target, temp, output);
+    if (cmd.int_args["ah"]) {
+        AutoHarmonic::ImproveTrace(source, target, temp, output);
+    }
 }
 
 Evaluation::Result AssemblySolverLayersParallel::Solve(const Matrix& source, const Matrix& target, Trace& output, SplitSearchMode mode, bool levitation)

@@ -26,7 +26,8 @@ static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
-static constexpr size_t REASSEMBLE_THRESHOLD = 31;
+static constexpr size_t REASSEMBLE_THRESHOLD = 1;
+static constexpr size_t BASE_AND_BOTS_THRESHOLD = 70;
 
 namespace {
 void WriteEnergyToFile(uint64_t energy, const string& filename) {
@@ -178,7 +179,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 {
     Traces traces;
 
-    {
+    if (cmd.int_args["base"]) {
         Trace temp;
         AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base, true);
         temp.tag = "parallel_base";
@@ -223,20 +224,25 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
       cerr << "Error: " << e.what() << endl;
     }
 
-    try {
-      Trace temp;
-      SolverNonGravitated::Solve(target, temp, true, true);
-      temp.tag = "non_gravitated_solver_smart_naive";
-      traces.push_back(temp);
-    } catch (std::runtime_error const& e) {
-      cerr << "Error: " << e.what() << endl;
+    if (false) {
+        try {
+            Trace temp;
+            SolverNonGravitated::Solve(target, temp, true, true);
+            temp.tag = "non_gravitated_solver_smart_naive";
+            traces.push_back(temp);
+        } catch (std::runtime_error const& e) {
+            cerr << "Error: " << e.what() << endl;
+        }
     }
 
-    if (source.GetR() < 70) {
-        Trace temp;
-        AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base_and_bots, true);
-        temp.tag = "parallel_base_and_bots";
-        traces.push_back(temp);
+    if (cmd.int_args["base"]) {
+        if (source.GetR() < BASE_AND_BOTS_THRESHOLD) {
+            Trace temp;
+            AssemblySolverLayersParallel::Solve(source, target, temp, AssemblySolverLayersParallel::base_and_bots,
+                                                true);
+            temp.tag = "parallel_base_and_bots";
+            traces.push_back(temp);
+        }
     }
 
     if (p.assembly && (source.GetR() < REASSEMBLE_THRESHOLD)) {
@@ -249,7 +255,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
     }
 
     assert(!traces.empty());
-    if (p.assembly) {
+    if (p.assembly && !cmd.int_args["regen"]) {
         Trace temp;
         if (FileExists(p.GetProxy())) {
             temp.ReadFromFile(p.GetProxy());
@@ -267,7 +273,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
 void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matrix& target, Trace& output) {
     vector<Trace> traces;
 
-    {
+    if (cmd.int_args["base"]) {
         Trace trace;
         AssemblySolverLayersBase::Solve(source, trace, true, true);
         trace.tag = "base";
@@ -339,7 +345,7 @@ void Solver::SolveDisassemble(const Problem& p, const Matrix& source, const Matr
     }
     // assert(false);
 
-    if (p.disassembly) {
+    if (p.disassembly && !cmd.int_args["regen"]) {
         if (FileExists(p.GetProxy())) {
             Trace temp;
             temp.ReadFromFile(p.GetProxy());
@@ -378,7 +384,7 @@ void Solver::SolveReassemble(const Problem& p, const Matrix& source, const Matri
         traces.emplace_back(Trace::Cat(tmp1, tmp2));
     }
 
-    if (FileExists(p.GetProxy())) {
+    if (FileExists(p.GetProxy()) && !cmd.int_args["regen"]) {
         Trace temp;
         temp.ReadFromFile(p.GetProxy());
         traces.emplace_back(std::move(temp));
@@ -518,6 +524,19 @@ MergeResult MergeProblemWithSubmit(const Problem& p) {
     }
 
     auto checkProxy = Solver::Check(p, p.GetProxy());
+    auto replace = [&p, &checkProxy]() {
+        Trace t;
+        t.ReadFromFile(p.GetProxy());
+        t.WriteToFile(p.GetSubmitOutput());
+        WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
+    };
+
+    if (!FileExists(p.GetSubmitOutput())) {
+        replace();
+        cout << p.Name() << ": NEW" << endl;
+        return {true, 0};
+    }
+
     auto checkSubmit = Solver::Check(p, p.GetSubmitOutput());
     assert(checkProxy.correct);
     assert(checkSubmit.correct);
@@ -525,10 +544,7 @@ MergeResult MergeProblemWithSubmit(const Problem& p) {
     bool need_replace = checkProxy < checkSubmit;
     int score_diff = 0;
     if (need_replace) {
-        Trace t;
-        t.ReadFromFile(p.GetProxy());
-        t.WriteToFile(p.GetSubmitOutput());
-        WriteEnergyToFile(checkProxy.energy, p.GetSubmitEnergyInfo());
+        replace();
         cout << p.Name() << ": BETTER " << checkProxy.energy << " < " << checkSubmit.energy << endl;
         score_diff = checkProxy.score - checkSubmit.score;
     } else {
@@ -551,36 +567,31 @@ void Solver::MergeWithSubmit(const std::string& round) {
 }
 
 int WriteMetadataForProblem(const Problem& p) {
-  Matrix source, target;
-  if (p.assembly) {
-      target.ReadFromFile(p.GetTarget());
-      source.Init(target.GetR());
-  } else if (p.disassembly) {
-      source.ReadFromFile(p.GetSource());
-      target.Init(source.GetR());
-  } else if (p.reassembly) {
-      source.ReadFromFile(p.GetSource());
-      target.ReadFromFile(p.GetTarget());
-  }
+    Matrix source, target;
+    if (p.assembly) {
+        target.ReadFromFile(p.GetTarget());
+        source.Init(target.GetR());
+    } else if (p.disassembly) {
+        source.ReadFromFile(p.GetSource());
+        target.Init(source.GetR());
+    } else if (p.reassembly) {
+        source.ReadFromFile(p.GetSource());
+        target.ReadFromFile(p.GetTarget());
+    }
 
+    Trace trace_dflt;
+    trace_dflt.ReadFromFile(p.GetDefaultTrace());
+    Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
+    auto max_score = unsigned(1000.0 * unsigned(log(default_result.r) / log(2)));
 
-  Trace trace_dflt;
-  trace_dflt.ReadFromFile(p.GetDefaultTrace());
-  Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
-  auto max_score = unsigned(1000.0 * unsigned(log(default_result.r) / log(2)));
-
-  ofstream file(p.GetMetadataFile());
-  file << "dflt_energy=" << default_result.energy << endl;
-  file << "R=" << default_result.r << endl;
-  file << "max_score=" << max_score << endl;
-  cout << p.Name() << ": " << default_result.energy << endl;
-  return 0;
+    ofstream file(p.GetMetadataFile());
+    file << "dflt_energy=" << default_result.energy << endl;
+    file << "R=" << default_result.r << endl;
+    file << "max_score=" << max_score << endl;
+    cout << p.Name() << ": " << default_result.energy << endl;
+    return 0;
 }
 
-
 void Solver::WriteMetadata() {
-  auto results = runForEachProblem<int>("full", [](const Problem& p)
-    {
-        return WriteMetadataForProblem(p);
-    });
+    auto results = runForEachProblem<int>("full", [](const Problem& p) { return WriteMetadataForProblem(p); });
 }
