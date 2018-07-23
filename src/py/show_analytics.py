@@ -1,6 +1,8 @@
 
 import os
 import math
+from collections import defaultdict
+import sys
 
 
 LOGS_DIR = 'logs/'
@@ -80,11 +82,21 @@ def find_best_bot(stats):
             best_bot = bot
     return best_bot, best_energy
 
+def sort_bots_by_energy(stats):
+    result = []
+    for bot, energy in stats.energy.items():
+        if "/proxyTracesF/" in bot:
+            continue
+        result.append( (bot, energy, stats.score[bot]) )
+    result.sort(key = lambda x : x[1])
+    return result
+
+
 def main():
     log_files = os.listdir(LOGS_DIR)
 
     stats_map = {}
-
+    lift_score = defaultdict(int)
     for f in sorted(log_files):
         m = read_metadata_file(METADATA_DIR + "/" + f)
         stats = read_log_file(LOGS_DIR + "/" + f, m)
@@ -97,9 +109,17 @@ def main():
         name = f[:-4]
         stats_map[name] = stats
 
-        best_bot, best_energy = find_best_bot(stats)
-        best_score = stats.score[best_bot]
-        print "{} {} score={} max_score={}".format(name, best_bot, best_score, m.max_score)
+        sorted_list = sort_bots_by_energy(stats)
+        best_bot, best_energy, best_score = sorted_list[0]
+        next_score = sorted_list[1][2]
+        delta = best_score - next_score
+        lift_score[best_bot] += delta
+        print "{} {} score={} delta={} max_score={}".format(
+            name, best_bot, best_score, delta, m.max_score)
+
+
+    for bot, delta in lift_score.items():
+        print delta, bot
 
 if __name__ == "__main__":
     main()
