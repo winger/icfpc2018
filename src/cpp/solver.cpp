@@ -27,7 +27,7 @@ static constexpr size_t N_FULL_ASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_DISASSEMBLY_TESTS = 186;
 static constexpr size_t N_FULL_REASSEMBLY_TESTS = 115;
 
-static constexpr size_t REASSEMBLE_THRESHOLD = 70;
+static constexpr size_t REASSEMBLE_THRESHOLD = 50;
 static constexpr size_t BASE_AND_BOTS_THRESHOLD = 70;
 
 namespace {
@@ -455,6 +455,7 @@ Solution Solver::Check(const Problem& p, const std::string& filename) {
     trace_dflt.ReadFromFile(p.GetDefaultTrace());
     Evaluation::Result default_result = Evaluation::Evaluate(source, target, trace_dflt);
     Solution s;
+    s.name = p.Name();
     s.trace = trace;
     s.Set(result, default_result);
     cout << p.Name() << " " << ((result.correct) ? "OK" : "Failed") << " " << s.score << " " << s.max_score <<  endl;
@@ -506,6 +507,13 @@ void Solver::CheckAll(const std::string& round) {
     }
 
     std::cout << total_ok << "/" << checkResults.size() << " Score to ideal: " << total_max_score - total_score << std::endl;
+
+    ofstream csvOut("check_log.csv");
+    csvOut << "Test" << "," << "R" << "," << "Score" << "," << "MaxScore" << "," << "Enerry" << "," << "DefaultEnergy" << endl;
+    for (const auto& cr: checkResults) {
+        csvOut << cr.name << "," << cr.r << "," << cr.score << "," << cr.max_score << "," << cr.energy << ","
+               << cr.dflt_energy << endl;
+    }
 }
 
 struct MergeResult {

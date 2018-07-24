@@ -150,7 +150,7 @@ void Solver2D_Demolition_Tuned::Solve(Trace& output) {
       }
     }
   }
-  
+
   // 1. Move to start of bounding box
   MoveToCoordinate(x0, y1 + 1, z0);
   // 2. Spawn bots in a gird
@@ -201,10 +201,10 @@ void Solver2D_Demolition_Tuned::Solve(Trace& output) {
     }
   }
   assert (flip_done);
-  
+
   // 4. Despawn
   Despawn(y1);
-  
+
   // 5. Move to origin
   MoveToCoordinate(0, 0, 0);
 
@@ -253,7 +253,7 @@ void Solver2D_Demolition_Tuned::DemolishStrip(int y, int index) {
   CommandGroup bot_commands;
   for (int i = 0; i < total_bots_in_layer; ++i)
   {
-    bot_commands.push_back(Command(Command::Wait)); 
+    bot_commands.push_back(Command(Command::Wait));
   }
   bool demolish = false;
   for (int z_index = 0; z_index < z_coords.size(); z_index += 2) {
@@ -309,7 +309,7 @@ void Solver2D_Demolition_Tuned::DemolishWholeLayer(int y, int direction) {
   }
 }
 
-void Solver2D_Demolition_Tuned::SpawnBotsInGrid(int x0, int x1, int z0, int z1) 
+void Solver2D_Demolition_Tuned::SpawnBotsInGrid(int x0, int x1, int z0, int z1)
 {
   assert (x0 != x1);
   assert (z0 != z1);
@@ -328,7 +328,7 @@ void Solver2D_Demolition_Tuned::SpawnBotsInGrid(int x0, int x1, int z0, int z1)
   first_row.push_back(0);
 
   int num_waiters = 0;
-  for (int i = 1; i < z_coords.size(); ++i) 
+  for (int i = 1; i < z_coords.size(); ++i)
   {
     vector<CommandGroup> groups;
     CommandGroup fork_group;
@@ -365,7 +365,7 @@ void Solver2D_Demolition_Tuned::SpawnBotsInGrid(int x0, int x1, int z0, int z1)
 
     ExecuteCommandGroups(groups);
 
-    for (const auto& g : groups) 
+    for (const auto& g : groups)
     {
       all_groups.push_back(g);
     }
@@ -373,7 +373,7 @@ void Solver2D_Demolition_Tuned::SpawnBotsInGrid(int x0, int x1, int z0, int z1)
 
   vector<CommandGroup> front_groups;
   CommandGroup fork_group(first_row.size());
-  for (const auto& i: first_row) 
+  for (const auto& i: first_row)
   {
     int pos = BotPosition(state, i);
     Command fork(Command::Fission);
@@ -388,12 +388,12 @@ void Solver2D_Demolition_Tuned::SpawnBotsInGrid(int x0, int x1, int z0, int z1)
   for (int move: moves)
   {
     CommandGroup move_group(total_bots_in_layer);
-    for (const auto& i: first_row) 
+    for (const auto& i: first_row)
     {
       move_group[i] = Command(Command::Wait);
     }
 
-    for (const auto& i: second_row) 
+    for (const auto& i: second_row)
     {
       Command c(Command::SMove);
       c.cd1 = {move, 0, 0};
@@ -410,19 +410,19 @@ void Solver2D_Demolition_Tuned::SpawnBotsInGrid(int x0, int x1, int z0, int z1)
 
 void Solver2D_Demolition_Tuned::Despawn(int y)
 {
-  auto moves = (y & 1) 
+  auto moves = (y & 1)
       ? GetSMovesByOneAxis(x_coords[1], x_coords[0] + 1)
       : GetSMovesByOneAxis(x_coords[x_coords.size() - 1], x_coords[x_coords.size() - 2] + 1);
   vector<CommandGroup> front_groups;
   for (int move: moves)
   {
     CommandGroup move_group(total_bots_in_layer);
-    for (const auto& i: first_row) 
+    for (const auto& i: first_row)
     {
       move_group[i] = Command(Command::Wait);
     }
 
-    for (const auto& i: second_row) 
+    for (const auto& i: second_row)
     {
       Command c(Command::SMove);
       c.cd1 = {move, 0, 0};
@@ -433,13 +433,13 @@ void Solver2D_Demolition_Tuned::Despawn(int y)
   ExecuteCommandGroups(front_groups);
 
   CommandGroup fusions_x(total_bots_in_layer);
-  for (int i = 0; i < first_row.size(); ++i) 
+  for (int i = 0; i < first_row.size(); ++i)
   {
     Command fusionP(Command::FusionP);
     fusionP.cd1 = {1, 0, 0};
     fusions_x[ BotPosition(state, first_row[i]) ] = fusionP;
   }
-  for (int i = 0; i < second_row.size(); ++i) 
+  for (int i = 0; i < second_row.size(); ++i)
   {
     Command fusionS(Command::FusionS);
     fusionS.cd1 = {-1, 0, 0};
@@ -457,7 +457,7 @@ void Solver2D_Demolition_Tuned::Despawn(int y)
       for (int move: moves)
       {
         CommandGroup move_group;
-        for (int j = 0; j < num_waiters; ++j) 
+        for (int j = 0; j < num_waiters; ++j)
         {
           move_group.push_back(Command(Command::Wait));
         }
@@ -469,10 +469,10 @@ void Solver2D_Demolition_Tuned::Despawn(int y)
       }
       ExecuteCommandGroups(groups);
     }
-    
+
     num_waiters--;
     CommandGroup fusion_group;
-    for (int j = 0; j < num_waiters; ++j) 
+    for (int j = 0; j < num_waiters; ++j)
     {
       fusion_group.push_back(Command(Command::Wait));
     }

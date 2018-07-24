@@ -3,6 +3,7 @@
 void Solution::Set(const Evaluation::Result& solution, const Evaluation::Result& dflt)
 {
     assert(dflt.correct);
+    r = solution.r;
     correct = solution.correct;
     energy = solution.energy;
     dflt_energy = dflt.energy;

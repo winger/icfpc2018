@@ -4,11 +4,12 @@
 #include "evaluation.h"
 #include "trace.h"
 
-struct Solution
-{
+struct Solution {
     Trace trace;
     bool correct;
 
+    std::string name;
+    int r;
     uint64_t energy;
     uint64_t dflt_energy;
     unsigned score;
