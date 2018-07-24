@@ -1,10 +1,4 @@
-trace=Solver2D_Demolition_Tuned+autoharmonic, non_gravitated_solver_smart+autoharmonic energy=932949334 correct=1
-<<<<<<< HEAD
-trace=../../proxyTracesF/FR049.nbt energy=943077352 correct=1
-trace=Solver2D_Demolition_Tuned+autoharmonic, non_gravitated_solver_smart+autoharmonic+autoharmonic energy=932949334 correct=1
-trace=../../proxyTracesF/FR049.nbt+autoharmonic energy=943077352 correct=1
-=======
-trace=../../proxyTracesF/FR049.nbt energy=932949334 correct=1
-trace=Solver2D_Demolition_Tuned+autoharmonic, non_gravitated_solver_smart+autoharmonic+autoharmonic energy=932949334 correct=1
-trace=../../proxyTracesF/FR049.nbt+autoharmonic energy=932949334 correct=1
->>>>>>> 84f880e8db8ca2c5355f4e85fccf58adaa2657d1
+trace=Solver2D_Demolition energy=813765012 correct=1
+trace=Solver2D_Demolition_Tuned energy=803636994 correct=1
+trace=Solver2D_Demolition+autoharmonic energy=100889692 correct=1
+trace=Solver2D_Demolition_Tuned+autoharmonic energy=90761674 correct=1
