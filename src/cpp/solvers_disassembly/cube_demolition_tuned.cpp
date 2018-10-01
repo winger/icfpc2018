@@ -90,7 +90,7 @@ void SolverCubeDemolition_Tuned::Solve(Trace& output) {
   }
 
   if (x1 - x0 == 0 || z1 - z0 == 0 || y1 - y0 == 0) {
-    cout << "1 dimension is not supported";
+    cout << "1 dimension is not supported" << endl;
     throw UnsupportedException();
   }
 
