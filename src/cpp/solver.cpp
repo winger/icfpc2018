@@ -511,7 +511,7 @@ void Solver::CheckAll(const std::string& round) {
 
     std::cout << total_ok << "/" << checkResults.size() << " Score to ideal: " << total_max_score - total_score << std::endl;
 
-    ofstream csvOut("check_log.csv");
+    ofstream csvOut(cmd.args["round"] + "_check_log.csv");
     csvOut << "Test"
            << ","
            << "R"
