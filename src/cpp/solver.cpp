@@ -231,7 +231,10 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
             SolverNonGravitated::Solve(target, temp, true, true);
             temp.tag = "non_gravitated_solver_smart_naive";
             traces.push_back(temp);
-        } catch (std::runtime_error const& e) {
+        } catch (StopException const& e) {
+            cerr << "Error: " << e.what() << endl;
+        }
+        catch (std::runtime_error const& e) {
             cerr << "Error: " << e.what() << endl;
         }
     }
