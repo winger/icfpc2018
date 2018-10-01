@@ -1,4 +1,2 @@
-trace=Solver2D_Demolition energy=1537464452 correct=1
-trace=Solver2D_Demolition_Tuned energy=1480390748 correct=1
-trace=Solver2D_Demolition+autoharmonic energy=188976132 correct=1
-trace=Solver2D_Demolition_Tuned+autoharmonic energy=166894428 correct=1
+trace=Solver2D_Demolition_Tuned+autoharmonic, non_gravitated_solver_smart+autoharmonic energy=1491371966 correct=1
+trace=../../proxyTracesF/FR057.nbt energy=1491371966 correct=1
