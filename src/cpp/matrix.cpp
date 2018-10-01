@@ -24,9 +24,9 @@ bool Matrix::IsGrounded(unordered_set<int>& ungrounded) const
         {
             for (int z = 0; z < size; ++z)
             {
-                size_t index = size_t(Index(x, y, z));
                 if (Get(x, y, z))
                 {
+                    size_t index = size_t(Index(x, y, z));
                     if (y == 0)
                         ds.Union(ground, index);
                     else if (Get(x, y-1, z))
@@ -47,9 +47,9 @@ bool Matrix::IsGrounded(unordered_set<int>& ungrounded) const
         {
             for (int z = 0; z < size; ++z)
             {
-                size_t index = size_t(Index(x, y, z));
                 if (Get(x, y, z))
                 {
+                    size_t index = size_t(Index(x, y, z));
                     if (ds.Find(index) != ground)
                     {
                         ungrounded.insert(index);
@@ -134,6 +134,7 @@ std::vector<int> Matrix::Reindex(int index) const {
   index /= size;
   int y = index % size;
   index /= size;
+  assert(index >= 0 && index < size);
   int x = index % size;
   return std::vector<int>{x, y, z};
 }

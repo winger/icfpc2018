@@ -55,6 +55,9 @@ void Trace::WriteToFile(const string& filename) const {
     vector<uint8_t> data;
     for (const Command& c : commands) c.Encode(data);
     ofstream file(filename, ios::binary);
+    if (!file.is_open()) {
+        cerr << "Trace " << filename << " could not be produced" << endl;
+    }
     assert(file.is_open());
     file.write(reinterpret_cast<char*>(data.data()), data.size());
     file.close();

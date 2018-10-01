@@ -50,6 +50,7 @@ public:
         size_t ppx = p[px];
         if (ppx == px)
             return px;
+        assert(ts.empty());
         do
         {
             ts.push(x);
@@ -69,6 +70,22 @@ public:
     size_t GetSize(size_t x)
     {
         return vsize[Find(x)];
+    }
+
+    bool operator==(DisjointSet& ds) {
+        if (n != ds.n) {
+            return false;
+        }
+        for (size_t i = 0; i < n; ++i) {
+            if (GetSize(i) != ds.GetSize(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator!=(DisjointSet& ds) {
+        return !(*this == ds);
     }
 
 protected:

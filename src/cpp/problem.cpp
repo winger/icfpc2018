@@ -1,5 +1,7 @@
 #include "problem.h"
 
+#include "command_line.h"
+
 std::string Problem::GetType() const {
     assert(assembly + disassembly + reassembly == 1);
     if (assembly) {
@@ -19,8 +21,15 @@ std::string Problem::GetSI() const { return to_string(1000 + index).substr(1); }
 std::string Problem::GetPrefix() const {
     if (round == "L") {
         return "../../lightning/";
+    } else if (round == "F") {
+        if (cmd.args["round"] == "postfull") {
+            return "../../postfull/";
+        } else {
+            return "../../";
+        }
     } else {
-        return "../../";
+        std::cerr << round << std::endl;
+        assert(false);
     }
 }
 

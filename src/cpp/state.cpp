@@ -40,7 +40,6 @@ void State::Init(const Matrix& source, const Trace& _trace)
 
     ground = unsigned(source.GetVolume());
     ds.Init(source.GetVolume() + 1);
-    run_mode = Unknown;
     filled_volume = backMatrix.GetFilledVolume();
     RebuildDS();
 }
@@ -61,9 +60,9 @@ void State::RebuildDS()
         {
             for (int z = 0; z < size; ++z)
             {
-                size_t index = size_t(matrix.Index(x, y, z));
                 if (matrix.Get(x, y, z))
                 {
+                    size_t index = size_t(matrix.Index(x, y, z));
                     if (y == 0)
                         ds.Union(ground, index);
                     else if (matrix.Get(x, y-1, z))
@@ -84,9 +83,9 @@ void State::RebuildDS()
         {
             for (int z = 0; z < size; ++z)
             {
-                size_t index = size_t(matrix.Index(x, y, z));
                 if (matrix.Get(x, y, z))
                 {
+                    size_t index = size_t(matrix.Index(x, y, z));
                     if (ds.Find(index) != ground_head)
                     {
                         knownUngrounded.insert(index);
@@ -97,101 +96,82 @@ void State::RebuildDS()
     }
 
     ds_rebuild_required = false;
-    grounded = (knownUngrounded.size() == 0);
+    grounded = knownUngrounded.empty();
 }
 
-
-void State::Fulfill() {
-  for (auto v: toAdd) {
-    backMatrix.Fill(v);
-  }
-  for (auto v: toDelete) {
-    backMatrix.Erase(v);
-  }
-  toAdd.clear();
-  toDelete.clear();
+template<typename T>
+std::vector<T> Intersection(const std::vector<T>& a, const std::vector<T>& b) {
+    std::unordered_set<T> sa(a.begin(), a.end());
+    std::vector<T> result;
+    for (const auto& ib: b) {
+        if (sa.count(ib)) {
+            result.push_back(ib);
+        }
+    }
+    return result;
 }
 
 bool State::IsGrounded() {
-    if (toDelete.empty() && toAdd.empty())
+    if (toDelete.empty() && toAdd.empty()) {
         return grounded;
-    if (!toDelete.empty())
-    {
-        if (run_mode == Unknown)
-        {
-            run_mode = DeleteOnly;
-        }
-        else if ((run_mode == AddOnly) || (run_mode == AddOnly))
-        {
-            run_mode = Hybrid;
-        }
+    }
+    assert(Intersection(toDelete, toAdd).empty());
+    if (!toDelete.empty()) {
         ds_rebuild_required = true;
     }
-    if (!toAdd.empty())
-    {
-        if (run_mode == Unknown)
-        {
-            run_mode = AddOnly;
-        }
-        if (run_mode == DeleteOnly)
-        {
-            run_mode = DeleteAndAdd;
-        }
-        knownUngrounded.clear();
-    }
-    if (!toAdd.empty())
-    {
-        for (int index : toAdd)
-        {
-            if (backMatrix.Get(index))
+    if (!toAdd.empty()) {
+        for (int index : toAdd) {
+            if (backMatrix.Get(index)) {
                 continue;
+            }
             backMatrix.Fill(index);
             ++filled_volume;
             auto v = matrix.Reindex(index);
-            for (const std::vector<int>& vd : DIRS_3D)
-            {
+            for (const std::vector<int>& vd : DIRS_3D) {
                 int x = v[0] + vd[0];
                 int y = v[1] + vd[1];
                 int z = v[2] + vd[2];
-                if (matrix.IsInside(x, y, z))
-                {
+                if (y == 0) {
+                    ds_rebuild_required = true;
+                }
+                if (matrix.IsInside(x, y, z)) {
                     int index2 = matrix.Index(x, y, z);
-                    if (matrix.Get(index2))
-                    {
+                    if (matrix.Get(index2)) {
                         ds.Union(index, index2);
                     }
                 }
-                if (y == 0)
-                    ds.Union(index, ground);
             }
         }
-        if (ds_rebuild_required)
-            RebuildDS();
-        else
-            grounded = (ds.GetSetsCount() + filled_volume == matrix.GetVolume() + 1);
+        auto ground_head = ds.Find(ground);
+        for (int index : toAdd) {
+            if (ds.Find(index) != ground_head) {
+                knownUngrounded.insert(index);
+            }
+        }
+        if (ds.GetSetsCount() + filled_volume != matrix.GetVolume() + 1) {
+            ds_rebuild_required = true;
+        }
         toAdd.clear();
     }
-    if (!toDelete.empty())
-    {
-        for (int index : toDelete)
-        {
-            if (!backMatrix.Get(index))
+    if (!toDelete.empty()) {
+        for (int index : toDelete) {
+            if (!backMatrix.Get(index)) {
                 continue;
+            }
             backMatrix.Erase(index);
             --filled_volume;
-            if (knownUngrounded.find(index) != knownUngrounded.end())
+            if (knownUngrounded.find(index) != knownUngrounded.end()) {
                 knownUngrounded.erase(index);
+            }
         }
-        if (knownUngrounded.empty())
-        {
-            if (ds_rebuild_required)
-                RebuildDS();
-            else
-                grounded = true;
-        }
-        else
-            grounded = false;
         toDelete.clear();
+    }
+    grounded = knownUngrounded.empty();
+    if (!grounded) {
+        ds_rebuild_required = true;
+    }
+    if (ds_rebuild_required) {
+        RebuildDS();
     }
     return grounded;
 }
@@ -361,7 +341,7 @@ void State::Step()
         }
     }
 
-    assert (correct);
+    assert(correct);
     for (auto const& erase : erases)
     {
         set<Coordinate> corners = erase.first.Corners();
@@ -392,11 +372,30 @@ void State::Step()
     {
         harmonics = !harmonics;
     }
-    assert (correct);
+    assert(correct);
     bool icValid = ic.IsValid();
     correct = correct && icValid;
     assert(correct);
     if (!cmd.int_args["levitation"]) {
+        if (cmd.int_args["check_grounded"]) {
+            size_t toAddSize = toAdd.size();
+            size_t toDeleteSize = toDelete.size();
+            if (IsGrounded() != matrix.IsGrounded()) {
+                cerr << "[ERROR] "
+                     << "IsGrounded problem in Trace_Pos = " << trace_pos << " IsGrounded = " << IsGrounded()
+                     << " matrix.IsGrounded = " << matrix.IsGrounded() << " toAddSize = " << toAddSize
+                     << " toDeleteSize = " << toDeleteSize << endl;
+            }
+            assert(matrix == backMatrix);
+            auto oldDS = ds;
+            RebuildDS();
+            if (oldDS != ds) {
+                cerr << "[ERROR] "
+                     << "DS problem in Trace_Pos = " << trace_pos << " IsGrounded = " << IsGrounded()
+                     << " matrix.IsGrounded = " << matrix.IsGrounded() << " toAddSize = " << toAddSize
+                     << " toDeleteSize = " << toDeleteSize << endl;
+            }
+        }
         bool grounded = harmonics || IsGrounded();
         correct = correct && grounded;
         if (!correct) {
@@ -411,8 +410,9 @@ void State::Step()
 
 void State::Run()
 {
-    for (; trace_pos < trace.size(); )
+    for (; trace_pos < trace.size(); ) {
         Step();
+    }
 }
 
 bool State::MoveBot(BotState& bs, InterfereCheck& ic, const CoordinateDifference& cd)

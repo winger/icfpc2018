@@ -85,7 +85,7 @@ Problems Solver::ListProblems(const std::string& round) {
             p.round = "L";
             result.emplace_back(std::move(p));
         }
-    } else if (round == "full") {
+    } else if (round == "full" || round == "postfull") {
         Problem p0;
         p0.round = "F";
         for (size_t i = 1; i <= N_FULL_ASSEMBLY_TESTS; ++i) {
@@ -509,7 +509,17 @@ void Solver::CheckAll(const std::string& round) {
     std::cout << total_ok << "/" << checkResults.size() << " Score to ideal: " << total_max_score - total_score << std::endl;
 
     ofstream csvOut("check_log.csv");
-    csvOut << "Test" << "," << "R" << "," << "Score" << "," << "MaxScore" << "," << "Enerry" << "," << "DefaultEnergy" << endl;
+    csvOut << "Test"
+           << ","
+           << "R"
+           << ","
+           << "Score"
+           << ","
+           << "MaxScore"
+           << ","
+           << "Energy"
+           << ","
+           << "DefaultEnergy" << endl;
     for (const auto& cr: checkResults) {
         csvOut << cr.name << "," << cr.r << "," << cr.score << "," << cr.max_score << "," << cr.energy << ","
                << cr.dflt_energy << endl;
@@ -558,7 +568,8 @@ MergeResult MergeProblemWithSubmit(const Problem& p) {
 }
 
 void Solver::MergeWithSubmit(const std::string& round) {
-    auto mergeResults = runForEachProblem<MergeResult>(round, [](const Problem& p) { return MergeProblemWithSubmit(p); });
+    auto mergeResults =
+        runForEachProblem<MergeResult>(round, [](const Problem& p) { return MergeProblemWithSubmit(p); });
 
     size_t total_ok = 0;
     int score_diff = 0;
@@ -597,5 +608,6 @@ int WriteMetadataForProblem(const Problem& p) {
 }
 
 void Solver::WriteMetadata() {
-    auto results = runForEachProblem<int>("full", [](const Problem& p) { return WriteMetadataForProblem(p); });
+    auto results =
+        runForEachProblem<int>(cmd.args["round"], [](const Problem& p) { return WriteMetadataForProblem(p); });
 }

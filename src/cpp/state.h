@@ -34,16 +34,6 @@ public:
     void Run();
 
 protected:
-    enum RunMode
-    {
-        Unknown,
-        AddOnly,
-        DeleteOnly,
-        DeleteAndAdd,
-        Hybrid
-    };
-
-    RunMode run_mode;
     unsigned filled_volume;
     bool grounded;
     unsigned ground;
@@ -53,7 +43,6 @@ protected:
     vector<int> toDelete;
     unordered_set<int> knownUngrounded;
 
-    void Fulfill();
     void RebuildDS();
 
 public:
