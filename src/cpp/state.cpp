@@ -127,6 +127,10 @@ bool State::IsGrounded() {
             backMatrix.Fill(index);
             ++filled_volume;
             auto v = matrix.Reindex(index);
+            if (v[1] == 0) {
+                ds.Union(ds.Find(ground), index);
+                ds_rebuild_required = true;
+            }
             for (const std::vector<int>& vd : DIRS_3D) {
                 int x = v[0] + vd[0];
                 int y = v[1] + vd[1];
