@@ -42,6 +42,7 @@ protected:
     vector<int> toAdd;
     vector<int> toDelete;
     unordered_set<int> knownUngrounded;
+    size_t itGrounded{};
 
     void RebuildDS();
 

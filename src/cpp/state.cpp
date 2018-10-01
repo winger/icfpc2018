@@ -148,9 +148,20 @@ bool State::IsGrounded() {
                 knownUngrounded.insert(index);
             }
         }
+
+        unordered_set<int> knownUngroundedNew;
+        for (int index : knownUngrounded) {
+            if (ds.Find(index) != ground_head) {
+                knownUngroundedNew.insert(index);
+            }
+        }
+        knownUngrounded = std::move(knownUngroundedNew);
+
+        /*
         if (ds.GetSetsCount() + filled_volume != matrix.GetVolume() + 1) {
             ds_rebuild_required = true;
         }
+        */
         toAdd.clear();
     }
     if (!toDelete.empty()) {
@@ -167,9 +178,17 @@ bool State::IsGrounded() {
         toDelete.clear();
     }
     grounded = knownUngrounded.empty();
+    /*
     if (!grounded) {
         ds_rebuild_required = true;
     }
+    */
+
+    ++itGrounded;
+    if ((itGrounded % 10000) == 0) {
+        ds_rebuild_required = true;
+    }
+
     if (ds_rebuild_required) {
         RebuildDS();
     }
