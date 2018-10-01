@@ -99,7 +99,7 @@ void SolverCubeDemolition_Tuned::Solve(Trace& output) {
     cout << "dx = " << x1 - x0 << ", " << "dz = " << z1 - z0 << endl;
     throw UnsupportedException();
   }
-  
+
   if (debug) {
     cout << "Bounding box:" << endl;
     cout << "x = " << x0 << " <-> " << x1 << endl;
@@ -232,13 +232,13 @@ void SolverCubeDemolition_Tuned::Shrink(int xmin, int xmax, int zmin, int zmax) 
   }
 
   CommandGroup fusion_group_z(8);
-  for (int i = 0; i < z_base.size(); ++i) 
+  for (int i = 0; i < z_base.size(); ++i)
   {
     Command fusionP(Command::FusionP);
     fusionP.cd1 = {0, 0, 1};
     fusion_group_z[ BotPosition(state, z_base[i]) ] = fusionP;
   }
-  for (int i = 0; i < z_fork.size(); ++i) 
+  for (int i = 0; i < z_fork.size(); ++i)
   {
     Command fusionS(Command::FusionS);
     fusionS.cd1 = {0, 0, -1};
@@ -261,13 +261,13 @@ void SolverCubeDemolition_Tuned::Shrink(int xmin, int xmax, int zmin, int zmax) 
   }
 
   CommandGroup fusion_group_x(4);
-  for (int i = 0; i < x_base.size(); ++i) 
+  for (int i = 0; i < x_base.size(); ++i)
   {
     Command fusionP(Command::FusionP);
     fusionP.cd1 = {1, 0, 0};
     fusion_group_x[ BotPosition(state, x_base[i]) ] = fusionP;
   }
-  for (int i = 0; i < x_fork.size(); ++i) 
+  for (int i = 0; i < x_fork.size(); ++i)
   {
     Command fusionS(Command::FusionS);
     fusionS.cd1 = {-1, 0, 0};
@@ -303,7 +303,7 @@ void SolverCubeDemolition_Tuned::SpawnGrid(int xmin, int xmax, int zmin, int zma
   CommandGroup group_x;
   for (int i = 0; i < state.active_bots.size(); ++i)
   {
-    group_x.push_back(fission_x);  
+    group_x.push_back(fission_x);
   }
   ExecuteCommands(group_x);
 
@@ -325,7 +325,7 @@ void SolverCubeDemolition_Tuned::SpawnGrid(int xmin, int xmax, int zmin, int zma
   CommandGroup group_z;
   for (int i = 0; i < state.active_bots.size(); ++i)
   {
-    group_z.push_back(fission_z);  
+    group_z.push_back(fission_z);
   }
   ExecuteCommands(group_z);
 
@@ -354,5 +354,6 @@ Evaluation::Result SolverCubeDemolition_Tuned::Solve(const Matrix& m, Trace& out
 {
     SolverCubeDemolition_Tuned solver(m);
     solver.Solve(output);
+    output.Done();
     return Evaluation::Result(solver.state.IsCorrectFinal(), solver.state.energy);
 }
