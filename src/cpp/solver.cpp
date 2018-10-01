@@ -225,7 +225,7 @@ void Solver::SolveAssemble(const Problem& p, const Matrix& source, const Matrix&
       cerr << "Error: " << e.what() << endl;
     }
 
-    if (false) {
+    if (true) {
         try {
             Trace temp;
             SolverNonGravitated::Solve(target, temp, true, true);
@@ -608,6 +608,5 @@ int WriteMetadataForProblem(const Problem& p) {
 }
 
 void Solver::WriteMetadata() {
-    auto results =
-        runForEachProblem<int>(cmd.args["round"], [](const Problem& p) { return WriteMetadataForProblem(p); });
+    runForEachProblem<int>(cmd.args["round"], [](const Problem& p) { return WriteMetadataForProblem(p); });
 }
