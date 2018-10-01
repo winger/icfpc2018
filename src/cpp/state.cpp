@@ -115,7 +115,7 @@ bool State::IsGrounded() {
     if (toDelete.empty() && toAdd.empty()) {
         return grounded;
     }
-    assert(Intersection(toDelete, toAdd).empty());
+    // assert(Intersection(toDelete, toAdd).empty());
     if (!toDelete.empty()) {
         ds_rebuild_required = true;
     }
