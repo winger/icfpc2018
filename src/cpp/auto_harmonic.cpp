@@ -19,7 +19,7 @@ void AutoHarmonic::ImproveTrace(const Matrix& source, const Matrix& target, cons
     vector<TimePos> vtp;
     vtp.push_back(TimePos{0, 0, 0, 1});
     bool harmonic_used = false;
-    for (; s.trace_pos != trace.size(); s.Step())
+    for (; s.trace_pos != trace.size(); s.Step(false))
     {
         vtp.emplace_back(TimePos{s.trace_pos, s.active_bots.size(), s.harmonics, s.IsGrounded()});
         if (s.harmonics) {

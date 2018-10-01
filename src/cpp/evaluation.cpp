@@ -6,7 +6,7 @@ Evaluation::Result Evaluation::Evaluate(const Matrix& source, const Matrix& targ
 {
     State s;
     s.Init(source, t);
-    s.Run();
+    s.Run(false);
     // cout << s.matrix << endl;
 
     bool correct = (s.IsCorrectFinal() && (s.matrix == target));

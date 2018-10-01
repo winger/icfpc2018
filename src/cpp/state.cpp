@@ -176,7 +176,7 @@ bool State::IsGrounded() {
     return grounded;
 }
 
-void State::Step()
+void State::Step(bool throwStop)
 {
     vector<unsigned> bots = active_bots;
     // for (auto bid : active_bots) {
@@ -402,16 +402,20 @@ void State::Step()
             trace_pos = trace.size();
             cerr << "[WARN] State is incorrect. Grounded = " << grounded << ", Trace_Pos = " << trace_pos
                  << ", HC = " << hc << ", icValid = " << icValid << endl;
-            throw StopException();
+            if (throwStop) {
+                throw StopException();
+            }
         }
     }
-    assert(correct);
+    if (throwStop) {
+        assert(correct);
+    }
 }
 
-void State::Run()
+void State::Run(bool throwStop)
 {
     for (; trace_pos < trace.size(); ) {
-        Step();
+        Step(throwStop);
     }
 }
 

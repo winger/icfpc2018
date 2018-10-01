@@ -30,8 +30,8 @@ public:
 
     void Init(const Matrix& source, const Trace& trace);
     bool IsCorrectFinal() const;
-    void Step();
-    void Run();
+    void Step(bool throwStop = true);
+    void Run(bool throwStop = true);
 
 protected:
     unsigned filled_volume;
