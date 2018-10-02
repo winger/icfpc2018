@@ -23,12 +23,7 @@ void SolverGravitated::Order() {
     }
   }
 
-  const std::vector< std::vector<int> > DIRS_2D {
-    {-1, 0, 0},
-    {1, 0, 0},
-    {0, 0, -1},
-    {0, 0, 1}
-  };
+  static const std::vector<std::vector<int> > DIRS_2D{{-1, 0, 0}, {1, 0, 0}, {0, 0, -1}, {0, 0, 1}};
 
   std::unordered_set<int> was;
 
