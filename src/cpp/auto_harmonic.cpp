@@ -168,8 +168,8 @@ void AutoHarmonic::ImproveTrace(const Matrix& source, const Matrix& target, cons
         assert(!current_harmonic || vtp[i+1].harmonic);
     }
     output.tag = trace.tag + "+autoharmonic";
-    output.OverrideDuration(trace.Duration() + output.Duration());
     output.Done();
+    output.OverrideDuration(trace.Duration() + output.Duration());
     // cout << "AH: " << vtp.size() - 2 << " " << trace.commands.size() << " " << output.commands.size()
     // << " " << int(output.commands[0].type) << " " << int(output.commands[0].type) << " " << int(output.commands[1].type)
     // << " " << int(output.commands[output.commands.size() - 2].type) << " " << int(output.commands[output.commands.size() - 1].type) << endl;
